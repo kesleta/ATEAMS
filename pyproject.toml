@@ -1,0 +1,28 @@
+
+[build-system]
+requires = ["Cython", "setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ateams"
+version = "1.0.1"
+description = "Algebraic Topology-Enabled AlgorithMs for Spin systems"
+readme = "README.md"
+
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "galois",
+    "matplotlib",
+    "scipy",
+    "rustworkx",
+    "Cython",
+    "jsonlines",
+    "setuptools",
+    "wheel",
+    "pybind11",
+    "phat"
+]
+
+[tool.setuptools]
+py-modules = ["ateams"]
