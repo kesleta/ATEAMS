@@ -76,7 +76,8 @@ def hammingCube(D, cutoff):
 	Constructs a Hamming cube of dimension D.
 
 	Args:
-		D (int): Top dimension.
+		D (int): Overall dimension.
+		cutoff (int): Top dimension.
 
 	Returns:
 		A dictionary of NumPy arrays corresponding to (compressed) boundary
