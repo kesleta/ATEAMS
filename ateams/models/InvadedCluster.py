@@ -76,6 +76,8 @@ class InvadedCluster(Model):
 			premarked,
 			dimensions,
 			homology+1,
+			self.lattice.tranches,
+			{ d : len(v) for d, v in self.lattice.boundary.items() },
 			fieldInverses,
 			self.lattice.field.characteristic
 		)
