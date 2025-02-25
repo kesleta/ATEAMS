@@ -1,9 +1,7 @@
  
 import numpy as np
-from typing import Callable
 
 from ..arithmetic import sampleFromKernel, evaluateCochain
-from ..structures import Lattice
 from ..stats import constant
 from .Model import Model
 

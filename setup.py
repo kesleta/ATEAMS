@@ -2,6 +2,7 @@
 from setuptools import setup
 from Cython.Build import cythonize
 import os
+import numpy
 
 #########################
 ### INSTALLATION NOTE ###
@@ -24,5 +25,6 @@ if "CC" in os.environ: os.environ["CC"] = os.environ["CC"]
 setup(
     ext_modules=cythonize(
         "ateams/**/*.pyx"
-    )
+    ),
+	include_dirs=[numpy.get_include()]
 )

@@ -69,10 +69,11 @@ class Lattice:
         self.reindexer, self.reindexed, self.flattened = flatten(self.boundary, self.dimension)
 
         # Get index ranges.
-        self.tranches = { 0: (0, len(self.boundary[0])) }
+        self.tranches = np.zeros((self.dimension+1, 2), dtype=int)
+        self.tranches[0][1] = len(self.boundary[0])
 
         for d in range(1, self.dimension+1):
-            self.tranches[d] = (self.tranches[d-1][1], self.tranches[d-1][1] + len(self.boundary[d]))
+            self.tranches[d] = [self.tranches[d-1][1], self.tranches[d-1][1] + len(self.boundary[d])]
 
 
 

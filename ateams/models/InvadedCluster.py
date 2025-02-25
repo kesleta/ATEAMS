@@ -6,7 +6,7 @@ from math import comb
 from ..arithmetic import (
 	sampleFromKernel,
 	boundaryMatrix,
-	computePersistencePairs,
+	computeGiantCyclePairs,
 	evaluateCochain,
 	reindexSparseBoundaryMatrix
 )
@@ -37,8 +37,9 @@ class InvadedCluster(Model):
 		self.spins = self.initial()
 
 		# Specify the dimensions of each cell; time steps; non-randomized cells.
+		t = self.lattice.tranches
 		dimensions = np.array(sum([
-			[d]*(b-a) for d, (a,b) in self.lattice.tranches.items() if d < self.homology+2
+			[d]*(t[d,1]-t[d,0]) for d in range(len(t)) if d < self.homology+2
 		],[]))
 		
 		times = np.array(range(
@@ -52,14 +53,18 @@ class InvadedCluster(Model):
 		self.zeroedTargetIndices = np.arange(len(self.lattice.boundary[homology]))
 
 		# Set multiplicative inverses for the field we're working with.
+		p = self.lattice.field.characteristic
 		fieldInverses = dict(zip(
-			[int(t) for t in self.lattice.field.Range(1, self.lattice.field.characteristic)],
-			[int(t) for t in self.lattice.field.Range(1, self.lattice.field.characteristic)**(-1)]
+			[int(t) for t in self.lattice.field.Range(1, p)],
+			[int(t) for t in self.lattice.field.Range(1, p)**(-1)]
 		))
+		fieldInverses = np.array(self.lattice.field.Range(1, p)**(-1)).astype(int)
 
 		# Create some pre-fab data structures to provide as fixed arguments to
 		# the proposal method.
-		premarked = list(range(self.lattice.tranches[0][1]))
+		low = self.lattice.tranches[0][1]
+		premarked = list(range(low))
+
 
 		# Premake the "occupied cells" array; change the dimension of the lattice
 		# to correspond to the provided dimension.
@@ -70,16 +75,14 @@ class InvadedCluster(Model):
 		self.coboundary = boundaryMatrix(self.lattice.boundary, self.homology, self.lattice.field).T
 
 		self.computeGiantCyclePairs = partial(
-			computePersistencePairs,
+			computeGiantCyclePairs,
 			times,
-			self.lattice.tranches[homology][1],
 			premarked,
 			dimensions,
-			homology+1,
-			self.lattice.tranches,
-			{ d : len(v) for d, v in self.lattice.boundary.items() },
 			fieldInverses,
-			self.lattice.field.characteristic
+			p,
+			homology+1,
+			self.lattice.tranches[homology][1]
 		)
 	
 	
@@ -116,8 +119,8 @@ class InvadedCluster(Model):
 		# matrix.
 		cycles = evaluateCochain(boundary[homology], cochain)
 		low, filtration, flattened, shuffledIndices, satisfiedIndices = reindexSparseBoundaryMatrix(
-			cycles, boundary, self.lattice.flattened, homology, self.lattice.tranches,
-			self.lattice.reindexed, self.targetIndices, self.zeroedTargetIndices
+			cycles, boundary[homology+1], self.lattice.flattened, homology, self.lattice.tranches,
+			self.lattice.reindexed[homology], self.targetIndices, self.zeroedTargetIndices
 		)
 
 		# Find essential cycles.
