@@ -12,6 +12,8 @@ from ..arithmetic import (
 )
 from .Model import Model
 
+DTYPE = np.int64
+
 
 class InvadedCluster(Model):
 	name = "InvadedCluster"
@@ -54,17 +56,12 @@ class InvadedCluster(Model):
 
 		# Set multiplicative inverses for the field we're working with.
 		p = self.lattice.field.characteristic
-		fieldInverses = dict(zip(
-			[int(t) for t in self.lattice.field.Range(1, p)],
-			[int(t) for t in self.lattice.field.Range(1, p)**(-1)]
-		))
-		fieldInverses = np.array(self.lattice.field.Range(1, p)**(-1)).astype(int)
+		fieldInverses = np.array([0] + list(self.lattice.field.Range(1, p)**(-1))).astype(int)
 
 		# Create some pre-fab data structures to provide as fixed arguments to
 		# the proposal method.
 		low = self.lattice.tranches[0][1]
 		premarked = list(range(low))
-
 
 		# Premake the "occupied cells" array; change the dimension of the lattice
 		# to correspond to the provided dimension.
@@ -79,10 +76,11 @@ class InvadedCluster(Model):
 			times,
 			premarked,
 			dimensions,
+			self.lattice.tranches,
 			fieldInverses,
 			p,
 			homology+1,
-			self.lattice.tranches[homology][1]
+			self.lattice.tranches[homology+1][1]
 		)
 	
 	
@@ -124,7 +122,11 @@ class InvadedCluster(Model):
 		)
 
 		# Find essential cycles.
-		essential = self.computeGiantCyclePairs(filtration, flattened)
+		essential = self.computeGiantCyclePairs(
+			filtration,
+			flattened,
+			np.zeros(filtration.shape[0], dtype=DTYPE)
+		)
 	
 		# Now, make sure we know when *all* the essential cycles are born.
 		j = 0

@@ -3,20 +3,24 @@ import numpy as np
 cimport numpy as np
 import cython
 
+np.import_array()
+ctypedef np.int64_t DTYPE_t
+DTYPE = np.int64
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def reindexSparseBoundaryMatrix(
-		np.ndarray[np.int_t, ndim=1] cycles,
-		np.ndarray[np.int_t, ndim=2] upperBoundary,
+		np.ndarray[DTYPE_t, ndim=1] cycles,
+		np.ndarray[DTYPE_t, ndim=2] upperBoundary,
 		flatBoundary,
 		Py_ssize_t homology,
-		np.ndarray[np.int_t, ndim=2] tranches,
-		np.ndarray[np.int_t, ndim=2] reindexed,
-		np.ndarray[np.int_t, ndim=1] targetIndices,
-		np.ndarray[np.int_t, ndim=1] zeroedTargetIndices
+		np.ndarray[DTYPE_t, ndim=2] tranches,
+		np.ndarray[DTYPE_t, ndim=2] reindexed,
+		np.ndarray[DTYPE_t, ndim=1] targetIndices,
+		np.ndarray[DTYPE_t, ndim=1] zeroedTargetIndices
 	):
-	cdef np.ndarray[np.int_t, ndim=1] filtration;
+	cdef np.ndarray[DTYPE_t, ndim=1] filtration;
 	filtration = np.arange(tranches[homology+1][1])
 
 	# Evaluate the cochain on the complex to determine the (un)satisfied
@@ -61,42 +65,75 @@ def reindexSparseBoundaryMatrix(
 	return low, filtration, flattened, shuffledIndices, satisfiedIndices
 
 
-# @cython.boundscheck(False)
-# @cython.wraparound(False)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def computeGiantCyclePairs(
-		np.ndarray[np.int_t, ndim=1] times,
+		np.ndarray[DTYPE_t, ndim=1] times,
 		premarked,
-		np.ndarray[np.int_t, ndim=1] dimensions,
-		np.ndarray[np.int_t, ndim=1] fieldInverses,
-		Py_ssize_t fieldCharacteristic,
+		np.ndarray[DTYPE_t, ndim=1] dimensions,
+		np.ndarray[DTYPE_t, ndim=2] tranches,
+		np.ndarray[DTYPE_t, ndim=1] fieldInverses,
+		int fieldCharacteristic,
 		int maxDimension,
 		int maxIndex,
-		np.ndarray[np.int_t, ndim=1] filtration,
-		boundary
+		np.ndarray[DTYPE_t, ndim=1] filtration,
+		boundary,
+		np.ndarray[DTYPE_t, ndim=1] degree
 	):
+	# Buckets for marked indices, dynamic coefficients (for storing 2d arrays
+	# corresponding to chains), and indices (mapping cell degrees to indices in
+	# `dynamicCoeffs`). The first data structure is required; the second data
+	# structure tries to mitigate linear-time searches for max index coefficients.
 	marked = { *premarked }
-	dynamicCoeffs = { t: {} for t in range(maxIndex) }
-	cdef int O = len(filtration)
-	cdef np.ndarray[np.int_t, ndim=1] degree = np.zeros(O, dtype=int)
+	dynamicCoeffs = { }
+	dynamicIndices = { }
+	dynamicSets = { }
+
+	cdef Py_ssize_t _j;
+
+	for _j in range(maxIndex):
+		dynamicCoeffs[_j] = np.empty((2,0), dtype=DTYPE)
+		dynamicIndices[_j] = {}
+		dynamicSets[_j] = set();
+
+	# Set for collecting the degrees of giant cycles.
 	events = set()
 
+	# We want fast loops, so this is how we do it.
 	cdef Py_ssize_t _t;
 	cdef Py_ssize_t t;
 	cdef Py_ssize_t i;
 	cdef Py_ssize_t cell;
+	cdef Py_ssize_t dim;
+	cdef int width;
+	cdef np.ndarray[DTYPE_t, ndim=2] chain;
 	cdef int N = times.shape[0];
 
 	for _t in range(N):
 		t = times[_t]
 		cell = filtration[t]
-		chain = reducePivotRow(boundary[cell], marked, dynamicCoeffs, fieldInverses, fieldCharacteristic)
+		dim = dimensions[cell]
+		width = tranches[dim-1,1]-tranches[dim-1,0] // 4
+		
+		chain = reducePivotRow(
+			np.zeros((2, width), dtype=DTYPE),
+			boundary[cell],
+			marked,
+			dynamicCoeffs,
+			dynamicIndices,
+			dynamicSets,
+			fieldInverses,
+			fieldCharacteristic
+		)
 
-		if not len(chain):
+		if chain.shape[1] < 1:
 			marked.add(cell)
 			degree[cell] = t
 		else:
-			i = max(chain);
+			i = _max(chain[1])
 			dynamicCoeffs[i] = chain
+			dynamicIndices[i] = dict(zip(chain[1], range(chain.shape[1])))
+			dynamicSets[i] = set(chain[1])
 			degree[i] = t
 	
 	cdef np.ndarray[np.int_t, ndim=1] remarked = np.array(list(marked));
@@ -106,78 +143,213 @@ def computeGiantCyclePairs(
 	for _s in range(M):
 		cell = remarked[_s]
 		if dimensions[cell] != maxDimension-1: continue
-		if not len(dynamicCoeffs[cell]): events.add(degree[cell])
+		if dynamicCoeffs[cell].shape[1] < 1: events.add(degree[cell])
 	
 	return events
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def reducePivotRow(
-		B,
+cdef np.ndarray[DTYPE_t, ndim=2] reducePivotRow(
+		np.ndarray[DTYPE_t, ndim=2] coefficients,
+		boundary,
 		marked,
 		dynamicCoeffs,
-		np.ndarray[np.int_t, ndim=1] fieldInverses,
+		dynamicIndices,
+		dynamicSets,
+		np.ndarray[DTYPE_t, ndim=1] fieldInverses,
 		int fieldCharacteristic
 	):
-	# Remove marked cells.
-	includedCells = set(B) & marked
+	# Variable typing.
+	cdef np.ndarray[DTYPE_t, ndim=1] nonzeroIndices;
+	cdef Py_ssize_t _t, t, i, j, c, d, r, rindex, locator, a;
+	cdef int L, R, S, q, _M, x, y, added;
+	cdef int _N = len(boundary);
 
-	cdef Py_ssize_t j;
-	cdef int N = len(B);
-	coefficients = {}
+	# Fill the bucket of coefficients; we type this *outside* this function
+	# because Cython doesn't like typing numpy arrays inline? Weird.
+	for _t in range(_N):
+		t = boundary[_t]
+		if t not in marked: continue
+
+		coefficients[0, _t] = (int)((-1)**(_t+1) % fieldCharacteristic)
+		coefficients[1, _t] = t
+
+	# Determine where the "occupied" and "free" indices are.
+	cdef np.ndarray[DTYPE_t, ndim=1] occupied;
+	cdef int _occupied = _countNonzero(coefficients)
+
+	while _occupied > 0:
+		# Find the largest index over the included cells; this is our potential
+		# pivot row. Notably, we *cannot* include indices with coefficient zero.
+		i = _maxNonzero(coefficients)
+		nonpivot = dynamicCoeffs[i]
+
+		# If the column *is* a pivot, then we've already reduced the row and we
+		# return the coefficients.
+		if nonpivot.shape[1] < 1: break
+
+		# Otherwise, we determine the maximum index over those specified by the
+		# chain and get its multiplicative inverse (over the finite field).
+		# Because `dynamicIndices` is a Python `dict`, `s` has to remain untyped.
+		# `s` is then just a dictionary mapping degrees to indices, so we use this
+		# to access the coefficients.
+		occupied = _nonzeroIndices(coefficients)
+		coefficientIndices = dict()
+		left = set()
+
+		for d in range(occupied.shape[0]):
+			r = occupied[d]
+			coefficientIndices[coefficients[1,r]] = r
+			left.add(coefficients[1,r])
+		
+		nonpivotIndices = dynamicIndices[i]
+		locator = nonpivotIndices[i]
+		q = fieldInverses[nonpivot[0,locator]]
+
+		# Find the overlap in sets.
+		right = set(nonpivot[1])
+		shared = left & right
+		rOnly = right - left
+		L = len(left)
+		R = len(rOnly)
+
+		# Iterate over shared indices.
+		for k in shared:
+			lindex = coefficientIndices[k]
+			rindex = nonpivotIndices[k]
+			coefficients[0,lindex] = _smmod(
+				coefficients[0,lindex],
+				nonpivot[0,rindex],
+				q,
+				fieldCharacteristic
+			)
+
+		# Now, we can place values in any index that is zeroed out. We iterate
+		# over `nonpivot` to check whether it's been added already.
+		added = 0;
+		a = 0;
+
+		for a in range(coefficients.shape[1]):
+			if added == R: break
+			if coefficients[0,a] < 1:
+				rindex = nonpivotIndices[rOnly.pop()]
+				coefficients[1,a] = nonpivot[1, rindex]
+				coefficients[0,a] = _smmod(
+					0,
+					nonpivot[0,rindex],
+					q,
+					fieldCharacteristic
+				)
+
+				added += 1
+		
+		_occupied = _countNonzero(coefficients)
+	
+	return _sliceMatrix(coefficients)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cfunc
+cdef int _countNonzero(np.ndarray[DTYPE_t, ndim=2] A):
+	cdef Py_ssize_t j = 0;
+	cdef int N = A.shape[1];
+	cdef int l = 0;
 
 	for j in range(N):
-		if B[j] in marked:
-			coefficients[B[j]] = (-1)**(j+1) % fieldCharacteristic
+		if A[0,j] > 0: l += 1
 
-	while len(includedCells):
-		# Find the largest index over the included cells; this is our potential
-		# pivot row.
-		i = max(includedCells)
-		maybe = dynamicCoeffs[i]
-
-		# If `maybe` is a pivot row, then we're done, and we return the appropriate
-		# coefficients.
-		if not len(maybe): break
-
-		# If `maybe` is *not* a pivot row, then we zero out the row. First, we
-		# get the coefficient in `maybe` of the largest index (stored in `i`).
-		# Then, we subtract off that multiple of the portion of the boundary
-		# stored in `maybe` from `coefficients`.
-		q = fieldInverses[int(maybe[i])-1]
-
-		left, right = includedCells, set(maybe)
-
-		_shared = {
-			t: _smmod(coefficients[t], maybe[t], q, fieldCharacteristic)
-			for t in left & right
-		}
-
-		_lonly = {
-			t: coefficients[t] for t in left - right
-		}
-
-		_ronly = {
-			t: _smmod(0, maybe[t], q, fieldCharacteristic) for t in right - left
-		}
-
-		coefficients = {} | _shared | _lonly | _ronly
-		coefficients = {
-			t: coefficients[t] for t in coefficients if coefficients[t] > 0
-		}
-
-		includedCells = set(coefficients)
-
-	return coefficients
+	return l
 
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cfunc
+cdef np.ndarray[DTYPE_t, ndim=1] _nonzeroIndices(np.ndarray[DTYPE_t, ndim=2] A):
+	cdef Py_ssize_t j = 0;
+	cdef int N = A.shape[1];
+	cdef int l = 0;
+	cdef np.ndarray[DTYPE_t, ndim=1] indices = np.zeros(N, dtype=DTYPE);
+
+	for j in range(N):
+		if A[0,j] > 0:
+			indices[l] = j;
+			l += 1
+
+	return indices[:l]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cfunc
+cdef np.ndarray[DTYPE_t, ndim=2] _sliceMatrix(np.ndarray[DTYPE_t, ndim=2] A):
+	cdef Py_ssize_t j;
+	cdef Py_ssize_t t;
+	cdef np.ndarray[DTYPE_t, ndim=1] nonzero = _nonzeroIndices(A);
+	cdef int N = nonzero.shape[0];
+	cdef np.ndarray[DTYPE_t, ndim=2] resized = np.empty((2, N), dtype=DTYPE);
+
+	for j in range(N):
+		t = nonzero[j]
+		resized[0,j] = A[0,t]
+		resized[1,j] = A[1,t]
+
+	return resized
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cfunc
+cdef int _maxNonzero(np.ndarray[DTYPE_t, ndim=2] A):
+	cdef Py_ssize_t j = 0;
+	cdef int N = A.shape[1];
+	cdef l = 0;
+
+	for j in range(N):
+		if A[0,j] > 0 and A[1,j] > l: l = A[1,j]
+
+	return l
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cfunc
+cdef int _max(np.ndarray[DTYPE_t, ndim=1] A):
+	cdef Py_ssize_t j = 0;
+	cdef int N = A.shape[0];
+	cdef int l = A[0];
+
+	for j in range(N):
+		if A[j] > l: l = A[j]
+
+	return l
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 @cython.cfunc
 cdef int _smmod(int a, int b, int c, int p):
 	return _smod(a, _mmod(b, c, p), p)
 
-@cython.cfunc
-cdef int _smod(int a, int b, int p): return (a-b) % p
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
 @cython.cfunc
-cdef int _mmod(int a, int b, int p): return (a*b) % p
+cdef int _smod(int a, int b, int p): return _mod(a-b, p)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cfunc
+cdef int _mmod(int a, int b, int p): return _mod(a*b, p)
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cfunc
+@cython.cdivision(True)
+cdef int _mod(int a, int b):
+	cdef int r = a % b;
+
+	if r < 0: return r + b;
+	return r;

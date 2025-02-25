@@ -1,5 +1,5 @@
 
-from setuptools import setup
+from setuptools import setup, Extension
 from Cython.Build import cythonize
 import os
 import numpy
@@ -22,9 +22,14 @@ import numpy
 
 if "CC" in os.environ: os.environ["CC"] = os.environ["CC"]
 
+extensions = [
+	Extension(
+		"*",
+		["ateams/**/*.pyx"],
+		include_dirs=[numpy.get_include()]
+	)
+]
+
 setup(
-    ext_modules=cythonize(
-        "ateams/**/*.pyx"
-    ),
-	include_dirs=[numpy.get_include()]
+    ext_modules=cythonize(extensions, annotate=True)
 )
