@@ -42,26 +42,30 @@ class InvadedCluster(Model):
 		t = self.lattice.tranches
 		dimensions = np.array(sum([
 			[d]*(t[d,1]-t[d,0]) for d in range(len(t)) if d < self.homology+2
-		],[]))
+		],[]), dtype=DTYPE)
+
+		# Find the max over the dimensions and specify a "blank" array the max
+		# width.
+		zeros = np.zeros((2, self.lattice.tranches[:,1].max()//4), dtype=DTYPE)
 		
 		times = np.array(range(
 			self.lattice.tranches[1][0], len(dimensions)
-		))
+		)).astype(DTYPE)
 
 		# Construct a "filtration template" of all the indices. At each step, we
 		# determine which of the target indices correspond to satisfied `homology`
 		# -dimensional cells, then shuffle the order of those indices.
-		self.targetIndices = np.arange(*self.lattice.tranches[homology])
-		self.zeroedTargetIndices = np.arange(len(self.lattice.boundary[homology]))
+		self.targetIndices = np.arange(*self.lattice.tranches[homology], dtype=DTYPE)
+		self.zeroedTargetIndices = np.arange(len(self.lattice.boundary[homology]), dtype=DTYPE)
 
 		# Set multiplicative inverses for the field we're working with.
 		p = self.lattice.field.characteristic
-		fieldInverses = np.array([0] + list(self.lattice.field.Range(1, p)**(-1))).astype(int)
+		fieldInverses = np.array([0] + list(self.lattice.field.Range(1, p)**(-1))).astype(DTYPE)
 
 		# Create some pre-fab data structures to provide as fixed arguments to
 		# the proposal method.
 		low = self.lattice.tranches[0][1]
-		premarked = list(range(low))
+		premarked = np.array(list(range(low)), dtype=DTYPE)
 
 		# Premake the "occupied cells" array; change the dimension of the lattice
 		# to correspond to the provided dimension.
@@ -70,6 +74,20 @@ class InvadedCluster(Model):
 
 		self.lattice.dimension = homology
 		self.coboundary = boundaryMatrix(self.lattice.boundary, self.homology, self.lattice.field).T
+
+		# Create arithmetic lookup tables.
+		addition = np.zeros((p,p), dtype=DTYPE)
+		for j in range(p): addition[:,j] = (np.arange(p, dtype=DTYPE)+j)%p
+
+		subtraction = np.zeros((p,p), dtype=DTYPE)
+		for j in range(p): subtraction[:,j] = (np.arange(p, dtype=DTYPE)-j)%p
+
+		multiplication = np.zeros((p,p), dtype=DTYPE)
+		for j in range(p): multiplication[:,j] = (np.arange(p, dtype=DTYPE)*j)%p
+
+		powers = np.full(zeros.shape[1], -1, dtype=DTYPE)
+		powers[1::2] = -powers[1::2]
+		powers = powers%p
 
 		self.computeGiantCyclePairs = partial(
 			computeGiantCyclePairs,
@@ -80,7 +98,14 @@ class InvadedCluster(Model):
 			fieldInverses,
 			p,
 			homology+1,
-			self.lattice.tranches[homology+1][1]
+			self.lattice.tranches[homology+1][1],
+			np.empty((2,0), dtype=DTYPE),
+			zeros,
+			np.empty(zeros.shape[1], dtype=DTYPE),
+			addition,
+			subtraction,
+			multiplication,
+			powers
 		)
 	
 	
@@ -115,10 +140,16 @@ class InvadedCluster(Model):
 
 		# Determine the satisfied plaquettes and re-index the sparse boundary
 		# matrix.
-		cycles = evaluateCochain(boundary[homology], cochain)
+		cycles = evaluateCochain(boundary[homology], cochain).astype(DTYPE)
 		low, filtration, flattened, shuffledIndices, satisfiedIndices = reindexSparseBoundaryMatrix(
-			cycles, boundary[homology+1], self.lattice.flattened, homology, self.lattice.tranches,
-			self.lattice.reindexed[homology], self.targetIndices, self.zeroedTargetIndices
+			cycles,
+			boundary[homology+1].astype(DTYPE),
+			self.lattice.flattened,
+			int(homology),
+			self.lattice.tranches.astype(DTYPE),
+			self.lattice.reindexed[homology].astype(DTYPE),
+			self.targetIndices.astype(DTYPE),
+			self.zeroedTargetIndices.astype(DTYPE)
 		)
 
 		# Find essential cycles.

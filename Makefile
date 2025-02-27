@@ -7,10 +7,10 @@ docs:
 
 
 clean:
-	@rm -f ateams/*.c
+	@rm -f ateams/*.c*
 	@rm -f ateams/*.o
 	@rm -f ateams/*.so
-	@rm -f ateams/arithmetic/*.c
+	@rm -f ateams/arithmetic/*.c*
 	@rm -f ateams/arithmetic/*.o
 	@rm -f ateams/arithmetic/*.so
 	@rm -rf ./build

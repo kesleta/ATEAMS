@@ -1,7 +1,8 @@
 
 from .cubicalComplex import cubicalComplex, boundaryMatrix, flatten
 from .fastiteration import energy
-from .homology import computeGiantCyclePairs, reindexSparseBoundaryMatrix
+from .reindexing import reindexSparseBoundaryMatrix
+from .homology import computeGiantCyclePairs
 from .linearAlgebra import sampleFromKernel, autocorrelation, evaluateCochain, isNullHomologous
 
 __all__ = [

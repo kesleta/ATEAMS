@@ -20,7 +20,7 @@ import numpy
 #
 # To ensure installation.
 
-if "CC" in os.environ: os.environ["CC"] = os.environ["CC"]
+if not "CC" in os.environ: os.environ["CC"] = "gcc-14"
 
 extensions = [
 	Extension(
