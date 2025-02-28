@@ -2,7 +2,7 @@
 from .cubicalComplex import cubicalComplex, boundaryMatrix, flatten
 from .fastiteration import energy
 from .reindexing import reindexSparseBoundaryMatrix
-from .homology import computeGiantCyclePairs
+from .persistence import computeGiantCyclePairs
 from .linearAlgebra import sampleFromKernel, autocorrelation, evaluateCochain, isNullHomologous
 
 __all__ = [
