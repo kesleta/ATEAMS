@@ -46,7 +46,7 @@ class InvadedCluster(Model):
 
 		# Find the max over the dimensions and specify a "blank" array the max
 		# width.
-		zeros = np.zeros((2, self.lattice.tranches[:,1].max()//4), dtype=DTYPE)
+		zeros = np.zeros((2, self.lattice.tranches[:,1].max()//8), dtype=DTYPE)
 		
 		times = np.array(range(
 			self.lattice.tranches[1][0], len(dimensions)
@@ -102,10 +102,10 @@ class InvadedCluster(Model):
 			np.empty((2,0), dtype=DTYPE),
 			zeros,
 			np.empty(zeros.shape[1], dtype=DTYPE),
-			addition,
-			subtraction,
-			multiplication,
-			powers
+			addition.astype(DTYPE),
+			subtraction.astype(DTYPE),
+			multiplication.astype(DTYPE),
+			powers.astype(DTYPE)
 		)
 	
 	

@@ -1,18 +1,16 @@
 
-# cython: profile=True
+# cython: profile=True, boundscheck=False, wraparound=False, cdivision=True
+# distutils: language=C
 
 import numpy as np
 cimport numpy as np
 import cython
 
-# Type declarations.
 np.import_array()
 ctypedef np.int64_t DTYPE_t
 DTYPE = np.int64
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
 cpdef computeGiantCyclePairs(
 		DTYPE_t [:] times,
 		premarked,
@@ -32,12 +30,12 @@ cpdef computeGiantCyclePairs(
 		DTYPE_t [:] filtration,
 		boundary,
 		DTYPE_t [:] degree
-	) noexcept:
+	):
 	# Buckets for marked indices, dynamic coefficients (for storing 2d arrays
 	# corresponding to chains), and indices (mapping cell degrees to indices in
 	# `dynamicCoeffs`). The first data structure is required; the second data
 	# structure tries to mitigate linear-time searches for max index coefficients.
-	marked = { *premarked }
+	marked = set(premarked)
 	dynamicCoeffs = { }
 	dynamicIndices = { }
 	dynamicSets = { }
@@ -91,13 +89,9 @@ cpdef computeGiantCyclePairs(
 
 		chain = _zeroOut(chain)
 	
-	remarked = np.array(list(marked), dtype=int);
-	cdef int M = remarked.shape[0];
 	cdef DTYPE_t [:,:] unmarked;
-	cdef int _s;
 
-	for _s in range(M):
-		cell = remarked[_s]
+	for cell in marked:
 		if dimensions[cell] != maxDimension-1: continue
 
 		unmarked = dynamicCoeffs[cell]
@@ -106,8 +100,6 @@ cpdef computeGiantCyclePairs(
 	return events
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
 cdef DTYPE_t [:,:] reducePivotRow(
 		DTYPE_t [:,:] coefficients,
 		boundary,
@@ -208,8 +200,6 @@ cdef DTYPE_t [:,:] reducePivotRow(
 	return coefficients
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
 @cython.cfunc
 cdef DTYPE_t [:,:] _zeroOut(DTYPE_t [:,:] A) noexcept:
 	cdef int j, N;
@@ -222,38 +212,48 @@ cdef DTYPE_t [:,:] _zeroOut(DTYPE_t [:,:] A) noexcept:
 	return A
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
 @cython.cfunc
 cdef int _countNonzero(DTYPE_t [:,:] A) noexcept:
 	cdef int j = 0;
 	cdef int N = A.shape[1];
 	cdef int l = 0;
+	cdef int tripleZeros = 0;
 
 	for j in range(N):
 		if A[0,j] > 0: l += 1
 
+		# Don't want to traverse the whole array, that wastes a lot of time
+		if j > 0:
+			if A[1,j-1] == 0 and A[1,j] == 0:
+				tripleZeros += 1
+
+		if tripleZeros > 4: break
+
 	return l
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
 @cython.cfunc
 cdef DTYPE_t [:] _nonzeroIndices(DTYPE_t [:,:] A, DTYPE_t [:] indices) noexcept:
 	cdef int j = 0;
 	cdef int N = A.shape[1];
 	cdef int l = 0;
+	cdef int tripleZeros = 0;
 
 	for j in range(N):
 		if A[0,j] > 0:
 			indices[l] = j;
 			l += 1
 
+		# Don't want to traverse the whole array, that wastes a lot of time
+		if j > 0:
+			if A[1,j-1] == 0 and A[1,j] == 0:
+				tripleZeros += 1
+
+		if tripleZeros > 4: break
+
 	return indices[:l]
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
 @cython.cfunc
 cdef DTYPE_t [:,:] _sliceMatrix(DTYPE_t [:,:] A, DTYPE_t [:] indices) noexcept:
 	cdef int j, t;
@@ -269,22 +269,28 @@ cdef DTYPE_t [:,:] _sliceMatrix(DTYPE_t [:,:] A, DTYPE_t [:] indices) noexcept:
 	return resized
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
 @cython.cfunc
 cdef DTYPE_t _maxNonzero(DTYPE_t [:,:] A) noexcept:
 	cdef int j = 0;
 	cdef int N = A.shape[1];
 	cdef DTYPE_t l = 0;
+	cdef int tripleZeros = 0;
 
 	for j in range(N):
 		if A[0,j] > 0 and A[1,j] > l: l = A[1,j]
 
+		# Don't want to traverse the whole array, that wastes a lot of time
+		if j > 0:
+			if A[1,j-1] == 0 and A[1,j] == 0:
+				tripleZeros += 1
+
+		if tripleZeros > 4: break
+
 	return l
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
+
+
 @cython.cfunc
 cdef DTYPE_t _max(DTYPE_t [:] A) noexcept:
 	cdef DTYPE_t j = 0;
@@ -294,4 +300,4 @@ cdef DTYPE_t _max(DTYPE_t [:] A) noexcept:
 	for j in range(N):
 		if A[j] > l: l = A[j]
 
-	return cython.cast(int, l)
+	return l
