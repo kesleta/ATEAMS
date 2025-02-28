@@ -20,3 +20,6 @@ sync.sh
 
 # Ignore *most* testing stuff.
 test/*
+
+# Ignore annotated compilation summaries from Cython.
+ateams/arithmetic/*.html
