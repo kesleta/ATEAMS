@@ -1,5 +1,6 @@
 
 # cython: profile=True, boundscheck=False, wraparound=False, cdivision=True
+# cython: initializedcheck=False, c_api_binop_methods=True
 # distutils: language=C
 
 import numpy as np
@@ -29,7 +30,7 @@ cpdef computeGiantCyclePairs(
 		DTYPE_t [:] powers,
 		DTYPE_t [:] filtration,
 		boundary,
-		DTYPE_t [:] degree
+		DTYPE_t [:] degree,
 	):
 	# Buckets for marked indices, dynamic coefficients (for storing 2d arrays
 	# corresponding to chains), and indices (mapping cell degrees to indices in
@@ -117,7 +118,7 @@ cdef DTYPE_t [:,:] reducePivotRow(
 	) noexcept:
 	# Variable typing.
 	cdef int _t, t, i, j, c, d, r, lindex, rindex, locator, a
-	cdef int L, R, S, q, _M, x, y, added
+	cdef int R, q, added, dadded;
 	cdef int _N = len(boundary)
 	cdef DTYPE_t [:] occupied
 	cdef DTYPE_t [:,:] nonpivot
@@ -146,26 +147,31 @@ cdef DTYPE_t [:,:] reducePivotRow(
 		# return the coefficients.
 		if nonpivot.shape[1] < 1: break
 
+		# Find the array index of the plaquette of greatest degree (i.e. the
+		# plaquette added latest in the filtration).
+		nonpivotIndices = dynamicIndices[i]
+		locator = nonpivotIndices[i]
+		q = fieldInverses[nonpivot[0,locator]]
+
 		# Otherwise, we determine the maximum index over those specified by the
 		# chain and get its multiplicative inverse (over the finite field).
 		# Because `dynamicIndices` is a Python `dict`, `s` has to remain untyped.
 		# `s` is then just a dictionary mapping degrees to indices, so we use this
 		# to access the coefficients.
-		occupied = _nonzeroIndices(coefficients, indices)
 		coefficientIndices = dict()
 		left = set()
+		dadded = 0;
 
-		for d in range(occupied.shape[0]):
-			r = occupied[d]
-			coefficientIndices[coefficients[1,r]] = r
-			left.add(coefficients[1,r])
-		
-		nonpivotIndices = dynamicIndices[i]
-		locator = nonpivotIndices[i]
-		q = fieldInverses[nonpivot[0,locator]]
+		## TODO CAN PROBABLY MAKE ALL THESE LOOPS JUST ONE BIG FUCKING LOOP
+		for d in range(coefficients.shape[1]):
+			if dadded == _occupied: break
+			if coefficients[0,d] > 0:
+				coefficientIndices[coefficients[1,d]] = d
+				left.add(coefficients[1,d])
+				dadded += 1
 
 		# Find the overlap in sets.
-		right = set(nonpivot[1])
+		right = dynamicSets[i]
 		shared = left & right
 		rOnly = right - left
 		L = len(left)
@@ -203,9 +209,17 @@ cdef DTYPE_t [:,:] reducePivotRow(
 @cython.cfunc
 cdef DTYPE_t [:,:] _zeroOut(DTYPE_t [:,:] A) noexcept:
 	cdef int j, N;
+	cdef int tripleZeros = 0;
 	N = A.shape[1]
 
 	for j in range(N):
+		# Don't want to traverse the whole array, that wastes a lot of time
+		if j > 0:
+			if A[1,j] == 0:
+				tripleZeros += 1
+
+		if tripleZeros > 4: break
+
 		A[0,j] = 0
 		A[1,j] = 0
 
@@ -266,7 +280,7 @@ cdef DTYPE_t [:,:] _sliceMatrix(DTYPE_t [:,:] A, DTYPE_t [:] indices) noexcept:
 		resized[0,j] = A[0,t]
 		resized[1,j] = A[1,t]
 
-	return resized
+	return resized[:N]
 
 
 @cython.cfunc
