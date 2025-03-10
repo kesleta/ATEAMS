@@ -4,14 +4,14 @@ import numpy as np
 DTYPE = int
 
 def reindexSparseBoundaryMatrix(
-		cycles,
 		upperBoundary,
 		flatBoundary,
 		homology,
 		tranches,
 		reindexed,
 		targetIndices,
-		zeroedTargetIndices
+		zeroedTargetIndices,
+		cycles
 	):
 	filtration = np.arange(tranches[homology+1][1], dtype=DTYPE)
 
