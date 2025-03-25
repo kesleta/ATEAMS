@@ -1,4 +1,5 @@
 
+from .linalg import nullspace
 from .cubicalComplex import cubicalComplex, boundaryMatrix, flatten
 from .fastiteration import energy
 from .reindexing import reindexSparseBoundaryMatrix
