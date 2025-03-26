@@ -5,6 +5,7 @@
 
 import cython
 import numpy as np
+from .linalg import KernelBasis
 # cimport numpy as np
 
 # ctypedef np.int64_t DTYPE_t

@@ -1,5 +1,6 @@
 
-from .linalg import nullspace
+from .Sparse import Matrix
+from .linalg import KernelBasis
 from .cubicalComplex import cubicalComplex, boundaryMatrix, flatten
 from .fastiteration import energy
 from .reindexing import reindexSparseBoundaryMatrix

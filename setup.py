@@ -19,17 +19,17 @@ import numpy
 #   pip install --use-deprecated=legacy-resolver --no-binary :all: phat
 #
 # To ensure installation.
-
-if not "CC" in os.environ: os.environ["CC"] = "gcc-14"
-if not "CXX" in os.environ: os.environ["CXX"] = "g++-14"
+#
+os.environ["CC"] = "gcc-14"
+os.environ["CXX"] = "g++-14"
 
 extensions = [
 	Extension(
 		"*",
 		["ateams/**/*.pyx"],
-		include_dirs=[numpy.get_include()],
-		extra_compile_args=["-O4"], # just C
-		# extra_compile_args=["-std=c++20", "-O3"] # C++
+		include_dirs=[numpy.get_include(), "ateams/arithmetic"],
+		# extra_compile_args=["-O4"], # just C
+		extra_compile_args=["-std=c++20", "-O3"] # C++
 	)
 ]
 
