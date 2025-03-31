@@ -1,16 +1,21 @@
 
 # cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True, wraparound=False, boundscheck=False
+# cython: linetrace=True
+# cython: binding=True
 # define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 # distutils: define_macros=CYTHON_TRACE_NOGIL=1
 # distutils: language=c++
 
 import numpy as np
 cimport numpy as np
-from .common cimport FFINT, FLAT, TABLE
-
-from libcpp cimport bool
+from .common cimport FFINT, FLAT, FLAT, TABLE, TABLE
 from .Sparse cimport Matrix
 
+from libc.stdlib cimport rand, srand, RAND_MAX
+from libc.time cimport time
+
+# Seed the RNG.
+srand(time(NULL));
 
 cdef void addRows(
 		TABLE A,
@@ -71,14 +76,14 @@ cdef FFINT pivotRow(FLAT c, int pivots) noexcept nogil:
 	return -1
 
 
-cdef bool ContainsNonzero(FLAT b) noexcept nogil:
+cdef int ContainsNonzero(FLAT b) noexcept nogil:
 	cdef int i, N;
 	N = b.shape[0];
 
 	for i in range(N):
-		if b[i] > 0: return True
+		if b[i] > 0: return 1
 
-	return False
+	return 0
 
 
 cdef int MinZero(TABLE A) noexcept nogil:
@@ -86,7 +91,7 @@ cdef int MinZero(TABLE A) noexcept nogil:
 	N = A.shape[0];
 
 	for i in range(N):
-		if not ContainsNonzero(A[i]): return i
+		if ContainsNonzero(A[i]) < 1: return i
 
 	# If there are no nonzero rows, then we return -1.
 	return -1
@@ -156,15 +161,79 @@ cdef TABLE RREF(
 	return A
 
 
-cpdef np.ndarray[FFINT, ndim=2] KernelBasis(
-		TABLE coboundary,
-		int AUGMENT,
+cpdef TABLE KernelBasis(
 		FLAT P,
 		TABLE addition,
 		TABLE subtraction,
 		FLAT negation,
 		TABLE multiplication,
-		FLAT inverses
+		FLAT inverses,
+		TABLE coboundary,
+		int AUGMENT
+	):
+	cdef TABLE inversion, reduced, superreduced;
+	cdef int minzero;
+
+	inversion = RREF(coboundary, AUGMENT, P, addition, subtraction, negation, multiplication, inverses)
+	minzero = MinZero(inversion)
+	reduced = inversion[:,AUGMENT:];
+	superreduced = reduced[minzero:]
+
+	return superreduced
+
+
+cdef int Random(int MAX) except -1:
+	return (rand() % MAX);
+
+
+cdef FLAT LinearCombination(TABLE basis, FLAT coefficients, FLAT store, TABLE addition, TABLE multiplication, int FIELD, FLAT result) noexcept:
+	cdef int i, j, N, M;
+	cdef FFINT mult;
+
+	print(basis.shape)
+
+	M = basis.shape[0];
+	N = basis.shape[1];
+
+	# Pick (uniform random) coefficients in the field.
+	for i in range(M):
+		store[i] = coefficients[Random(FIELD)]
+
+	for j in range(N):
+		for i in range(M):
+			mult = multiplication[store[i], basis[i,j]]
+			result[j] = addition[result[j], mult]
+
+	return result
+
+
+cpdef np.ndarray[FFINT, ndim=1, negative_indices=False, mode="c"] SampleFromKernel(
+		int FIELD,
+		FLAT PIVOTS,
+		FLAT store,
+		FLAT result,
+		TABLE addition,
+		TABLE subtraction,
+		FLAT negation,
+		TABLE multiplication,
+		FLAT inverses,
+		TABLE coboundary,
+		int AUGMENT
+	):
+	cdef TABLE basis = KernelBasis(PIVOTS, addition, subtraction, negation, multiplication, inverses, coboundary, AUGMENT);
+	return np.asarray(LinearCombination(basis, negation, store, addition, multiplication, FIELD, result))
+
+
+
+cpdef TABLE SparseKernelBasis(
+		FLAT P,
+		TABLE addition,
+		TABLE subtraction,
+		FLAT negation,
+		TABLE multiplication,
+		FLAT inverses,
+		TABLE coboundary,
+		int AUGMENT
 	):
 	cdef TABLE inversion, reduced, superreduced;
 	cdef Matrix M = Matrix(coboundary, addition, negation, multiplication, inverses)
@@ -176,5 +245,24 @@ cpdef np.ndarray[FFINT, ndim=2] KernelBasis(
 	reduced = inversion[:,AUGMENT:];
 	superreduced = reduced[minzero:]
 
-	return np.asarray(superreduced)
+	return superreduced;
+
+
+cpdef np.ndarray[FFINT, ndim=1, negative_indices=False, mode="c"] SparseSampleFromKernel(
+		int FIELD,
+		FLAT PIVOTS,
+		FLAT store,
+		FLAT result,
+		TABLE addition,
+		TABLE subtraction,
+		FLAT negation,
+		TABLE multiplication,
+		FLAT inverses,
+		TABLE coboundary,
+		int AUGMENT
+	):
+	print(coboundary.shape)
+	cdef TABLE basis = SparseKernelBasis(PIVOTS, addition, subtraction, negation, multiplication, inverses, coboundary, AUGMENT);
+	return np.asarray(LinearCombination(basis, negation, store, addition, multiplication, FIELD, result))
+
 

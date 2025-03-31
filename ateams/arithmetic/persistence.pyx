@@ -1,27 +1,30 @@
 
 # cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True, wraparound=False, boundscheck=False
+# cython: linetrace=True
 # define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-# distutils: language=C
+# distutils: define_macros=CYTHON_TRACE_NOGIL=1
+# distutils: language=c
 
 import numpy as np
 cimport numpy as np
 
-ctypedef np.int64_t DTYPE_t
-DTYPE = np.int64
+from .common cimport TABLE, TABLECONTIG, FLAT, FLATCONTIG, FFINT
+
+FINT = np.int64
 
 
-cdef DTYPE_t Max(DTYPE_t[:] A) noexcept nogil:
+cdef FFINT Max(FLAT A) noexcept nogil:
 	"""
 	Substitution for Python's `max` function.
 
 	Args:
-		DTYPE_t[:] A: `memoryview` on a Cython NumPy array.
+		FLAT A: `memoryview` on a Cython NumPy array.
 
 	Returns:
 		Maximum value in the array.
 	"""
 	cdef int j, N;
-	cdef DTYPE_t l = A[0];
+	cdef FFINT l = A[0];
 
 	N = A.shape[0];
 
@@ -31,13 +34,13 @@ cdef DTYPE_t Max(DTYPE_t[:] A) noexcept nogil:
 	return l
 
 
-cdef DTYPE_t MaxNonzero(DTYPE_t[:,:] A) noexcept nogil:
+cdef FFINT MaxNonzero(TABLE A) noexcept nogil:
 	"""
 	Finds and returns the largest value in the second row of an array given
 	the value in the row above it is nonzero.
 
 	Args:
-		DTYPE_t[:,:] A: `memoryview` on a Cython NumPy array. It is assumed that
+		TABLE A: `memoryview` on a Cython NumPy array. It is assumed that
 			the values in `A` are "packed" toward the beginning: if there are
 			N nonzero values in the second row of the array, they can be found
 			in the first N+1 indices.
@@ -47,7 +50,7 @@ cdef DTYPE_t MaxNonzero(DTYPE_t[:,:] A) noexcept nogil:
 		above it is nonzero.
 	"""
 	cdef int j, N, tripleZeros;
-	cdef DTYPE_t l = 0;
+	cdef FFINT l = 0;
 
 	N = A.shape[1];
 	tripleZeros = 0;
@@ -66,13 +69,13 @@ cdef DTYPE_t MaxNonzero(DTYPE_t[:,:] A) noexcept nogil:
 	return l
 
 
-cdef DTYPE_t[:] NonzeroIndices(DTYPE_t[:,:] A, DTYPE_t[:] indices) noexcept:
+cdef FLAT NonzeroIndices(TABLE A, FLAT indices) noexcept:
 	"""
 	Finds and returns an array containing the indices of columns in A whose
 	first entry is nonzero.
 
 	Args:
-		DTYPE_t[:,:] A: `memoryview` on a Cython NumPy array. It is assumed that
+		TABLE A: `memoryview` on a Cython NumPy array. It is assumed that
 			the values in `A` are "packed" toward the beginning: if there are
 			N nonzero values in the second row of the array, they can be found
 			in the first N+1 indices.
@@ -102,30 +105,30 @@ cdef DTYPE_t[:] NonzeroIndices(DTYPE_t[:,:] A, DTYPE_t[:] indices) noexcept:
 	return indices[:l]
 
 
-cdef DTYPE_t[:,:] SliceMatrix(DTYPE_t[:,:] A, DTYPE_t[:] indices) noexcept:
+cdef TABLE SliceMatrix(TABLE A, FLAT indices) noexcept:
 	"""
 	Trims a matrix, keeping only columns with nonzero first entry.
 
 	Args:
-		DTYPE_t[:,:] A: `memoryview` on a Cython NumPy array. It is assumed that
+		TABLE A: `memoryview` on a Cython NumPy array. It is assumed that
 			the values in `A` are "packed" toward the beginning: if there are
 			N nonzero values in the second row of the array, they can be found
 			in the first N+1 indices.
-		DTYPE_t[:] indices: `memoryview` on a Cython NumPy array of blanks for
+		FLAT indices: `memoryview` on a Cython NumPy array of blanks for
 			object recycling.
 
 	Returns:
 		`A`, but only with columns with nonzero first entry.
 	"""
 	cdef int j, t, N;
-	cdef DTYPE_t[:] nonzero;
-	cdef DTYPE_t[:,:] resized;
+	cdef FLAT nonzero;
+	cdef TABLE resized;
 
 	# Find the nonzero indices, create an array of appropriate size, then
 	# write. This may be less efficient, but we (sadly) need to do it.
 	nonzero = NonzeroIndices(A, indices);
 	N = nonzero.shape[0];
-	resized = np.empty((2, N), dtype=DTYPE);
+	resized = np.empty((2, N), dtype=FINT);
 
 	for j in range(N):
 		t = nonzero[j]
@@ -135,12 +138,12 @@ cdef DTYPE_t[:,:] SliceMatrix(DTYPE_t[:,:] A, DTYPE_t[:] indices) noexcept:
 	return resized[:,:N]
 
 
-cdef int CountNonzero(DTYPE_t[:,:] A) noexcept nogil:
+cdef int CountNonzero(TABLE A) noexcept nogil:
 	"""
 	Counts the columns of `A` with nonzero first entry.
 
 	Args:
-		DTYPE_t[:,:] A: `memoryview` on a Cython NumPy array. It is assumed that
+		TABLE A: `memoryview` on a Cython NumPy array. It is assumed that
 			the values in `A` are "packed" toward the beginning: if there are
 			N nonzero values in the second row of the array, they can be found
 			in the first N+1 indices.
@@ -169,12 +172,12 @@ cdef int CountNonzero(DTYPE_t[:,:] A) noexcept nogil:
 	return l
 
 
-cdef void Tare(DTYPE_t[:,:] A) noexcept nogil:
+cdef void Tare(TABLE A) noexcept nogil:
 	"""
 	Tares (zeroes out) the array.
 
 	Args:
-		DTYPE_t[:,:] A: `memoryview` on a Cython NumPy array. It is assumed that
+		TABLE A: `memoryview` on a Cython NumPy array. It is assumed that
 			the values in `A` are "packed" toward the beginning: if there are
 			N nonzero values in the second row of the array, they can be found
 			in the first N+1 indices.
@@ -201,15 +204,15 @@ cdef void Tare(DTYPE_t[:,:] A) noexcept nogil:
 		A[1,j] = 0
 
 
-cdef DTYPE_t[:,:] FillMarkedIndices (
-		DTYPE_t[:,:] A, DTYPE_t[:] powers, list[int] boundary, set[int] marked
+cdef TABLE FillMarkedIndices (
+		TABLE A, FLAT powers, list[int] boundary, set[int] marked
 	) noexcept:
 	"""
 	Fills the marked indices of A with the appropriate coefficient.
 
 	Args:
-		DTYPE_t[:,:] A: Array of blanks to be filled.
-		DTYPE_t[:] powers: Array of alternating powers of -1 (mod p).
+		TABLE A: Array of blanks to be filled.
+		FLAT powers: Array of alternating powers of -1 (mod p).
 		list boundary: Degrees of bounding faces for this plaquette.
 		set marked: Marked plaquettes.
 
@@ -230,15 +233,15 @@ cdef DTYPE_t[:,:] FillMarkedIndices (
 	return A
 
 
-cdef DTYPE_t[:,:] FillSharedIndices(
-		DTYPE_t[:,:] coefficients,
-		DTYPE_t[:,:] nonpivot,
+cdef TABLE FillSharedIndices(
+		TABLE coefficients,
+		TABLE nonpivot,
 		set[int] shared,
 		dict[int,int] coefficientIndices,
 		dict[int,int] nonpivotIndices,
 		int q,
-		DTYPE_t[:,:] multiplication,
-		DTYPE_t[:,:] subtraction
+		TABLE multiplication,
+		TABLE subtraction
 	) noexcept:
 	"""
 	Computes the coefficients of bounding faces shared by those in `coefficients`
@@ -256,14 +259,14 @@ cdef DTYPE_t[:,:] FillSharedIndices(
 	return coefficients
 
 
-cdef DTYPE_t[:,:] FillRightIndices(
-		DTYPE_t[:,:] coefficients,
-		DTYPE_t[:,:] nonpivot,
+cdef TABLE FillRightIndices(
+		TABLE coefficients,
+		TABLE nonpivot,
 		set[int] rOnly,
 		dict[int,int] nonpivotIndices,
 		int q,
-		DTYPE_t[:,:] multiplication,
-		DTYPE_t[:,:] subtraction
+		TABLE multiplication,
+		TABLE subtraction
 	) noexcept:
 	cdef int added, R, a, rindex, mul, N;
 
@@ -286,25 +289,25 @@ cdef DTYPE_t[:,:] FillRightIndices(
 	return coefficients
 
 
-cdef DTYPE_t[:,:] ReducePivotRow(
-		DTYPE_t[:,:] coefficients,
+cdef TABLE ReducePivotRow(
+		TABLE coefficients,
 		list[int] boundary,
 		set[int] marked,
-		DTYPE_t[:] indices,
-		dict[int,DTYPE_t[:,:]] dynamicCoeffs,
+		FLAT indices,
+		dict[int,TABLE] dynamicCoeffs,
 		dict[int,dict[int,int]] dynamicIndices,
 		dict[int,set[int]] dynamicSets,
-		DTYPE_t[:] fieldInverses,
-		DTYPE_t fieldCharacteristic,
-		DTYPE_t[:,:] addition,
-		DTYPE_t[:,:] subtraction,
-		DTYPE_t[:,:] multiplication,
-		DTYPE_t[:] powers
+		FLAT fieldInverses,
+		FFINT fieldCharacteristic,
+		TABLE addition,
+		TABLE subtraction,
+		TABLE multiplication,
+		FLAT powers
 	) noexcept:
 	cdef int i, d, dadded, occupied, locator, q;
 	cdef dict[int,int] nonpivotIndices, coefficientIndices;
 	cdef set[int] left, right, shared, rOnly;
-	cdef DTYPE_t[:,:] nonpivot;
+	cdef TABLE nonpivot;
 
 	# Fill the coefficient array; count the occupied indices.
 	coefficients = FillMarkedIndices(coefficients, powers, boundary, marked)
@@ -369,31 +372,31 @@ cdef DTYPE_t[:,:] ReducePivotRow(
 
 
 cpdef set[int] computeGiantCyclePairs(
-		DTYPE_t[:] times,
-		DTYPE_t[:] premarked,
-		DTYPE_t[:] dimensions,
-		DTYPE_t[:,:] tranches,
-		DTYPE_t[:] fieldInverses,
-		DTYPE_t fieldCharacteristic,
+		FLAT times,
+		FLAT premarked,
+		FLAT dimensions,
+		TABLE tranches,
+		FLAT fieldInverses,
+		FFINT fieldCharacteristic,
 		int maxDimension,
 		int maxIndex,
-		DTYPE_t[:,:] empty,
-		DTYPE_t[:,:] chain,
-		DTYPE_t[:] indices,
-		DTYPE_t[:,:] addition,
-		DTYPE_t[:,:] subtraction,
-		DTYPE_t[:,:] multiplication,
-		DTYPE_t[:] powers,
-		DTYPE_t[:] filtration,
+		TABLE empty,
+		TABLE chain,
+		FLAT indices,
+		TABLE addition,
+		TABLE subtraction,
+		TABLE multiplication,
+		FLAT powers,
+		FLAT filtration,
 		list[int] boundary,
-		DTYPE_t[:] degree,
+		FLAT degree,
 	):
 	# Buckets for marked indices, dynamic coefficients (for storing 2d arrays
 	# corresponding to chains), and indices (mapping cell degrees to indices in
 	# `dynamicCoeffs`). The first data structure is required; the second data
 	# structure tries to mitigate linear-time searches for max index coefficients.
 	cdef set[int] marked, events;
-	cdef dict[int,DTYPE_t[:,:]] dynamicCoeffs;
+	cdef dict[int,TABLE] dynamicCoeffs;
 	cdef dict[int,dict[int,int]] dynamicIndices;
 	cdef dict[int,set[int]] dynamicSets;
 
@@ -416,7 +419,7 @@ cpdef set[int] computeGiantCyclePairs(
 	# We want fast loops, so this is how we do it.
 	cdef int _t, t, i, cell;
 	cdef int N = times.shape[0];
-	cdef DTYPE_t[:,:] reduced;
+	cdef TABLE reduced;
 
 	for _t in range(N):
 		t = times[_t]
@@ -453,7 +456,7 @@ cpdef set[int] computeGiantCyclePairs(
 		# Zero out the chain.
 		Tare(chain)
 	
-	cdef DTYPE_t[:,:] unmarked;
+	cdef TABLE unmarked;
 
 	for cell in marked:
 		if dimensions[cell] != maxDimension-1: continue

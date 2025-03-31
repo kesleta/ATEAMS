@@ -1,6 +1,6 @@
 
 from .Sparse import Matrix
-from .linalg import KernelBasis
+from .linalg import KernelBasis, SampleFromKernel, SparseSampleFromKernel
 from .cubicalComplex import cubicalComplex, boundaryMatrix, flatten
 from .fastiteration import energy
 from .reindexing import reindexSparseBoundaryMatrix

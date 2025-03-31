@@ -1,6 +1,7 @@
 
 from setuptools import setup, Extension
 from Cython.Build import cythonize
+from Cython.Compiler.Options import get_directive_defaults as GDD
 import os
 import numpy
 
@@ -23,13 +24,17 @@ import numpy
 os.environ["CC"] = "gcc-14"
 os.environ["CXX"] = "g++-14"
 
+DD = GDD()
+DD["linetrace"] = True
+DD["binding"] = True
+
 extensions = [
 	Extension(
 		"*",
 		["ateams/**/*.pyx"],
 		include_dirs=[numpy.get_include(), "ateams/arithmetic"],
 		# extra_compile_args=["-O4"], # just C
-		extra_compile_args=["-std=c++20", "-O3"] # C++
+		extra_compile_args=["-std=c++20", "-O4"], # C++
 	)
 ]
 
