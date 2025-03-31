@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.3">
-<title>ateams API documentation</title>
-<meta name="description" content="ATEAMS …">
+<title>ateams.arithmetic.reindexing API documentation</title>
+<meta name="description" content="">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" crossorigin>
@@ -24,65 +24,24 @@ hljs.highlightAll();
 <main>
 <article id="content">
 <header>
-<h1 class="title">Package <code>ateams</code></h1>
+<h1 class="title">Module <code>ateams.arithmetic.reindexing</code></h1>
 </header>
 <section id="section-intro">
-<h2 id="ateams">ATEAMS</h2>
-<p>The <strong>A</strong>lgebraic <strong>t</strong>opology-<strong>e</strong>nabled <strong>a</strong>lgorith<strong>m</strong>s for <strong>s</strong>pin systems(<strong>ATEAMS</strong>) library is a high-performance software suite for conducting experiments on lattice spin models. The main attractions are the <em>plaquette <a href="http://arxiv.org/abs/cond-mat/9605103">invaded-cluster</a></em> and <em>plaquette <a href="https://link.aps.org/doi/10.1103/PhysRevLett.58.86">Swendsen-Wang</a></em> algorithms for simulating Markov chains on cubical lattices of any dimension.</p>
-<p><a href="https://doi.org/10.5281/zenodo.14284172"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.14284172.svg"></a></p>
-<h2 id="installation">Installation</h2>
-<p>Clone this repository by <code>git clone https://github.com/apizzimenti/ateams.git</code>, navigate into the project's root, and run <code>sh setup.sh</code> in your favorite terminal. This installs the <code><a title="ateams" href="#ateams">ateams</a></code> package (and its dependencies) globally in development mode, so any changes you make to the source are reflected system-wide. <strong>Please read the installation note in <code>setup.sh</code> to ensure PHAT is correctly installed on your system.</strong></p>
-<h2 id="example-use">Example Use</h2>
-<p>This sample code runs the plaquette invaded-cluster algorithm on a 64x64 cubical 2-torus.</p>
-<pre><code class="language-python">from ateams.structures import Lattice
-from ateams.models import InvadedCluster
-from ateams import Chain
-
-L = Lattice().fromCorners([64,64], field=3)
-HP = InvadedCluster(L, homology=1)
-
-for state in Chain(HP, steps=10):
-    &lt;do whatever&gt;
-</code></pre>
-<h2 id="citing">Citing</h2>
-<h3 id="bibtex">BibTeX</h3>
-<pre><code class="language-bibtex">@software{ateams,
-    title={{ATEAMS: Algebraic Topology-Enabled AlgorithMs for Spin systems}},
-    author={Duncan, Paul and Pizzimenti, Anthony E. and Schweinhart, Benjamin},
-    url={https://github.com/apizzimenti/ateams},
-    version={1.0.0},
-    doi={10.5281/zenodo.14284172}
-}
-</code></pre>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt><code class="name"><a title="ateams.Chain" href="Chain.html">ateams.Chain</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="ateams.Tape" href="Tape.html">ateams.Tape</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="ateams.arithmetic" href="arithmetic/index.html">ateams.arithmetic</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="ateams.models" href="models/index.html">ateams.models</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="ateams.structures" href="structures/index.html">ateams.structures</a></code></dt>
+<dt id="ateams.arithmetic.reindexing.reindexSparseBoundaryMatrix"><code class="name flex">
+<span>def <span class="ident">reindexSparseBoundaryMatrix</span></span>(<span>upperBoundary,<br>flatBoundary,<br>homology,<br>tranches,<br>reindexed,<br>targetIndices,<br>zeroedTargetIndices,<br>cycles)</span>
+</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
-</section>
-<section>
-</section>
-<section>
 </section>
 <section>
 </section>
@@ -133,28 +92,21 @@ width: 20%;
 column-count: 1 !important;
 }
 </style>
-<img class="resize" src="https://github.com/apizzimenti/ATEAMS/blob/main/docs/lattice-55.jpeg?raw=true" alt="Homological percolation on the torus.">
+<img class="resize" src="https://github.com/apizzimenti/ateam/blob/main/docs/lattice-55.jpeg?raw=true" alt="Homological percolation on the torus.">
 </a>
 </header>
 <div class="toc">
-<ul>
-<li><a href="#ateams">ATEAMS</a></li>
-<li><a href="#installation">Installation</a></li>
-<li><a href="#example-use">Example Use</a></li>
-<li><a href="#citing">Citing</a><ul>
-<li><a href="#bibtex">BibTeX</a></li>
-</ul>
-</li>
-</ul>
+<ul></ul>
 </div>
 <ul id="index">
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<li><h3>Super-module</h3>
 <ul>
-<li><code><a title="ateams.Chain" href="Chain.html">ateams.Chain</a></code></li>
-<li><code><a title="ateams.Tape" href="Tape.html">ateams.Tape</a></code></li>
-<li><code><a title="ateams.arithmetic" href="arithmetic/index.html">ateams.arithmetic</a></code></li>
-<li><code><a title="ateams.models" href="models/index.html">ateams.models</a></code></li>
-<li><code><a title="ateams.structures" href="structures/index.html">ateams.structures</a></code></li>
+<li><code><a title="ateams.arithmetic" href="index.html">ateams.arithmetic</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="ateams.arithmetic.reindexing.reindexSparseBoundaryMatrix" href="#ateams.arithmetic.reindexing.reindexSparseBoundaryMatrix">reindexSparseBoundaryMatrix</a></code></li>
 </ul>
 </li>
 </ul>

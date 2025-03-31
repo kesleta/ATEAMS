@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.3">
-<title>ateams.arithmetic API documentation</title>
+<title>ateams.arithmetic.linearAlgebra API documentation</title>
 <meta name="description" content="">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
@@ -24,37 +24,18 @@ hljs.highlightAll();
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>ateams.arithmetic</code></h1>
+<h1 class="title">Module <code>ateams.arithmetic.linearAlgebra</code></h1>
 </header>
 <section id="section-intro">
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
-<dl>
-<dt><code class="name"><a title="ateams.arithmetic.fastiteration" href="fastiteration.html">ateams.arithmetic.fastiteration</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="ateams.arithmetic.linearAlgebra" href="linearAlgebra.html">ateams.arithmetic.linearAlgebra</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="ateams.arithmetic.persistence" href="persistence.html">ateams.arithmetic.persistence</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="ateams.arithmetic.reindexing" href="reindexing.html">ateams.arithmetic.reindexing</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
 </section>
 <section>
 </section>
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="ateams.arithmetic.autocorrelation"><code class="name flex">
+<dt id="ateams.arithmetic.linearAlgebra.autocorrelation"><code class="name flex">
 <span>def <span class="ident">autocorrelation</span></span>(<span>data)</span>
 </code></dt>
 <dd>
@@ -68,69 +49,7 @@ from a given observable.</dd>
 <h2 id="returns">Returns</h2>
 <p>An <code>np.ndarray</code> of autocorrelation data.</p></div>
 </dd>
-<dt id="ateams.arithmetic.boundaryMatrix"><code class="name flex">
-<span>def <span class="ident">boundaryMatrix</span></span>(<span>Complex, D, F)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Construct the boundary (operator) matrix given the boundary specification
-and finite field.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>Complex</code></strong> :&ensp;<code>dict</code></dt>
-<dd>Dictionary sending dimensions (keys) to boundary matrices
-(values).</dd>
-<dt><strong><code>D</code></strong> :&ensp;<code>int</code></dt>
-<dd>Top-level dimension of the complex.</dd>
-<dt><strong><code>F</code></strong> :&ensp;<code>galois.GF</code></dt>
-<dd>Finite field representation.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>Galois <code>Array</code> representing the signed boundary matrix for the <code>Complex</code>.</p></div>
-</dd>
-<dt id="ateams.arithmetic.computeGiantCyclePairs"><code class="name flex">
-<span>def <span class="ident">computeGiantCyclePairs</span></span>(<span>times,<br>premarked,<br>dimensions,<br>tranches,<br>fieldInverses,<br>fieldCharacteristic,<br>maxDimension,<br>maxIndex,<br>empty,<br>chain,<br>indices,<br>addition,<br>subtraction,<br>multiplication,<br>powers,<br>filtration,<br>boundary,<br>degree)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ateams.arithmetic.cubicalComplex"><code class="name flex">
-<span>def <span class="ident">cubicalComplex</span></span>(<span>corners, D, F, periodic=True)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Constructs a cubical complex completely specified by a boundary matrix and
-a vertex map.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>corners</code></strong> :&ensp;<code>iterable</code></dt>
-<dd>An iterable specifying the extent of the lattice. If
-<code>periodic</code> is truthy, antipodal vertices are identified; for example,
-if <code>corners = [3,3]</code>, then the vertices at indices (0,0), (0,3), (3,0),
-and (3,3) are identified.</dd>
-<dt><strong><code>D</code></strong> :&ensp;<code>int</code></dt>
-<dd>Top-level dimension.</dd>
-<dt><strong><code>F</code></strong> :&ensp;<code>galois.GF</code></dt>
-<dd>Finite field representation.</dd>
-<dt><strong><code>periodic</code></strong> :&ensp;<code>bool=True</code></dt>
-<dd>If truthy, we construct a <span><span class="MathJax_Preview">d</span><script type="math/tex">d</script></span>-fold torus, where <span><span class="MathJax_Preview">d</span><script type="math/tex">d</script></span>
-is the topmost dimension of the lattice (as determined by the number
-of corners specified). For example, if <code>periodic</code> is falsy, then
-<code>corners = [3,3]</code> hands back a 4x4 grid (zero-indexed).</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A triplet containing</p>
-<ol>
-<li>
-<p>a <code>dict</code> mapping vertex indices to integer coordinates</p>
-</li>
-<li>
-<p>a <code>dict</code> mapping dimensions to boundary matrices</p>
-</li>
-<li>
-<p>a <code>galois.FieldArray</code> representing the signed boundary matrix for the complex.</p>
-</li>
-</ol></div>
-</dd>
-<dt id="ateams.arithmetic.evaluateCochain"><code class="name flex">
+<dt id="ateams.arithmetic.linearAlgebra.evaluateCochain"><code class="name flex">
 <span>def <span class="ident">evaluateCochain</span></span>(<span>boundary, spins)</span>
 </code></dt>
 <dd>
@@ -145,7 +64,7 @@ of corners specified). For example, if <code>periodic</code> is falsy, then
 <h2 id="returns">Returns</h2>
 <p>A <code>galois.FieldArray</code> of coefficients on the <span><span class="MathJax_Preview">k</span><script type="math/tex">k</script></span>-skeleton.</p></div>
 </dd>
-<dt id="ateams.arithmetic.isNullHomologous"><code class="name flex">
+<dt id="ateams.arithmetic.linearAlgebra.isNullHomologous"><code class="name flex">
 <span>def <span class="ident">isNullHomologous</span></span>(<span>A, x, I, includes=[])</span>
 </code></dt>
 <dd>
@@ -166,7 +85,7 @@ where <span><span class="MathJax_Preview">n</span><script type="math/tex">n</scr
 <h2 id="returns">Returns</h2>
 <p>A boolean which is truthy when <span><span class="MathJax_Preview">x</span><script type="math/tex">x</script></span> is nullhomologous and falsy otherwise.</p></div>
 </dd>
-<dt id="ateams.arithmetic.sampleFromKernel"><code class="name flex">
+<dt id="ateams.arithmetic.linearAlgebra.sampleFromKernel"><code class="name flex">
 <span>def <span class="ident">sampleFromKernel</span></span>(<span>A, F, includes=[], relativeCells=[], relativeFaces=[])</span>
 </code></dt>
 <dd>
@@ -250,26 +169,15 @@ column-count: 1 !important;
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="ateams" href="../index.html">ateams</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
-<ul>
-<li><code><a title="ateams.arithmetic.fastiteration" href="fastiteration.html">ateams.arithmetic.fastiteration</a></code></li>
-<li><code><a title="ateams.arithmetic.linearAlgebra" href="linearAlgebra.html">ateams.arithmetic.linearAlgebra</a></code></li>
-<li><code><a title="ateams.arithmetic.persistence" href="persistence.html">ateams.arithmetic.persistence</a></code></li>
-<li><code><a title="ateams.arithmetic.reindexing" href="reindexing.html">ateams.arithmetic.reindexing</a></code></li>
+<li><code><a title="ateams.arithmetic" href="index.html">ateams.arithmetic</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="ateams.arithmetic.autocorrelation" href="#ateams.arithmetic.autocorrelation">autocorrelation</a></code></li>
-<li><code><a title="ateams.arithmetic.boundaryMatrix" href="#ateams.arithmetic.boundaryMatrix">boundaryMatrix</a></code></li>
-<li><code><a title="ateams.arithmetic.computeGiantCyclePairs" href="#ateams.arithmetic.computeGiantCyclePairs">computeGiantCyclePairs</a></code></li>
-<li><code><a title="ateams.arithmetic.cubicalComplex" href="#ateams.arithmetic.cubicalComplex">cubicalComplex</a></code></li>
-<li><code><a title="ateams.arithmetic.evaluateCochain" href="#ateams.arithmetic.evaluateCochain">evaluateCochain</a></code></li>
-<li><code><a title="ateams.arithmetic.isNullHomologous" href="#ateams.arithmetic.isNullHomologous">isNullHomologous</a></code></li>
-<li><code><a title="ateams.arithmetic.sampleFromKernel" href="#ateams.arithmetic.sampleFromKernel">sampleFromKernel</a></code></li>
+<li><code><a title="ateams.arithmetic.linearAlgebra.autocorrelation" href="#ateams.arithmetic.linearAlgebra.autocorrelation">autocorrelation</a></code></li>
+<li><code><a title="ateams.arithmetic.linearAlgebra.evaluateCochain" href="#ateams.arithmetic.linearAlgebra.evaluateCochain">evaluateCochain</a></code></li>
+<li><code><a title="ateams.arithmetic.linearAlgebra.isNullHomologous" href="#ateams.arithmetic.linearAlgebra.isNullHomologous">isNullHomologous</a></code></li>
+<li><code><a title="ateams.arithmetic.linearAlgebra.sampleFromKernel" href="#ateams.arithmetic.linearAlgebra.sampleFromKernel">sampleFromKernel</a></code></li>
 </ul>
 </li>
 </ul>
