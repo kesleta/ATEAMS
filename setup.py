@@ -21,8 +21,13 @@ import numpy
 #
 # To ensure installation.
 #
-os.environ["CC"] = "gcc-14"
-os.environ["CXX"] = "g++-14"
+
+try:
+	if os.environ["CC"]: os.environ["CC"] = "gcc-14"
+	if os.environ["CXX"]: os.environ["CXX"] = "g++-14"
+except:
+	os.environ["CC"] = "gcc-12"
+	os.environ["CXX"] = "g++-12"
 
 DD = GDD()
 DD["linetrace"] = True
@@ -33,8 +38,8 @@ extensions = [
 		"*",
 		["ateams/**/*.pyx"],
 		include_dirs=[numpy.get_include(), "ateams/arithmetic"],
-		# extra_compile_args=["-O4"], # just C
-		extra_compile_args=["-std=c++20", "-O4"], # C++
+		extra_compile_args=["-std=c++20", "-O4", "-fopenmp"],
+        extra_link_args=["-fopenmp"],
 	)
 ]
 

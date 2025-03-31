@@ -1,5 +1,5 @@
 
-# cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True, wraparound=False, boundscheck=False
+# cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True, boundscheck=False, wraparound=False
 # cython: linetrace=True
 # cython: binding=True
 # define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -11,6 +11,8 @@ cimport numpy as np
 from .common cimport FFINT, FLAT, FLAT, TABLE, TABLE
 from .Sparse cimport Matrix
 
+from cython.parallel import prange
+from libcpp cimport bool
 from libc.stdlib cimport rand, srand, RAND_MAX
 from libc.time cimport time
 
@@ -186,7 +188,16 @@ cdef int Random(int MAX) except -1:
 	return (rand() % MAX);
 
 
-cdef FLAT LinearCombination(TABLE basis, FLAT coefficients, FLAT store, TABLE addition, TABLE multiplication, int FIELD, FLAT result) noexcept:
+cdef FLAT LinearCombination(
+		TABLE basis,
+		FLAT coefficients,
+		FLAT store,
+		TABLE addition,
+		TABLE multiplication,
+		int FIELD,
+		FLAT result,
+		bool parallel
+	) noexcept:
 	cdef int i, j, N, M;
 	cdef FFINT mult;
 
@@ -217,11 +228,12 @@ cpdef np.ndarray[FFINT, ndim=1, negative_indices=False, mode="c"] SampleFromKern
 		FLAT negation,
 		TABLE multiplication,
 		FLAT inverses,
+		bool parallel,
 		TABLE coboundary,
 		int AUGMENT
 	):
 	cdef TABLE basis = KernelBasis(PIVOTS, addition, subtraction, negation, multiplication, inverses, coboundary, AUGMENT);
-	return np.asarray(LinearCombination(basis, negation, store, addition, multiplication, FIELD, result))
+	return np.asarray(LinearCombination(basis, negation, store, addition, multiplication, FIELD, result, parallel))
 
 
 
@@ -233,10 +245,11 @@ cpdef TABLE SparseKernelBasis(
 		TABLE multiplication,
 		FLAT inverses,
 		TABLE coboundary,
-		int AUGMENT
+		int AUGMENT,
+		bool parallel
 	):
 	cdef TABLE inversion, reduced, superreduced;
-	cdef Matrix M = Matrix(coboundary, addition, negation, multiplication, inverses)
+	cdef Matrix M = Matrix(coboundary, addition, negation, multiplication, inverses, parallel)
 	cdef int minzero;
 
 	M.RREF(AUGMENT);
@@ -258,11 +271,11 @@ cpdef np.ndarray[FFINT, ndim=1, negative_indices=False, mode="c"] SparseSampleFr
 		FLAT negation,
 		TABLE multiplication,
 		FLAT inverses,
+		bool parallel,
 		TABLE coboundary,
 		int AUGMENT
 	):
-	print(coboundary.shape)
-	cdef TABLE basis = SparseKernelBasis(PIVOTS, addition, subtraction, negation, multiplication, inverses, coboundary, AUGMENT);
-	return np.asarray(LinearCombination(basis, negation, store, addition, multiplication, FIELD, result))
+	cdef TABLE basis = SparseKernelBasis(PIVOTS, addition, subtraction, negation, multiplication, inverses, coboundary, AUGMENT, parallel);
+	return np.asarray(LinearCombination(basis, negation, store, addition, multiplication, FIELD, result, parallel))
 
 

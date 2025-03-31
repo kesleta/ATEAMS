@@ -239,7 +239,7 @@ class InvadedCluster(Model):
 class CInvadedCluster(Model):
 	name = "InvadedCluster"
 	
-	def __init__(self, L, homology=1, stop=lambda: 1):
+	def __init__(self, L, homology=1, stop=lambda: 1, parallel=False):
 		"""
 		Initializes the plaquette invaded-cluster algorithm on the provided
 		integer lattice, detecting percolation in the `homology`-th homology
@@ -251,10 +251,12 @@ class CInvadedCluster(Model):
 				complex.
 			stop (function): A function that returns the number of essential cycles
 				found before sampling the next configuration.
+			parallel (boolean): Should matrix computations be done in parallel?
 		"""
 		self.lattice = L
 		self.homology = homology
 		self.stop = stop
+		self.parallel = parallel
 
 		# Set an initial spin configuration. After we assign this, we use PHAT
 		# if we're working over Z/2Z coefficients, or the Zomorodian/Edelsbrunner
@@ -390,7 +392,8 @@ class CInvadedCluster(Model):
 			subtraction,
 			negation,
 			multiplication,
-			inverses
+			inverses,
+			self.parallel
 		)
 	
 	
