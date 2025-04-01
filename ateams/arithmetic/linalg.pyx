@@ -1,19 +1,18 @@
 
 # cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True, boundscheck=False, wraparound=False
-# cython: linetrace=True
-# cython: binding=True
 # define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-# distutils: define_macros=CYTHON_TRACE_NOGIL=1
 # distutils: language=c++
 
 import numpy as np
 cimport numpy as np
-from .common cimport FFINT, FLAT, FLAT, TABLE, TABLE
+from .common cimport FFINT, FLAT, TABLE
 from .Sparse cimport Matrix
 
+
 from cython.parallel import prange
+from libcpp.vector cimport vector as Vector
 from libcpp cimport bool
-from libc.stdlib cimport rand, srand, RAND_MAX
+from libc.stdlib cimport rand, srand
 from libc.time cimport time
 
 # Seed the RNG.
@@ -23,6 +22,8 @@ cdef void addRows(
 		TABLE A,
 		int i,
 		int j,
+		int start,
+		int stop,
 		TABLE addition,
 		TABLE multiplication,
 		FFINT r
@@ -30,12 +31,57 @@ cdef void addRows(
 	cdef int N, k;
 	cdef FFINT mult;
 
-	N = A.shape[1];
-
-	for k in range(N):
+	for k in range(start, stop):
 		mult = multiplication[A[i,k],r]
 		A[j,k] = addition[mult,A[j,k]]
+
+
+cdef void parallelAddRows(
+		TABLE A,
+		int i,
+		int j,
+		int start,
+		int stop,
+		TABLE addition,
+		TABLE multiplication,
+		FFINT r,
+		int cores,
+		int minBlockSize,
+		int maxBlockSize
+	) noexcept nogil:
+	cdef int block, blocks, MINCOL, MAXCOL, k, b, N, _q;
+	cdef Vector[int] BLOCK;
+	cdef Vector[Vector[int]] BLOCKS;
+	
+	# Compute the block size *of the current submatrix*, then schedule vertical
+	# block computation appropriately: we have bounds on the "block size,"
+	# so no thread is given too much (or too little) work to do. Choosing the
+	# block sizes may be more of an art than a science, though.
+	_q = (stop-start)//cores;
+	block = min(max(minBlockSize, _q), min(maxBlockSize, _q))
+	blocks = ((stop-start)//block)+1
+	BLOCKS = Vector[Vector[int]]();
+
+	for b in range(blocks):
+		MINCOL = start+b*block;
+		MAXCOL = start+(b+1)*block if start+(b+1)*block <= stop else stop
 		
+		if MINCOL >= stop: break
+
+		BLOCK = Vector[int]();
+		BLOCK.push_back(MINCOL);
+		BLOCK.push_back(MAXCOL);
+		BLOCKS.push_back(BLOCK);
+
+	N = BLOCKS.size();
+
+	# Compute block-wise.
+	for k in prange(N, schedule="static", nogil=True, num_threads=cores, chunksize=1):
+		MINCOL = BLOCKS[k][0]
+		MAXCOL = BLOCKS[k][1]
+
+		addRows(A, i, j, MINCOL, MAXCOL, addition, multiplication, r);
+
 
 cdef void swapRows(
 		TABLE A,
@@ -61,7 +107,7 @@ cdef void invertRow(
 	) noexcept nogil:
 	cdef int k, N;
 	
-	N = A.shape[1]
+	N = A.shape[1];
 
 	for k in range(N):
 		A[i,k] = multiplication[q,A[i,k]]
@@ -107,7 +153,12 @@ cdef TABLE RREF(
 		TABLE subtraction,
 		FLAT negation,
 		TABLE multiplication,
-		FLAT inverses
+		FLAT inverses,
+		bool parallel,
+		int minBlockSize,
+		int maxBlockSize,
+		int cores,
+		str schedule
 	) noexcept nogil:
 	cdef int M, N, i, j, k, pivot, pivots, ratio;
 	cdef FFINT q;
@@ -135,7 +186,9 @@ cdef TABLE RREF(
 		# Eliminate rows below.
 		for k in range(pivots, M):
 			ratio = negation[A[k,i]]
-			addRows(A, pivots-1, k, addition, multiplication, ratio)
+
+			if not parallel: addRows(A, pivots-1, k, i, N, addition, multiplication, ratio);
+			else: parallelAddRows(A, pivots-1, k, i, N, addition, multiplication, ratio, cores, minBlockSize, maxBlockSize);
 
 	# Compute RREF.
 	cdef int l, m, r, column;
@@ -155,7 +208,9 @@ cdef TABLE RREF(
 		# entries there...
 		for m in range(l):
 			ratio = negation[A[m, column]]
-			addRows(A, l, m, addition, multiplication, ratio)
+
+			if not parallel: addRows(A, l, m, column, N, addition, multiplication, ratio);
+			else: parallelAddRows(A, l, m, column, N, addition, multiplication, ratio, cores, minBlockSize, maxBlockSize);
 
 		# ... decrement the counter.
 		l -= 1;
@@ -171,12 +226,17 @@ cpdef TABLE KernelBasis(
 		TABLE multiplication,
 		FLAT inverses,
 		TABLE coboundary,
-		int AUGMENT
+		int AUGMENT,
+		bool parallel,
+		int minBlockSize,
+		int maxBlockSize,
+		int cores,
+		str schedule,
 	):
 	cdef TABLE inversion, reduced, superreduced;
 	cdef int minzero;
 
-	inversion = RREF(coboundary, AUGMENT, P, addition, subtraction, negation, multiplication, inverses)
+	inversion = RREF(coboundary, AUGMENT, P, addition, subtraction, negation, multiplication, inverses, parallel, minBlockSize, maxBlockSize, cores, schedule)
 	minzero = MinZero(inversion)
 	reduced = inversion[:,AUGMENT:];
 	superreduced = reduced[minzero:]
@@ -200,8 +260,6 @@ cdef FLAT LinearCombination(
 	) noexcept:
 	cdef int i, j, N, M;
 	cdef FFINT mult;
-
-	print(basis.shape)
 
 	M = basis.shape[0];
 	N = basis.shape[1];
@@ -229,10 +287,14 @@ cpdef np.ndarray[FFINT, ndim=1, negative_indices=False, mode="c"] SampleFromKern
 		TABLE multiplication,
 		FLAT inverses,
 		bool parallel,
+		int minBlockSize,
+		int maxBlockSize,
+		int cores,
+		str schedule,
 		TABLE coboundary,
 		int AUGMENT
 	):
-	cdef TABLE basis = KernelBasis(PIVOTS, addition, subtraction, negation, multiplication, inverses, coboundary, AUGMENT);
+	cdef TABLE basis = KernelBasis(PIVOTS, addition, subtraction, negation, multiplication, inverses, coboundary, AUGMENT, parallel, minBlockSize, maxBlockSize, cores, schedule);
 	return np.asarray(LinearCombination(basis, negation, store, addition, multiplication, FIELD, result, parallel))
 
 
@@ -246,10 +308,14 @@ cpdef TABLE SparseKernelBasis(
 		FLAT inverses,
 		TABLE coboundary,
 		int AUGMENT,
-		bool parallel
+		bool parallel,
+		int minBlockSize,
+		int maxBlockSize,
+		int cores,
+		str schedule
 	):
 	cdef TABLE inversion, reduced, superreduced;
-	cdef Matrix M = Matrix(coboundary, addition, negation, multiplication, inverses, parallel)
+	cdef Matrix M = Matrix(coboundary, addition, negation, multiplication, inverses, parallel, minBlockSize, maxBlockSize, cores, schedule)
 	cdef int minzero;
 
 	M.RREF(AUGMENT);
@@ -258,7 +324,7 @@ cpdef TABLE SparseKernelBasis(
 	reduced = inversion[:,AUGMENT:];
 	superreduced = reduced[minzero:]
 
-	return superreduced;
+	return superreduced
 
 
 cpdef np.ndarray[FFINT, ndim=1, negative_indices=False, mode="c"] SparseSampleFromKernel(
@@ -272,10 +338,14 @@ cpdef np.ndarray[FFINT, ndim=1, negative_indices=False, mode="c"] SparseSampleFr
 		TABLE multiplication,
 		FLAT inverses,
 		bool parallel,
+		int minBlockSize,
+		int maxBlockSize,
+		int cores,
+		str schedule,
 		TABLE coboundary,
 		int AUGMENT
 	):
-	cdef TABLE basis = SparseKernelBasis(PIVOTS, addition, subtraction, negation, multiplication, inverses, coboundary, AUGMENT, parallel);
+	cdef TABLE basis = SparseKernelBasis(PIVOTS, addition, subtraction, negation, multiplication, inverses, coboundary, AUGMENT, parallel, minBlockSize, maxBlockSize, cores, schedule);
 	return np.asarray(LinearCombination(basis, negation, store, addition, multiplication, FIELD, result, parallel))
 
 

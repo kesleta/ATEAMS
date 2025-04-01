@@ -239,7 +239,7 @@ class InvadedCluster(Model):
 class CInvadedCluster(Model):
 	name = "InvadedCluster"
 	
-	def __init__(self, L, homology=1, stop=lambda: 1, parallel=False):
+	def __init__(self, L, homology=1, stop=lambda: 1, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4, schedule="guided"):
 		"""
 		Initializes the plaquette invaded-cluster algorithm on the provided
 		integer lattice, detecting percolation in the `homology`-th homology
@@ -256,7 +256,12 @@ class CInvadedCluster(Model):
 		self.lattice = L
 		self.homology = homology
 		self.stop = stop
+
 		self.parallel = parallel
+		self.minBlockSize = minBlockSize
+		self.maxBlockSize = maxBlockSize
+		self.cores = cores
+		self.schedule = schedule
 
 		# Set an initial spin configuration. After we assign this, we use PHAT
 		# if we're working over Z/2Z coefficients, or the Zomorodian/Edelsbrunner
@@ -383,7 +388,7 @@ class CInvadedCluster(Model):
 			)
 
 		self.SampleFromKernel = partial(
-			SparseSampleFromKernel,
+			SampleFromKernel,
 			p,
 			pivots,
 			store,
@@ -393,7 +398,11 @@ class CInvadedCluster(Model):
 			negation,
 			multiplication,
 			inverses,
-			self.parallel
+			self.parallel,
+			self.minBlockSize,
+			self.maxBlockSize,
+			self.cores,
+			self.schedule
 		)
 	
 	

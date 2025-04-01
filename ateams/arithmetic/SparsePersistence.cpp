@@ -1999,10 +1999,10 @@ typedef __Pyx_memviewslice __pyx_t_6ateams_10arithmetic_6common_TABLECONTIG;
 struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_HighestZeroRow;
 struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_RREF;
 
-/* "Sparse.pxd":35
- * 	cdef void MultiplyRow(self, int i, FFINT q) noexcept nogil
+/* "Sparse.pxd":41
+ * 	cdef void RescanColumns(self, int MINCOL) noexcept nogil
  * 	cdef int PivotRow(self, int c, int pivots) noexcept nogil
- * 	cdef int HighestZeroRow(self, int AUGMENT=*) noexcept             # <<<<<<<<<<<<<<
+ * 	cdef int HighestZeroRow(self, int AUGMENT=*)             # <<<<<<<<<<<<<<
  * 
  * 	cdef void RREF(self, int AUGMENT=*) noexcept nogil
  */
@@ -2011,8 +2011,8 @@ struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_HighestZeroRow {
   int AUGMENT;
 };
 
-/* "Sparse.pxd":37
- * 	cdef int HighestZeroRow(self, int AUGMENT=*) noexcept
+/* "Sparse.pxd":43
+ * 	cdef int HighestZeroRow(self, int AUGMENT=*)
  * 
  * 	cdef void RREF(self, int AUGMENT=*) noexcept nogil             # <<<<<<<<<<<<<<
  */
@@ -2021,7 +2021,7 @@ struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_RREF {
   int AUGMENT;
 };
 
-/* "Sparse.pxd":16
+/* "Sparse.pxd":15
  * 
  * 
  * cdef class Matrix:             # <<<<<<<<<<<<<<
@@ -2037,9 +2037,14 @@ struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix {
   __pyx_t_6ateams_10arithmetic_6common_FLAT inverses;
   __pyx_t_6ateams_10arithmetic_6common_TABLE data;
   bool parallel;
-  std::unordered_map<int,std::vector<int> >  iterableColumns;
+  PyObject *schedule;
+  int cores;
+  int minBlockSize;
+  int maxBlockSize;
+  int blockSize;
   std::unordered_map<int,std::unordered_set<int> >  columns;
   std::vector<int>  shape;
+  std::vector<std::vector<int> >  blockSchema;
 };
 
 
@@ -2120,7 +2125,7 @@ struct __pyx_memoryviewslice_obj {
 
 
 
-/* "Sparse.pxd":16
+/* "Sparse.pxd":15
  * 
  * 
  * cdef class Matrix:             # <<<<<<<<<<<<<<
@@ -2132,8 +2137,10 @@ struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix {
   void (*_initializeColumns)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *);
   __pyx_t_6ateams_10arithmetic_6common_TABLE (*ToArray)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *);
   void (*SwapRows)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int);
-  void (*AddRows)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int, __pyx_t_6ateams_10arithmetic_6common_FFINT);
+  void (*AddRows)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int, int, int, __pyx_t_6ateams_10arithmetic_6common_FFINT);
+  void (*BlockAddRows)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int, __pyx_t_6ateams_10arithmetic_6common_FFINT, int, int, PyObject *);
   void (*MultiplyRow)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, __pyx_t_6ateams_10arithmetic_6common_FFINT);
+  void (*RescanColumns)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int);
   int (*PivotRow)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int);
   int (*HighestZeroRow)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_HighestZeroRow *__pyx_optional_args);
   void (*RREF)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_RREF *__pyx_optional_args);
@@ -22267,10 +22274,10 @@ static int __Pyx_modinit_type_import_code(void) {
   __pyx_ptype_5numpy_character = __Pyx_ImportType_3_0_10(__pyx_t_1, "numpy", "character", sizeof(PyObject), __PYX_GET_STRUCT_ALIGNMENT_3_0_10(PyObject),__Pyx_ImportType_CheckSize_Warn_3_0_10); if (!__pyx_ptype_5numpy_character) __PYX_ERR(2, 827, __pyx_L1_error)
   __pyx_ptype_5numpy_ufunc = __Pyx_ImportType_3_0_10(__pyx_t_1, "numpy", "ufunc", sizeof(PyUFuncObject), __PYX_GET_STRUCT_ALIGNMENT_3_0_10(PyUFuncObject),__Pyx_ImportType_CheckSize_Ignore_3_0_10); if (!__pyx_ptype_5numpy_ufunc) __PYX_ERR(2, 866, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyImport_ImportModule("ateams.arithmetic.Sparse"); if (unlikely(!__pyx_t_1)) __PYX_ERR(4, 16, __pyx_L1_error)
+  __pyx_t_1 = PyImport_ImportModule("ateams.arithmetic.Sparse"); if (unlikely(!__pyx_t_1)) __PYX_ERR(4, 15, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_ptype_6ateams_10arithmetic_6Sparse_Matrix = __Pyx_ImportType_3_0_10(__pyx_t_1, "ateams.arithmetic.Sparse", "Matrix", sizeof(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix), __PYX_GET_STRUCT_ALIGNMENT_3_0_10(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix),__Pyx_ImportType_CheckSize_Warn_3_0_10); if (!__pyx_ptype_6ateams_10arithmetic_6Sparse_Matrix) __PYX_ERR(4, 16, __pyx_L1_error)
-  __pyx_vtabptr_6ateams_10arithmetic_6Sparse_Matrix = (struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix*)__Pyx_GetVtable(__pyx_ptype_6ateams_10arithmetic_6Sparse_Matrix); if (unlikely(!__pyx_vtabptr_6ateams_10arithmetic_6Sparse_Matrix)) __PYX_ERR(4, 16, __pyx_L1_error)
+  __pyx_ptype_6ateams_10arithmetic_6Sparse_Matrix = __Pyx_ImportType_3_0_10(__pyx_t_1, "ateams.arithmetic.Sparse", "Matrix", sizeof(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix), __PYX_GET_STRUCT_ALIGNMENT_3_0_10(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix),__Pyx_ImportType_CheckSize_Warn_3_0_10); if (!__pyx_ptype_6ateams_10arithmetic_6Sparse_Matrix) __PYX_ERR(4, 15, __pyx_L1_error)
+  __pyx_vtabptr_6ateams_10arithmetic_6Sparse_Matrix = (struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix*)__Pyx_GetVtable(__pyx_ptype_6ateams_10arithmetic_6Sparse_Matrix); if (unlikely(!__pyx_vtabptr_6ateams_10arithmetic_6Sparse_Matrix)) __PYX_ERR(4, 15, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_RefNannyFinishContext();
   return 0;

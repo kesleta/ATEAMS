@@ -2004,10 +2004,10 @@ typedef __Pyx_memviewslice __pyx_t_6ateams_10arithmetic_6common_TABLECONTIG;
 struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_HighestZeroRow;
 struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_RREF;
 
-/* "ateams/arithmetic/Sparse.pxd":35
- * 	cdef void MultiplyRow(self, int i, FFINT q) noexcept nogil
+/* "ateams/arithmetic/Sparse.pxd":41
+ * 	cdef void RescanColumns(self, int MINCOL) noexcept nogil
  * 	cdef int PivotRow(self, int c, int pivots) noexcept nogil
- * 	cdef int HighestZeroRow(self, int AUGMENT=*) noexcept             # <<<<<<<<<<<<<<
+ * 	cdef int HighestZeroRow(self, int AUGMENT=*)             # <<<<<<<<<<<<<<
  * 
  * 	cdef void RREF(self, int AUGMENT=*) noexcept nogil
  */
@@ -2016,8 +2016,8 @@ struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_HighestZeroRow {
   int AUGMENT;
 };
 
-/* "ateams/arithmetic/Sparse.pxd":37
- * 	cdef int HighestZeroRow(self, int AUGMENT=*) noexcept
+/* "ateams/arithmetic/Sparse.pxd":43
+ * 	cdef int HighestZeroRow(self, int AUGMENT=*)
  * 
  * 	cdef void RREF(self, int AUGMENT=*) noexcept nogil             # <<<<<<<<<<<<<<
  */
@@ -2026,7 +2026,7 @@ struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_RREF {
   int AUGMENT;
 };
 
-/* "ateams/arithmetic/Sparse.pxd":16
+/* "ateams/arithmetic/Sparse.pxd":15
  * 
  * 
  * cdef class Matrix:             # <<<<<<<<<<<<<<
@@ -2042,9 +2042,14 @@ struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix {
   __pyx_t_6ateams_10arithmetic_6common_FLAT inverses;
   __pyx_t_6ateams_10arithmetic_6common_TABLE data;
   bool parallel;
-  std::unordered_map<int,std::vector<int> >  iterableColumns;
+  PyObject *schedule;
+  int cores;
+  int minBlockSize;
+  int maxBlockSize;
+  int blockSize;
   std::unordered_map<int,std::unordered_set<int> >  columns;
   std::vector<int>  shape;
+  std::vector<std::vector<int> >  blockSchema;
 };
 
 
@@ -2129,16 +2134,18 @@ struct __pyx_memoryviewslice_obj {
  * 
  * 
  * cdef class Matrix:             # <<<<<<<<<<<<<<
- * 	def __cinit__(self, TABLE A, TABLE addition, FLAT negation, TABLE multiplication, FLAT inverses, bool parallel):
- * 		# Initialize addition and multiplication tables.
+ * 	def __cinit__(
+ * 			self,
  */
 
 struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix {
   void (*_initializeColumns)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *);
   __pyx_t_6ateams_10arithmetic_6common_TABLE (*ToArray)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *);
   void (*SwapRows)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int);
-  void (*AddRows)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int, __pyx_t_6ateams_10arithmetic_6common_FFINT);
+  void (*AddRows)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int, int, int, __pyx_t_6ateams_10arithmetic_6common_FFINT);
+  void (*BlockAddRows)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int, __pyx_t_6ateams_10arithmetic_6common_FFINT, int, int, PyObject *);
   void (*MultiplyRow)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, __pyx_t_6ateams_10arithmetic_6common_FFINT);
+  void (*RescanColumns)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int);
   int (*PivotRow)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int);
   int (*HighestZeroRow)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_HighestZeroRow *__pyx_optional_args);
   void (*RREF)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_RREF *__pyx_optional_args);
@@ -3511,11 +3518,11 @@ static CYTHON_INLINE int __pyx_sub_acquisition_count_locked(
 static CYTHON_INLINE void __Pyx_INC_MEMVIEW(__Pyx_memviewslice *, int, int);
 static CYTHON_INLINE void __Pyx_XCLEAR_MEMVIEW(__Pyx_memviewslice *, int, int);
 
-/* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
-
 /* CIntFromPy.proto */
 static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
+
+/* CIntToPy.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
 
 /* CIntFromPy.proto */
 static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *);
@@ -3568,10 +3575,12 @@ static CYTHON_INLINE npy_intp __pyx_f_5numpy_7ndarray_4size_size(PyArrayObject *
 static CYTHON_INLINE char *__pyx_f_5numpy_7ndarray_4data_data(PyArrayObject *__pyx_v_self); /* proto*/
 static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix__initializeColumns(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self); /* proto*/
 static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_SwapRows(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, int __pyx_v_i, int __pyx_v_j); /* proto*/
-static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_AddRows(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, int __pyx_v_i, int __pyx_v_j, __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_v_ratio); /* proto*/
+static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_AddRows(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, int __pyx_v_i, int __pyx_v_j, int __pyx_v_MINCOL, int __pyx_v_MAXCOL, __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_v_ratio); /* proto*/
+static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_RescanColumns(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, int __pyx_v_MINCOL); /* proto*/
 static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_MultiplyRow(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, int __pyx_v_i, __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_v_q); /* proto*/
 static int __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_PivotRow(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, int __pyx_v_c, int __pyx_v_pivots); /* proto*/
 static int __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_HighestZeroRow(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_HighestZeroRow *__pyx_optional_args); /* proto*/
+static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_BlockAddRows(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, int __pyx_v_i, int __pyx_v_j, __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_v_ratio, int __pyx_v_start, CYTHON_UNUSED int __pyx_v_stop, CYTHON_UNUSED PyObject *__pyx_v_schedule); /* proto*/
 static __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_ToArray(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self); /* proto*/
 static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_RREF(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_RREF *__pyx_optional_args); /* proto*/
 
@@ -3617,7 +3626,7 @@ static PyObject *indirect_contiguous = 0;
 static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
 static std::unordered_set<int>  __pyx_f_6ateams_10arithmetic_6Sparse_Union(std::unordered_set<int> , std::unordered_set<int> ); /*proto*/
-static PyObject *__pyx_convert_vector_to_py_int(std::vector<int>  const &); /*proto*/
+static PyObject *__pyx_convert_unordered_set_to_py_int(std::unordered_set<int>  const &); /*proto*/
 static int __pyx_array_allocate_buffer(struct __pyx_array_obj *); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
 static PyObject *__pyx_memoryview_new(PyObject *, int, int, __Pyx_TypeInfo *); /*proto*/
@@ -3664,9 +3673,9 @@ int __pyx_module_is_main_ateams__arithmetic__Sparse = 0;
 static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_min;
 static PyObject *__pyx_builtin_TypeError;
-static PyObject *__pyx_builtin_MemoryError;
 static PyObject *__pyx_builtin___import__;
 static PyObject *__pyx_builtin_ValueError;
+static PyObject *__pyx_builtin_MemoryError;
 static PyObject *__pyx_builtin_enumerate;
 static PyObject *__pyx_builtin_AssertionError;
 static PyObject *__pyx_builtin_Ellipsis;
@@ -3707,6 +3716,7 @@ static const char __pyx_k_stop[] = "stop";
 static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_ASCII[] = "ASCII";
 static const char __pyx_k_class[] = "__class__";
+static const char __pyx_k_cores[] = "cores";
 static const char __pyx_k_count[] = "count";
 static const char __pyx_k_error[] = "error";
 static const char __pyx_k_flags[] = "flags";
@@ -3738,6 +3748,7 @@ static const char __pyx_k_negation[] = "negation";
 static const char __pyx_k_parallel[] = "parallel";
 static const char __pyx_k_pyx_type[] = "__pyx_type";
 static const char __pyx_k_register[] = "register";
+static const char __pyx_k_schedule[] = "schedule";
 static const char __pyx_k_setstate[] = "__setstate__";
 static const char __pyx_k_TypeError[] = "TypeError";
 static const char __pyx_k_enumerate[] = "enumerate";
@@ -3754,6 +3765,8 @@ static const char __pyx_k_PickleError[] = "PickleError";
 static const char __pyx_k_collections[] = "collections";
 static const char __pyx_k_initializing[] = "_initializing";
 static const char __pyx_k_is_coroutine[] = "_is_coroutine";
+static const char __pyx_k_maxBlockSize[] = "maxBlockSize";
+static const char __pyx_k_minBlockSize[] = "minBlockSize";
 static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
 static const char __pyx_k_stringsource[] = "<stringsource>";
 static const char __pyx_k_version_info[] = "version_info";
@@ -3846,7 +3859,7 @@ static void __pyx_memoryviewslice___pyx_pf_15View_dot_MemoryView_16_memoryviewsl
 static PyObject *__pyx_pf___pyx_memoryviewslice___reduce_cython__(CYTHON_UNUSED struct __pyx_memoryviewslice_obj *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf___pyx_memoryviewslice_2__setstate_cython__(CYTHON_UNUSED struct __pyx_memoryviewslice_obj *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_15View_dot_MemoryView___pyx_unpickle_Enum(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
-static int __pyx_pf_6ateams_10arithmetic_6Sparse_6Matrix___cinit__(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_v_A, __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_v_addition, __pyx_t_6ateams_10arithmetic_6common_FLAT __pyx_v_negation, __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_v_multiplication, __pyx_t_6ateams_10arithmetic_6common_FLAT __pyx_v_inverses, bool __pyx_v_parallel); /* proto */
+static int __pyx_pf_6ateams_10arithmetic_6Sparse_6Matrix___cinit__(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_v_A, __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_v_addition, __pyx_t_6ateams_10arithmetic_6common_FLAT __pyx_v_negation, __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_v_multiplication, __pyx_t_6ateams_10arithmetic_6common_FLAT __pyx_v_inverses, bool __pyx_v_parallel, int __pyx_v_minBlockSize, int __pyx_v_maxBlockSize, int __pyx_v_cores, PyObject *__pyx_v_schedule); /* proto */
 static PyObject *__pyx_pf_6ateams_10arithmetic_6Sparse_6Matrix_2__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_6ateams_10arithmetic_6Sparse_6Matrix_4__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_tp_new_6ateams_10arithmetic_6Sparse_Matrix(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
@@ -3996,6 +4009,7 @@ typedef struct {
   PyObject *__pyx_kp_s_collections_abc;
   PyObject *__pyx_kp_s_contiguous_and_direct;
   PyObject *__pyx_kp_s_contiguous_and_indirect;
+  PyObject *__pyx_n_s_cores;
   PyObject *__pyx_n_s_count;
   PyObject *__pyx_n_s_dict;
   PyObject *__pyx_kp_u_disable;
@@ -4022,8 +4036,10 @@ typedef struct {
   PyObject *__pyx_n_s_itemsize;
   PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
   PyObject *__pyx_n_s_main;
+  PyObject *__pyx_n_s_maxBlockSize;
   PyObject *__pyx_n_s_memview;
   PyObject *__pyx_n_s_min;
+  PyObject *__pyx_n_s_minBlockSize;
   PyObject *__pyx_n_s_mode;
   PyObject *__pyx_n_s_multiplication;
   PyObject *__pyx_n_s_name;
@@ -4050,6 +4066,7 @@ typedef struct {
   PyObject *__pyx_n_s_reduce_cython;
   PyObject *__pyx_n_s_reduce_ex;
   PyObject *__pyx_n_s_register;
+  PyObject *__pyx_n_s_schedule;
   PyObject *__pyx_n_s_self;
   PyObject *__pyx_n_s_setstate;
   PyObject *__pyx_n_s_setstate_cython;
@@ -4223,6 +4240,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_kp_s_collections_abc);
   Py_CLEAR(clear_module_state->__pyx_kp_s_contiguous_and_direct);
   Py_CLEAR(clear_module_state->__pyx_kp_s_contiguous_and_indirect);
+  Py_CLEAR(clear_module_state->__pyx_n_s_cores);
   Py_CLEAR(clear_module_state->__pyx_n_s_count);
   Py_CLEAR(clear_module_state->__pyx_n_s_dict);
   Py_CLEAR(clear_module_state->__pyx_kp_u_disable);
@@ -4249,8 +4267,10 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_itemsize);
   Py_CLEAR(clear_module_state->__pyx_kp_s_itemsize_0_for_cython_array);
   Py_CLEAR(clear_module_state->__pyx_n_s_main);
+  Py_CLEAR(clear_module_state->__pyx_n_s_maxBlockSize);
   Py_CLEAR(clear_module_state->__pyx_n_s_memview);
   Py_CLEAR(clear_module_state->__pyx_n_s_min);
+  Py_CLEAR(clear_module_state->__pyx_n_s_minBlockSize);
   Py_CLEAR(clear_module_state->__pyx_n_s_mode);
   Py_CLEAR(clear_module_state->__pyx_n_s_multiplication);
   Py_CLEAR(clear_module_state->__pyx_n_s_name);
@@ -4277,6 +4297,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_reduce_cython);
   Py_CLEAR(clear_module_state->__pyx_n_s_reduce_ex);
   Py_CLEAR(clear_module_state->__pyx_n_s_register);
+  Py_CLEAR(clear_module_state->__pyx_n_s_schedule);
   Py_CLEAR(clear_module_state->__pyx_n_s_self);
   Py_CLEAR(clear_module_state->__pyx_n_s_setstate);
   Py_CLEAR(clear_module_state->__pyx_n_s_setstate_cython);
@@ -4428,6 +4449,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_kp_s_collections_abc);
   Py_VISIT(traverse_module_state->__pyx_kp_s_contiguous_and_direct);
   Py_VISIT(traverse_module_state->__pyx_kp_s_contiguous_and_indirect);
+  Py_VISIT(traverse_module_state->__pyx_n_s_cores);
   Py_VISIT(traverse_module_state->__pyx_n_s_count);
   Py_VISIT(traverse_module_state->__pyx_n_s_dict);
   Py_VISIT(traverse_module_state->__pyx_kp_u_disable);
@@ -4454,8 +4476,10 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_itemsize);
   Py_VISIT(traverse_module_state->__pyx_kp_s_itemsize_0_for_cython_array);
   Py_VISIT(traverse_module_state->__pyx_n_s_main);
+  Py_VISIT(traverse_module_state->__pyx_n_s_maxBlockSize);
   Py_VISIT(traverse_module_state->__pyx_n_s_memview);
   Py_VISIT(traverse_module_state->__pyx_n_s_min);
+  Py_VISIT(traverse_module_state->__pyx_n_s_minBlockSize);
   Py_VISIT(traverse_module_state->__pyx_n_s_mode);
   Py_VISIT(traverse_module_state->__pyx_n_s_multiplication);
   Py_VISIT(traverse_module_state->__pyx_n_s_name);
@@ -4482,6 +4506,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_reduce_cython);
   Py_VISIT(traverse_module_state->__pyx_n_s_reduce_ex);
   Py_VISIT(traverse_module_state->__pyx_n_s_register);
+  Py_VISIT(traverse_module_state->__pyx_n_s_schedule);
   Py_VISIT(traverse_module_state->__pyx_n_s_self);
   Py_VISIT(traverse_module_state->__pyx_n_s_setstate);
   Py_VISIT(traverse_module_state->__pyx_n_s_setstate_cython);
@@ -4673,6 +4698,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_kp_s_collections_abc __pyx_mstate_global->__pyx_kp_s_collections_abc
 #define __pyx_kp_s_contiguous_and_direct __pyx_mstate_global->__pyx_kp_s_contiguous_and_direct
 #define __pyx_kp_s_contiguous_and_indirect __pyx_mstate_global->__pyx_kp_s_contiguous_and_indirect
+#define __pyx_n_s_cores __pyx_mstate_global->__pyx_n_s_cores
 #define __pyx_n_s_count __pyx_mstate_global->__pyx_n_s_count
 #define __pyx_n_s_dict __pyx_mstate_global->__pyx_n_s_dict
 #define __pyx_kp_u_disable __pyx_mstate_global->__pyx_kp_u_disable
@@ -4699,8 +4725,10 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_itemsize __pyx_mstate_global->__pyx_n_s_itemsize
 #define __pyx_kp_s_itemsize_0_for_cython_array __pyx_mstate_global->__pyx_kp_s_itemsize_0_for_cython_array
 #define __pyx_n_s_main __pyx_mstate_global->__pyx_n_s_main
+#define __pyx_n_s_maxBlockSize __pyx_mstate_global->__pyx_n_s_maxBlockSize
 #define __pyx_n_s_memview __pyx_mstate_global->__pyx_n_s_memview
 #define __pyx_n_s_min __pyx_mstate_global->__pyx_n_s_min
+#define __pyx_n_s_minBlockSize __pyx_mstate_global->__pyx_n_s_minBlockSize
 #define __pyx_n_s_mode __pyx_mstate_global->__pyx_n_s_mode
 #define __pyx_n_s_multiplication __pyx_mstate_global->__pyx_n_s_multiplication
 #define __pyx_n_s_name __pyx_mstate_global->__pyx_n_s_name
@@ -4727,6 +4755,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_reduce_cython __pyx_mstate_global->__pyx_n_s_reduce_cython
 #define __pyx_n_s_reduce_ex __pyx_mstate_global->__pyx_n_s_reduce_ex
 #define __pyx_n_s_register __pyx_mstate_global->__pyx_n_s_register
+#define __pyx_n_s_schedule __pyx_mstate_global->__pyx_n_s_schedule
 #define __pyx_n_s_self __pyx_mstate_global->__pyx_n_s_self
 #define __pyx_n_s_setstate __pyx_mstate_global->__pyx_n_s_setstate
 #define __pyx_n_s_setstate_cython __pyx_mstate_global->__pyx_n_s_setstate_cython
@@ -4777,161 +4806,71 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_codeobj__13 __pyx_mstate_global->__pyx_codeobj__13
 /* #### Code section: module_code ### */
 
-/* "vector.to_py":66
+/* "set.to_py":166
  * 
- * @cname("__pyx_convert_vector_to_py_int")
- * cdef object __pyx_convert_vector_to_py_int(const vector[X]& v):             # <<<<<<<<<<<<<<
- *     if v.size() > <size_t> PY_SSIZE_T_MAX:
- *         raise MemoryError()
+ * @cname("__pyx_convert_unordered_set_to_py_int")
+ * cdef object __pyx_convert_unordered_set_to_py_int(const cpp_set[X]& s):             # <<<<<<<<<<<<<<
+ *     return {v for v in s}
+ * 
  */
 
-static PyObject *__pyx_convert_vector_to_py_int(std::vector<int>  const &__pyx_v_v) {
-  Py_ssize_t __pyx_v_v_size_signed;
-  PyObject *__pyx_v_o = NULL;
-  Py_ssize_t __pyx_v_i;
-  PyObject *__pyx_v_item = 0;
+static PyObject *__pyx_convert_unordered_set_to_py_int(std::unordered_set<int>  const &__pyx_v_s) {
+  int __pyx_7genexpr__pyx_v_v;
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
-  int __pyx_t_1;
-  PyObject *__pyx_t_2 = NULL;
-  Py_ssize_t __pyx_t_3;
-  Py_ssize_t __pyx_t_4;
-  Py_ssize_t __pyx_t_5;
+  PyObject *__pyx_t_1 = NULL;
+  std::unordered_set<int> ::const_iterator __pyx_t_2;
+  int __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("__pyx_convert_vector_to_py_int", 1);
-  __Pyx_TraceCall("__pyx_convert_vector_to_py_int", __pyx_f[1], 66, 0, __PYX_ERR(1, 66, __pyx_L1_error));
+  __Pyx_RefNannySetupContext("__pyx_convert_unordered_set_to_py_int", 1);
+  __Pyx_TraceCall("__pyx_convert_unordered_set_to_py_int", __pyx_f[1], 166, 0, __PYX_ERR(1, 166, __pyx_L1_error));
 
-  /* "vector.to_py":67
- * @cname("__pyx_convert_vector_to_py_int")
- * cdef object __pyx_convert_vector_to_py_int(const vector[X]& v):
- *     if v.size() > <size_t> PY_SSIZE_T_MAX:             # <<<<<<<<<<<<<<
- *         raise MemoryError()
- *     v_size_signed = <Py_ssize_t> v.size()
- */
-  __Pyx_TraceLine(67,0,__PYX_ERR(1, 67, __pyx_L1_error))
-  __pyx_t_1 = (__pyx_v_v.size() > ((size_t)PY_SSIZE_T_MAX));
-  if (unlikely(__pyx_t_1)) {
-
-    /* "vector.to_py":68
- * cdef object __pyx_convert_vector_to_py_int(const vector[X]& v):
- *     if v.size() > <size_t> PY_SSIZE_T_MAX:
- *         raise MemoryError()             # <<<<<<<<<<<<<<
- *     v_size_signed = <Py_ssize_t> v.size()
+  /* "set.to_py":167
+ * @cname("__pyx_convert_unordered_set_to_py_int")
+ * cdef object __pyx_convert_unordered_set_to_py_int(const cpp_set[X]& s):
+ *     return {v for v in s}             # <<<<<<<<<<<<<<
  * 
  */
-    __Pyx_TraceLine(68,0,__PYX_ERR(1, 68, __pyx_L1_error))
-    PyErr_NoMemory(); __PYX_ERR(1, 68, __pyx_L1_error)
-
-    /* "vector.to_py":67
- * @cname("__pyx_convert_vector_to_py_int")
- * cdef object __pyx_convert_vector_to_py_int(const vector[X]& v):
- *     if v.size() > <size_t> PY_SSIZE_T_MAX:             # <<<<<<<<<<<<<<
- *         raise MemoryError()
- *     v_size_signed = <Py_ssize_t> v.size()
- */
-  }
-
-  /* "vector.to_py":69
- *     if v.size() > <size_t> PY_SSIZE_T_MAX:
- *         raise MemoryError()
- *     v_size_signed = <Py_ssize_t> v.size()             # <<<<<<<<<<<<<<
- * 
- *     o = PyList_New(v_size_signed)
- */
-  __Pyx_TraceLine(69,0,__PYX_ERR(1, 69, __pyx_L1_error))
-  __pyx_v_v_size_signed = ((Py_ssize_t)__pyx_v_v.size());
-
-  /* "vector.to_py":71
- *     v_size_signed = <Py_ssize_t> v.size()
- * 
- *     o = PyList_New(v_size_signed)             # <<<<<<<<<<<<<<
- * 
- *     cdef Py_ssize_t i
- */
-  __Pyx_TraceLine(71,0,__PYX_ERR(1, 71, __pyx_L1_error))
-  __pyx_t_2 = PyList_New(__pyx_v_v_size_signed); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 71, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_v_o = ((PyObject*)__pyx_t_2);
-  __pyx_t_2 = 0;
-
-  /* "vector.to_py":76
- *     cdef object item
- * 
- *     for i in range(v_size_signed):             # <<<<<<<<<<<<<<
- *         item = v[i]
- *         Py_INCREF(item)
- */
-  __Pyx_TraceLine(76,0,__PYX_ERR(1, 76, __pyx_L1_error))
-  __pyx_t_3 = __pyx_v_v_size_signed;
-  __pyx_t_4 = __pyx_t_3;
-  for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
-    __pyx_v_i = __pyx_t_5;
-
-    /* "vector.to_py":77
- * 
- *     for i in range(v_size_signed):
- *         item = v[i]             # <<<<<<<<<<<<<<
- *         Py_INCREF(item)
- *         PyList_SET_ITEM(o, i, item)
- */
-    __Pyx_TraceLine(77,0,__PYX_ERR(1, 77, __pyx_L1_error))
-    __pyx_t_2 = __Pyx_PyInt_From_int((__pyx_v_v[__pyx_v_i])); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 77, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_XDECREF_SET(__pyx_v_item, __pyx_t_2);
-    __pyx_t_2 = 0;
-
-    /* "vector.to_py":78
- *     for i in range(v_size_signed):
- *         item = v[i]
- *         Py_INCREF(item)             # <<<<<<<<<<<<<<
- *         PyList_SET_ITEM(o, i, item)
- * 
- */
-    __Pyx_TraceLine(78,0,__PYX_ERR(1, 78, __pyx_L1_error))
-    Py_INCREF(__pyx_v_item);
-
-    /* "vector.to_py":79
- *         item = v[i]
- *         Py_INCREF(item)
- *         PyList_SET_ITEM(o, i, item)             # <<<<<<<<<<<<<<
- * 
- *     return o
- */
-    __Pyx_TraceLine(79,0,__PYX_ERR(1, 79, __pyx_L1_error))
-    PyList_SET_ITEM(__pyx_v_o, __pyx_v_i, __pyx_v_item);
-  }
-
-  /* "vector.to_py":81
- *         PyList_SET_ITEM(o, i, item)
- * 
- *     return o             # <<<<<<<<<<<<<<
- * 
- */
-  __Pyx_TraceLine(81,0,__PYX_ERR(1, 81, __pyx_L1_error))
+  __Pyx_TraceLine(167,0,__PYX_ERR(1, 167, __pyx_L1_error))
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_INCREF(__pyx_v_o);
-  __pyx_r = __pyx_v_o;
+  { /* enter inner scope */
+    __pyx_t_1 = PySet_New(NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 167, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_2 = __pyx_v_s.begin();
+    for (;;) {
+      if (!(__pyx_t_2 != __pyx_v_s.end())) break;
+      __pyx_t_3 = *__pyx_t_2;
+      ++__pyx_t_2;
+      __pyx_7genexpr__pyx_v_v = __pyx_t_3;
+      __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_7genexpr__pyx_v_v); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 167, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      if (unlikely(PySet_Add(__pyx_t_1, (PyObject*)__pyx_t_4))) __PYX_ERR(1, 167, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    }
+  } /* exit inner scope */
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "vector.to_py":66
+  /* "set.to_py":166
  * 
- * @cname("__pyx_convert_vector_to_py_int")
- * cdef object __pyx_convert_vector_to_py_int(const vector[X]& v):             # <<<<<<<<<<<<<<
- *     if v.size() > <size_t> PY_SSIZE_T_MAX:
- *         raise MemoryError()
+ * @cname("__pyx_convert_unordered_set_to_py_int")
+ * cdef object __pyx_convert_unordered_set_to_py_int(const cpp_set[X]& s):             # <<<<<<<<<<<<<<
+ *     return {v for v in s}
+ * 
  */
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("vector.to_py.__pyx_convert_vector_to_py_int", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("set.to_py.__pyx_convert_unordered_set_to_py_int", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_o);
-  __Pyx_XDECREF(__pyx_v_item);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_TraceReturn(__pyx_r, 0);
   __Pyx_RefNannyFinishContext();
@@ -21513,9 +21452,9 @@ static std::unordered_set<int>  __pyx_f_6ateams_10arithmetic_6Sparse_Intersectio
 /* "ateams/arithmetic/Sparse.pyx":52
  * 
  * cdef class Matrix:
- * 	def __cinit__(self, TABLE A, TABLE addition, FLAT negation, TABLE multiplication, FLAT inverses, bool parallel):             # <<<<<<<<<<<<<<
- * 		# Initialize addition and multiplication tables.
- * 		self.addition = addition;
+ * 	def __cinit__(             # <<<<<<<<<<<<<<
+ * 			self,
+ * 			TABLE A,
  */
 
 /* Python wrapper */
@@ -21527,9 +21466,13 @@ static int __pyx_pw_6ateams_10arithmetic_6Sparse_6Matrix_1__cinit__(PyObject *__
   __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_v_multiplication = { 0, 0, { 0 }, { 0 }, { 0 } };
   __pyx_t_6ateams_10arithmetic_6common_FLAT __pyx_v_inverses = { 0, 0, { 0 }, { 0 }, { 0 } };
   bool __pyx_v_parallel;
+  int __pyx_v_minBlockSize;
+  int __pyx_v_maxBlockSize;
+  int __pyx_v_cores;
+  PyObject *__pyx_v_schedule = 0;
   CYTHON_UNUSED Py_ssize_t __pyx_nargs;
   CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
-  PyObject* values[6] = {0,0,0,0,0,0};
+  PyObject* values[10] = {0,0,0,0,0,0,0,0,0,0};
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -21543,10 +21486,18 @@ static int __pyx_pw_6ateams_10arithmetic_6Sparse_6Matrix_1__cinit__(PyObject *__
   #endif
   __pyx_kwvalues = __Pyx_KwValues_VARARGS(__pyx_args, __pyx_nargs);
   {
-    PyObject **__pyx_pyargnames[] = {&__pyx_n_s_A,&__pyx_n_s_addition,&__pyx_n_s_negation,&__pyx_n_s_multiplication,&__pyx_n_s_inverses,&__pyx_n_s_parallel,0};
+    PyObject **__pyx_pyargnames[] = {&__pyx_n_s_A,&__pyx_n_s_addition,&__pyx_n_s_negation,&__pyx_n_s_multiplication,&__pyx_n_s_inverses,&__pyx_n_s_parallel,&__pyx_n_s_minBlockSize,&__pyx_n_s_maxBlockSize,&__pyx_n_s_cores,&__pyx_n_s_schedule,0};
     if (__pyx_kwds) {
       Py_ssize_t kw_args;
       switch (__pyx_nargs) {
+        case 10: values[9] = __Pyx_Arg_VARARGS(__pyx_args, 9);
+        CYTHON_FALLTHROUGH;
+        case  9: values[8] = __Pyx_Arg_VARARGS(__pyx_args, 8);
+        CYTHON_FALLTHROUGH;
+        case  8: values[7] = __Pyx_Arg_VARARGS(__pyx_args, 7);
+        CYTHON_FALLTHROUGH;
+        case  7: values[6] = __Pyx_Arg_VARARGS(__pyx_args, 6);
+        CYTHON_FALLTHROUGH;
         case  6: values[5] = __Pyx_Arg_VARARGS(__pyx_args, 5);
         CYTHON_FALLTHROUGH;
         case  5: values[4] = __Pyx_Arg_VARARGS(__pyx_args, 4);
@@ -21579,7 +21530,7 @@ static int __pyx_pw_6ateams_10arithmetic_6Sparse_6Matrix_1__cinit__(PyObject *__
         }
         else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 6, 6, 1); __PYX_ERR(0, 52, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 1); __PYX_ERR(0, 52, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -21589,7 +21540,7 @@ static int __pyx_pw_6ateams_10arithmetic_6Sparse_6Matrix_1__cinit__(PyObject *__
         }
         else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 6, 6, 2); __PYX_ERR(0, 52, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 2); __PYX_ERR(0, 52, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -21599,7 +21550,7 @@ static int __pyx_pw_6ateams_10arithmetic_6Sparse_6Matrix_1__cinit__(PyObject *__
         }
         else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 6, 6, 3); __PYX_ERR(0, 52, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 3); __PYX_ERR(0, 52, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
@@ -21609,7 +21560,7 @@ static int __pyx_pw_6ateams_10arithmetic_6Sparse_6Matrix_1__cinit__(PyObject *__
         }
         else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 6, 6, 4); __PYX_ERR(0, 52, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 4); __PYX_ERR(0, 52, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
@@ -21619,14 +21570,54 @@ static int __pyx_pw_6ateams_10arithmetic_6Sparse_6Matrix_1__cinit__(PyObject *__
         }
         else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 6, 6, 5); __PYX_ERR(0, 52, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 5); __PYX_ERR(0, 52, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  6:
+        if (likely((values[6] = __Pyx_GetKwValue_VARARGS(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_minBlockSize)) != 0)) {
+          (void)__Pyx_Arg_NewRef_VARARGS(values[6]);
+          kw_args--;
+        }
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L3_error)
+        else {
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 6); __PYX_ERR(0, 52, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  7:
+        if (likely((values[7] = __Pyx_GetKwValue_VARARGS(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_maxBlockSize)) != 0)) {
+          (void)__Pyx_Arg_NewRef_VARARGS(values[7]);
+          kw_args--;
+        }
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L3_error)
+        else {
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 7); __PYX_ERR(0, 52, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  8:
+        if (likely((values[8] = __Pyx_GetKwValue_VARARGS(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_cores)) != 0)) {
+          (void)__Pyx_Arg_NewRef_VARARGS(values[8]);
+          kw_args--;
+        }
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L3_error)
+        else {
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 8); __PYX_ERR(0, 52, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  9:
+        if (likely((values[9] = __Pyx_GetKwValue_VARARGS(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_schedule)) != 0)) {
+          (void)__Pyx_Arg_NewRef_VARARGS(values[9]);
+          kw_args--;
+        }
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L3_error)
+        else {
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 9); __PYX_ERR(0, 52, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
         if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__cinit__") < 0)) __PYX_ERR(0, 52, __pyx_L3_error)
       }
-    } else if (unlikely(__pyx_nargs != 6)) {
+    } else if (unlikely(__pyx_nargs != 10)) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = __Pyx_Arg_VARARGS(__pyx_args, 0);
@@ -21635,17 +21626,25 @@ static int __pyx_pw_6ateams_10arithmetic_6Sparse_6Matrix_1__cinit__(PyObject *__
       values[3] = __Pyx_Arg_VARARGS(__pyx_args, 3);
       values[4] = __Pyx_Arg_VARARGS(__pyx_args, 4);
       values[5] = __Pyx_Arg_VARARGS(__pyx_args, 5);
+      values[6] = __Pyx_Arg_VARARGS(__pyx_args, 6);
+      values[7] = __Pyx_Arg_VARARGS(__pyx_args, 7);
+      values[8] = __Pyx_Arg_VARARGS(__pyx_args, 8);
+      values[9] = __Pyx_Arg_VARARGS(__pyx_args, 9);
     }
-    __pyx_v_A = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_6ateams_10arithmetic_6common_FFINT(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_A.memview)) __PYX_ERR(0, 52, __pyx_L3_error)
-    __pyx_v_addition = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_6ateams_10arithmetic_6common_FFINT(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_addition.memview)) __PYX_ERR(0, 52, __pyx_L3_error)
-    __pyx_v_negation = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_6ateams_10arithmetic_6common_FFINT(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_negation.memview)) __PYX_ERR(0, 52, __pyx_L3_error)
-    __pyx_v_multiplication = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_6ateams_10arithmetic_6common_FFINT(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_multiplication.memview)) __PYX_ERR(0, 52, __pyx_L3_error)
-    __pyx_v_inverses = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_6ateams_10arithmetic_6common_FFINT(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_inverses.memview)) __PYX_ERR(0, 52, __pyx_L3_error)
-    __pyx_v_parallel = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_parallel == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L3_error)
+    __pyx_v_A = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_6ateams_10arithmetic_6common_FFINT(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_A.memview)) __PYX_ERR(0, 54, __pyx_L3_error)
+    __pyx_v_addition = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_6ateams_10arithmetic_6common_FFINT(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_addition.memview)) __PYX_ERR(0, 55, __pyx_L3_error)
+    __pyx_v_negation = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_6ateams_10arithmetic_6common_FFINT(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_negation.memview)) __PYX_ERR(0, 56, __pyx_L3_error)
+    __pyx_v_multiplication = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_6ateams_10arithmetic_6common_FFINT(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_multiplication.memview)) __PYX_ERR(0, 57, __pyx_L3_error)
+    __pyx_v_inverses = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_6ateams_10arithmetic_6common_FFINT(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_inverses.memview)) __PYX_ERR(0, 58, __pyx_L3_error)
+    __pyx_v_parallel = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_parallel == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L3_error)
+    __pyx_v_minBlockSize = __Pyx_PyInt_As_int(values[6]); if (unlikely((__pyx_v_minBlockSize == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 60, __pyx_L3_error)
+    __pyx_v_maxBlockSize = __Pyx_PyInt_As_int(values[7]); if (unlikely((__pyx_v_maxBlockSize == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 61, __pyx_L3_error)
+    __pyx_v_cores = __Pyx_PyInt_As_int(values[8]); if (unlikely((__pyx_v_cores == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 62, __pyx_L3_error)
+    __pyx_v_schedule = ((PyObject*)values[9]);
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 6, 6, __pyx_nargs); __PYX_ERR(0, 52, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, __pyx_nargs); __PYX_ERR(0, 52, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -21664,9 +21663,14 @@ static int __pyx_pw_6ateams_10arithmetic_6Sparse_6Matrix_1__cinit__(PyObject *__
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6ateams_10arithmetic_6Sparse_6Matrix___cinit__(((struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self), __pyx_v_A, __pyx_v_addition, __pyx_v_negation, __pyx_v_multiplication, __pyx_v_inverses, __pyx_v_parallel);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_schedule), (&PyString_Type), 1, "schedule", 1))) __PYX_ERR(0, 63, __pyx_L1_error)
+  __pyx_r = __pyx_pf_6ateams_10arithmetic_6Sparse_6Matrix___cinit__(((struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self), __pyx_v_A, __pyx_v_addition, __pyx_v_negation, __pyx_v_multiplication, __pyx_v_inverses, __pyx_v_parallel, __pyx_v_minBlockSize, __pyx_v_maxBlockSize, __pyx_v_cores, __pyx_v_schedule);
 
   /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = -1;
+  __pyx_L0:;
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_A, 1);
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_addition, 1);
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_negation, 1);
@@ -21682,181 +21686,419 @@ static int __pyx_pw_6ateams_10arithmetic_6Sparse_6Matrix_1__cinit__(PyObject *__
   return __pyx_r;
 }
 
-static int __pyx_pf_6ateams_10arithmetic_6Sparse_6Matrix___cinit__(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_v_A, __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_v_addition, __pyx_t_6ateams_10arithmetic_6common_FLAT __pyx_v_negation, __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_v_multiplication, __pyx_t_6ateams_10arithmetic_6common_FLAT __pyx_v_inverses, bool __pyx_v_parallel) {
+static int __pyx_pf_6ateams_10arithmetic_6Sparse_6Matrix___cinit__(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_v_A, __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_v_addition, __pyx_t_6ateams_10arithmetic_6common_FLAT __pyx_v_negation, __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_v_multiplication, __pyx_t_6ateams_10arithmetic_6common_FLAT __pyx_v_inverses, bool __pyx_v_parallel, int __pyx_v_minBlockSize, int __pyx_v_maxBlockSize, int __pyx_v_cores, PyObject *__pyx_v_schedule) {
+  int __pyx_v__q;
+  int __pyx_v_b;
+  int __pyx_v_block;
+  int __pyx_v_blocks;
+  int __pyx_v_MINCOL;
+  int __pyx_v_MAXCOL;
+  std::vector<int>  __pyx_v_BLOCK;
   int __pyx_r;
   __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
   std::vector<int>  __pyx_t_1;
-  std::unordered_map<int,std::unordered_set<int> >  __pyx_t_2;
-  std::unordered_map<int,std::vector<int> >  __pyx_t_3;
+  std::vector<std::vector<int> >  __pyx_t_2;
+  int __pyx_t_3;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  int __pyx_t_6;
+  int __pyx_t_7;
+  long __pyx_t_8;
+  std::unordered_map<int,std::unordered_set<int> >  __pyx_t_9;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__cinit__", 1);
   __Pyx_TraceCall("__cinit__", __pyx_f[0], 52, 0, __PYX_ERR(0, 52, __pyx_L1_error));
 
-  /* "ateams/arithmetic/Sparse.pyx":54
- * 	def __cinit__(self, TABLE A, TABLE addition, FLAT negation, TABLE multiplication, FLAT inverses, bool parallel):
+  /* "ateams/arithmetic/Sparse.pyx":66
+ * 		):
  * 		# Initialize addition and multiplication tables.
  * 		self.addition = addition;             # <<<<<<<<<<<<<<
  * 		self.negation = negation;
  * 		self.multiplication = multiplication;
  */
-  __Pyx_TraceLine(54,0,__PYX_ERR(0, 54, __pyx_L1_error))
+  __Pyx_TraceLine(66,0,__PYX_ERR(0, 66, __pyx_L1_error))
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_self->addition, 0);
   __PYX_INC_MEMVIEW(&__pyx_v_addition, 1);
   __pyx_v_self->addition = __pyx_v_addition;
 
-  /* "ateams/arithmetic/Sparse.pyx":55
+  /* "ateams/arithmetic/Sparse.pyx":67
  * 		# Initialize addition and multiplication tables.
  * 		self.addition = addition;
  * 		self.negation = negation;             # <<<<<<<<<<<<<<
  * 		self.multiplication = multiplication;
  * 		self.inverses = inverses;
  */
-  __Pyx_TraceLine(55,0,__PYX_ERR(0, 55, __pyx_L1_error))
+  __Pyx_TraceLine(67,0,__PYX_ERR(0, 67, __pyx_L1_error))
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_self->negation, 0);
   __PYX_INC_MEMVIEW(&__pyx_v_negation, 1);
   __pyx_v_self->negation = __pyx_v_negation;
 
-  /* "ateams/arithmetic/Sparse.pyx":56
+  /* "ateams/arithmetic/Sparse.pyx":68
  * 		self.addition = addition;
  * 		self.negation = negation;
  * 		self.multiplication = multiplication;             # <<<<<<<<<<<<<<
  * 		self.inverses = inverses;
- * 		self.data = A
+ * 		self.data = A;
  */
-  __Pyx_TraceLine(56,0,__PYX_ERR(0, 56, __pyx_L1_error))
+  __Pyx_TraceLine(68,0,__PYX_ERR(0, 68, __pyx_L1_error))
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_self->multiplication, 0);
   __PYX_INC_MEMVIEW(&__pyx_v_multiplication, 1);
   __pyx_v_self->multiplication = __pyx_v_multiplication;
 
-  /* "ateams/arithmetic/Sparse.pyx":57
+  /* "ateams/arithmetic/Sparse.pyx":69
  * 		self.negation = negation;
  * 		self.multiplication = multiplication;
  * 		self.inverses = inverses;             # <<<<<<<<<<<<<<
- * 		self.data = A
- * 		self.parallel = parallel
+ * 		self.data = A;
+ * 
  */
-  __Pyx_TraceLine(57,0,__PYX_ERR(0, 57, __pyx_L1_error))
+  __Pyx_TraceLine(69,0,__PYX_ERR(0, 69, __pyx_L1_error))
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_self->inverses, 0);
   __PYX_INC_MEMVIEW(&__pyx_v_inverses, 1);
   __pyx_v_self->inverses = __pyx_v_inverses;
 
-  /* "ateams/arithmetic/Sparse.pyx":58
+  /* "ateams/arithmetic/Sparse.pyx":70
  * 		self.multiplication = multiplication;
  * 		self.inverses = inverses;
- * 		self.data = A             # <<<<<<<<<<<<<<
- * 		self.parallel = parallel
+ * 		self.data = A;             # <<<<<<<<<<<<<<
  * 
+ * 		# Initialize the `.shape` property.
  */
-  __Pyx_TraceLine(58,0,__PYX_ERR(0, 58, __pyx_L1_error))
+  __Pyx_TraceLine(70,0,__PYX_ERR(0, 70, __pyx_L1_error))
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_self->data, 0);
   __PYX_INC_MEMVIEW(&__pyx_v_A, 1);
   __pyx_v_self->data = __pyx_v_A;
 
-  /* "ateams/arithmetic/Sparse.pyx":59
- * 		self.inverses = inverses;
- * 		self.data = A
- * 		self.parallel = parallel             # <<<<<<<<<<<<<<
- * 
- * 		# Initialize the `.shape` property.
- */
-  __Pyx_TraceLine(59,0,__PYX_ERR(0, 59, __pyx_L1_error))
-  __pyx_v_self->parallel = __pyx_v_parallel;
-
-  /* "ateams/arithmetic/Sparse.pyx":62
+  /* "ateams/arithmetic/Sparse.pyx":73
  * 
  * 		# Initialize the `.shape` property.
  * 		self.shape = Vector[int]();             # <<<<<<<<<<<<<<
  * 		self.shape.push_back(A.shape[0]);
  * 		self.shape.push_back(A.shape[1]);
  */
-  __Pyx_TraceLine(62,0,__PYX_ERR(0, 62, __pyx_L1_error))
+  __Pyx_TraceLine(73,0,__PYX_ERR(0, 73, __pyx_L1_error))
   try {
     __pyx_t_1 = std::vector<int> ();
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(0, 62, __pyx_L1_error)
+    __PYX_ERR(0, 73, __pyx_L1_error)
   }
   __pyx_v_self->shape = __PYX_STD_MOVE_IF_SUPPORTED(__pyx_t_1);
 
-  /* "ateams/arithmetic/Sparse.pyx":63
+  /* "ateams/arithmetic/Sparse.pyx":74
  * 		# Initialize the `.shape` property.
  * 		self.shape = Vector[int]();
  * 		self.shape.push_back(A.shape[0]);             # <<<<<<<<<<<<<<
  * 		self.shape.push_back(A.shape[1]);
  * 
  */
-  __Pyx_TraceLine(63,0,__PYX_ERR(0, 63, __pyx_L1_error))
+  __Pyx_TraceLine(74,0,__PYX_ERR(0, 74, __pyx_L1_error))
   try {
     __pyx_v_self->shape.push_back((__pyx_v_A.shape[0]));
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(0, 63, __pyx_L1_error)
+    __PYX_ERR(0, 74, __pyx_L1_error)
   }
 
-  /* "ateams/arithmetic/Sparse.pyx":64
+  /* "ateams/arithmetic/Sparse.pyx":75
  * 		self.shape = Vector[int]();
  * 		self.shape.push_back(A.shape[0]);
  * 		self.shape.push_back(A.shape[1]);             # <<<<<<<<<<<<<<
  * 
- * 		# Initialize the `.rows` and `.columns` properties.
+ * 		# If we want synchronous matrix operations, set the number of cores,
  */
-  __Pyx_TraceLine(64,0,__PYX_ERR(0, 64, __pyx_L1_error))
+  __Pyx_TraceLine(75,0,__PYX_ERR(0, 75, __pyx_L1_error))
   try {
     __pyx_v_self->shape.push_back((__pyx_v_A.shape[1]));
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(0, 64, __pyx_L1_error)
+    __PYX_ERR(0, 75, __pyx_L1_error)
   }
 
-  /* "ateams/arithmetic/Sparse.pyx":67
+  /* "ateams/arithmetic/Sparse.pyx":79
+ * 		# If we want synchronous matrix operations, set the number of cores,
+ * 		# the minimum block size, the threading schedule, and the block schema.
+ * 		self.parallel = parallel;             # <<<<<<<<<<<<<<
+ * 		self.cores = cores;
+ * 		self.minBlockSize = minBlockSize;
+ */
+  __Pyx_TraceLine(79,0,__PYX_ERR(0, 79, __pyx_L1_error))
+  __pyx_v_self->parallel = __pyx_v_parallel;
+
+  /* "ateams/arithmetic/Sparse.pyx":80
+ * 		# the minimum block size, the threading schedule, and the block schema.
+ * 		self.parallel = parallel;
+ * 		self.cores = cores;             # <<<<<<<<<<<<<<
+ * 		self.minBlockSize = minBlockSize;
+ * 		self.maxBlockSize = maxBlockSize;
+ */
+  __Pyx_TraceLine(80,0,__PYX_ERR(0, 80, __pyx_L1_error))
+  __pyx_v_self->cores = __pyx_v_cores;
+
+  /* "ateams/arithmetic/Sparse.pyx":81
+ * 		self.parallel = parallel;
+ * 		self.cores = cores;
+ * 		self.minBlockSize = minBlockSize;             # <<<<<<<<<<<<<<
+ * 		self.maxBlockSize = maxBlockSize;
+ * 		self.schedule = schedule;
+ */
+  __Pyx_TraceLine(81,0,__PYX_ERR(0, 81, __pyx_L1_error))
+  __pyx_v_self->minBlockSize = __pyx_v_minBlockSize;
+
+  /* "ateams/arithmetic/Sparse.pyx":82
+ * 		self.cores = cores;
+ * 		self.minBlockSize = minBlockSize;
+ * 		self.maxBlockSize = maxBlockSize;             # <<<<<<<<<<<<<<
+ * 		self.schedule = schedule;
+ * 		self.blockSchema = Vector[Vector[int]]();
+ */
+  __Pyx_TraceLine(82,0,__PYX_ERR(0, 82, __pyx_L1_error))
+  __pyx_v_self->maxBlockSize = __pyx_v_maxBlockSize;
+
+  /* "ateams/arithmetic/Sparse.pyx":83
+ * 		self.minBlockSize = minBlockSize;
+ * 		self.maxBlockSize = maxBlockSize;
+ * 		self.schedule = schedule;             # <<<<<<<<<<<<<<
+ * 		self.blockSchema = Vector[Vector[int]]();
+ * 
+ */
+  __Pyx_TraceLine(83,0,__PYX_ERR(0, 83, __pyx_L1_error))
+  __Pyx_INCREF(__pyx_v_schedule);
+  __Pyx_GIVEREF(__pyx_v_schedule);
+  __Pyx_GOTREF(__pyx_v_self->schedule);
+  __Pyx_DECREF(__pyx_v_self->schedule);
+  __pyx_v_self->schedule = __pyx_v_schedule;
+
+  /* "ateams/arithmetic/Sparse.pyx":84
+ * 		self.maxBlockSize = maxBlockSize;
+ * 		self.schedule = schedule;
+ * 		self.blockSchema = Vector[Vector[int]]();             # <<<<<<<<<<<<<<
+ * 
+ * 		cdef int _q, b, block, blocks, MINCOL, MAXCOL;
+ */
+  __Pyx_TraceLine(84,0,__PYX_ERR(0, 84, __pyx_L1_error))
+  try {
+    __pyx_t_2 = std::vector<std::vector<int> > ();
+  } catch(...) {
+    __Pyx_CppExn2PyErr();
+    __PYX_ERR(0, 84, __pyx_L1_error)
+  }
+  __pyx_v_self->blockSchema = __PYX_STD_MOVE_IF_SUPPORTED(__pyx_t_2);
+
+  /* "ateams/arithmetic/Sparse.pyx":89
+ * 		cdef Vector[int] BLOCK;
+ * 
+ * 		_q = self.shape[1]//self.cores;             # <<<<<<<<<<<<<<
+ * 		block = min(max(self.minBlockSize, _q), min(self.maxBlockSize, _q));
+ * 		blocks = self.shape[1]//block;
+ */
+  __Pyx_TraceLine(89,0,__PYX_ERR(0, 89, __pyx_L1_error))
+  __pyx_v__q = ((__pyx_v_self->shape[1]) / __pyx_v_self->cores);
+
+  /* "ateams/arithmetic/Sparse.pyx":90
+ * 
+ * 		_q = self.shape[1]//self.cores;
+ * 		block = min(max(self.minBlockSize, _q), min(self.maxBlockSize, _q));             # <<<<<<<<<<<<<<
+ * 		blocks = self.shape[1]//block;
+ * 		self.blockSize = block;
+ */
+  __Pyx_TraceLine(90,0,__PYX_ERR(0, 90, __pyx_L1_error))
+  __pyx_t_3 = __pyx_v__q;
+  __pyx_t_4 = __pyx_v_self->maxBlockSize;
+  __pyx_t_6 = (__pyx_t_3 < __pyx_t_4);
+  if (__pyx_t_6) {
+    __pyx_t_5 = __pyx_t_3;
+  } else {
+    __pyx_t_5 = __pyx_t_4;
+  }
+  __pyx_t_3 = __pyx_t_5;
+  __pyx_t_5 = __pyx_v__q;
+  __pyx_t_4 = __pyx_v_self->minBlockSize;
+  __pyx_t_6 = (__pyx_t_5 > __pyx_t_4);
+  if (__pyx_t_6) {
+    __pyx_t_7 = __pyx_t_5;
+  } else {
+    __pyx_t_7 = __pyx_t_4;
+  }
+  __pyx_t_5 = __pyx_t_7;
+  __pyx_t_6 = (__pyx_t_3 < __pyx_t_5);
+  if (__pyx_t_6) {
+    __pyx_t_7 = __pyx_t_3;
+  } else {
+    __pyx_t_7 = __pyx_t_5;
+  }
+  __pyx_v_block = __pyx_t_7;
+
+  /* "ateams/arithmetic/Sparse.pyx":91
+ * 		_q = self.shape[1]//self.cores;
+ * 		block = min(max(self.minBlockSize, _q), min(self.maxBlockSize, _q));
+ * 		blocks = self.shape[1]//block;             # <<<<<<<<<<<<<<
+ * 		self.blockSize = block;
+ * 
+ */
+  __Pyx_TraceLine(91,0,__PYX_ERR(0, 91, __pyx_L1_error))
+  __pyx_v_blocks = ((__pyx_v_self->shape[1]) / __pyx_v_block);
+
+  /* "ateams/arithmetic/Sparse.pyx":92
+ * 		block = min(max(self.minBlockSize, _q), min(self.maxBlockSize, _q));
+ * 		blocks = self.shape[1]//block;
+ * 		self.blockSize = block;             # <<<<<<<<<<<<<<
+ * 
+ * 		for b in range(blocks):
+ */
+  __Pyx_TraceLine(92,0,__PYX_ERR(0, 92, __pyx_L1_error))
+  __pyx_v_self->blockSize = __pyx_v_block;
+
+  /* "ateams/arithmetic/Sparse.pyx":94
+ * 		self.blockSize = block;
+ * 
+ * 		for b in range(blocks):             # <<<<<<<<<<<<<<
+ * 			MINCOL = b*block;
+ * 			MAXCOL = (b+1)*block if (b+1)*block <= self.shape[1] else self.shape[1];
+ */
+  __Pyx_TraceLine(94,0,__PYX_ERR(0, 94, __pyx_L1_error))
+  __pyx_t_7 = __pyx_v_blocks;
+  __pyx_t_3 = __pyx_t_7;
+  for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_3; __pyx_t_5+=1) {
+    __pyx_v_b = __pyx_t_5;
+
+    /* "ateams/arithmetic/Sparse.pyx":95
+ * 
+ * 		for b in range(blocks):
+ * 			MINCOL = b*block;             # <<<<<<<<<<<<<<
+ * 			MAXCOL = (b+1)*block if (b+1)*block <= self.shape[1] else self.shape[1];
+ * 
+ */
+    __Pyx_TraceLine(95,0,__PYX_ERR(0, 95, __pyx_L1_error))
+    __pyx_v_MINCOL = (__pyx_v_b * __pyx_v_block);
+
+    /* "ateams/arithmetic/Sparse.pyx":96
+ * 		for b in range(blocks):
+ * 			MINCOL = b*block;
+ * 			MAXCOL = (b+1)*block if (b+1)*block <= self.shape[1] else self.shape[1];             # <<<<<<<<<<<<<<
+ * 
+ * 			if MINCOL >= self.shape[1]: break;
+ */
+    __Pyx_TraceLine(96,0,__PYX_ERR(0, 96, __pyx_L1_error))
+    __pyx_t_6 = (((__pyx_v_b + 1) * __pyx_v_block) <= (__pyx_v_self->shape[1]));
+    if (__pyx_t_6) {
+      __pyx_t_8 = ((__pyx_v_b + 1) * __pyx_v_block);
+    } else {
+      __pyx_t_8 = (__pyx_v_self->shape[1]);
+    }
+    __pyx_v_MAXCOL = __pyx_t_8;
+
+    /* "ateams/arithmetic/Sparse.pyx":98
+ * 			MAXCOL = (b+1)*block if (b+1)*block <= self.shape[1] else self.shape[1];
+ * 
+ * 			if MINCOL >= self.shape[1]: break;             # <<<<<<<<<<<<<<
+ * 
+ * 			BLOCK = Vector[int]();
+ */
+    __Pyx_TraceLine(98,0,__PYX_ERR(0, 98, __pyx_L1_error))
+    __pyx_t_6 = (__pyx_v_MINCOL >= (__pyx_v_self->shape[1]));
+    if (__pyx_t_6) {
+      goto __pyx_L4_break;
+    }
+
+    /* "ateams/arithmetic/Sparse.pyx":100
+ * 			if MINCOL >= self.shape[1]: break;
+ * 
+ * 			BLOCK = Vector[int]();             # <<<<<<<<<<<<<<
+ * 			BLOCK.push_back(MINCOL);
+ * 			BLOCK.push_back(MAXCOL);
+ */
+    __Pyx_TraceLine(100,0,__PYX_ERR(0, 100, __pyx_L1_error))
+    try {
+      __pyx_t_1 = std::vector<int> ();
+    } catch(...) {
+      __Pyx_CppExn2PyErr();
+      __PYX_ERR(0, 100, __pyx_L1_error)
+    }
+    __pyx_v_BLOCK = __PYX_STD_MOVE_IF_SUPPORTED(__pyx_t_1);
+
+    /* "ateams/arithmetic/Sparse.pyx":101
+ * 
+ * 			BLOCK = Vector[int]();
+ * 			BLOCK.push_back(MINCOL);             # <<<<<<<<<<<<<<
+ * 			BLOCK.push_back(MAXCOL);
+ * 			self.blockSchema.push_back(BLOCK);
+ */
+    __Pyx_TraceLine(101,0,__PYX_ERR(0, 101, __pyx_L1_error))
+    try {
+      __pyx_v_BLOCK.push_back(__pyx_v_MINCOL);
+    } catch(...) {
+      __Pyx_CppExn2PyErr();
+      __PYX_ERR(0, 101, __pyx_L1_error)
+    }
+
+    /* "ateams/arithmetic/Sparse.pyx":102
+ * 			BLOCK = Vector[int]();
+ * 			BLOCK.push_back(MINCOL);
+ * 			BLOCK.push_back(MAXCOL);             # <<<<<<<<<<<<<<
+ * 			self.blockSchema.push_back(BLOCK);
+ * 
+ */
+    __Pyx_TraceLine(102,0,__PYX_ERR(0, 102, __pyx_L1_error))
+    try {
+      __pyx_v_BLOCK.push_back(__pyx_v_MAXCOL);
+    } catch(...) {
+      __Pyx_CppExn2PyErr();
+      __PYX_ERR(0, 102, __pyx_L1_error)
+    }
+
+    /* "ateams/arithmetic/Sparse.pyx":103
+ * 			BLOCK.push_back(MINCOL);
+ * 			BLOCK.push_back(MAXCOL);
+ * 			self.blockSchema.push_back(BLOCK);             # <<<<<<<<<<<<<<
+ * 
+ * 		# Initialize the `.rows` and `.columns` properties.
+ */
+    __Pyx_TraceLine(103,0,__PYX_ERR(0, 103, __pyx_L1_error))
+    try {
+      __pyx_v_self->blockSchema.push_back(__pyx_v_BLOCK);
+    } catch(...) {
+      __Pyx_CppExn2PyErr();
+      __PYX_ERR(0, 103, __pyx_L1_error)
+    }
+  }
+  __pyx_L4_break:;
+
+  /* "ateams/arithmetic/Sparse.pyx":106
  * 
  * 		# Initialize the `.rows` and `.columns` properties.
  * 		self.columns = Map[int, Set[int]]();             # <<<<<<<<<<<<<<
- * 		self.iterableColumns = Map[int, Vector[int]]();
- * 		self._initializeColumns();
- */
-  __Pyx_TraceLine(67,0,__PYX_ERR(0, 67, __pyx_L1_error))
-  try {
-    __pyx_t_2 = std::unordered_map<int,std::unordered_set<int> > ();
-  } catch(...) {
-    __Pyx_CppExn2PyErr();
-    __PYX_ERR(0, 67, __pyx_L1_error)
-  }
-  __pyx_v_self->columns = __PYX_STD_MOVE_IF_SUPPORTED(__pyx_t_2);
-
-  /* "ateams/arithmetic/Sparse.pyx":68
- * 		# Initialize the `.rows` and `.columns` properties.
- * 		self.columns = Map[int, Set[int]]();
- * 		self.iterableColumns = Map[int, Vector[int]]();             # <<<<<<<<<<<<<<
  * 		self._initializeColumns();
  * 
  */
-  __Pyx_TraceLine(68,0,__PYX_ERR(0, 68, __pyx_L1_error))
+  __Pyx_TraceLine(106,0,__PYX_ERR(0, 106, __pyx_L1_error))
   try {
-    __pyx_t_3 = std::unordered_map<int,std::vector<int> > ();
+    __pyx_t_9 = std::unordered_map<int,std::unordered_set<int> > ();
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(0, 68, __pyx_L1_error)
+    __PYX_ERR(0, 106, __pyx_L1_error)
   }
-  __pyx_v_self->iterableColumns = __PYX_STD_MOVE_IF_SUPPORTED(__pyx_t_3);
+  __pyx_v_self->columns = __PYX_STD_MOVE_IF_SUPPORTED(__pyx_t_9);
 
-  /* "ateams/arithmetic/Sparse.pyx":69
+  /* "ateams/arithmetic/Sparse.pyx":107
+ * 		# Initialize the `.rows` and `.columns` properties.
  * 		self.columns = Map[int, Set[int]]();
- * 		self.iterableColumns = Map[int, Vector[int]]();
  * 		self._initializeColumns();             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __Pyx_TraceLine(69,0,__PYX_ERR(0, 69, __pyx_L1_error))
-  ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->_initializeColumns(__pyx_v_self);
+  __Pyx_TraceLine(107,0,__PYX_ERR(0, 107, __pyx_L1_error))
+  ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->_initializeColumns(__pyx_v_self); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 107, __pyx_L1_error)
 
   /* "ateams/arithmetic/Sparse.pyx":52
  * 
  * cdef class Matrix:
- * 	def __cinit__(self, TABLE A, TABLE addition, FLAT negation, TABLE multiplication, FLAT inverses, bool parallel):             # <<<<<<<<<<<<<<
- * 		# Initialize addition and multiplication tables.
- * 		self.addition = addition;
+ * 	def __cinit__(             # <<<<<<<<<<<<<<
+ * 			self,
+ * 			TABLE A,
  */
 
   /* function exit code */
@@ -21867,13 +22109,14 @@ static int __pyx_pf_6ateams_10arithmetic_6Sparse_6Matrix___cinit__(struct __pyx_
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 0);
+  __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "ateams/arithmetic/Sparse.pyx":72
+/* "ateams/arithmetic/Sparse.pyx":110
  * 
  * 
- * 	cdef void _initializeColumns(self) noexcept:             # <<<<<<<<<<<<<<
+ * 	cdef void _initializeColumns(self) :             # <<<<<<<<<<<<<<
  * 		"""
  * 		Initializes the `.rows` and `.columns` data structures.
  */
@@ -21884,180 +22127,137 @@ static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix__initializeColumns(stru
   int __pyx_v_M;
   int __pyx_v_N;
   std::unordered_set<int>  __pyx_v_columns;
-  std::vector<int>  __pyx_v_iterable;
   __Pyx_TraceDeclarations
   int __pyx_t_1;
   int __pyx_t_2;
   int __pyx_t_3;
   std::unordered_set<int>  __pyx_t_4;
-  std::vector<int>  __pyx_t_5;
+  int __pyx_t_5;
   int __pyx_t_6;
   int __pyx_t_7;
-  int __pyx_t_8;
+  Py_ssize_t __pyx_t_8;
   Py_ssize_t __pyx_t_9;
-  Py_ssize_t __pyx_t_10;
-  int __pyx_t_11;
+  int __pyx_t_10;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_TraceCall("_initializeColumns", __pyx_f[0], 72, 0, __PYX_ERR(0, 72, __pyx_L1_error));
+  __Pyx_TraceCall("_initializeColumns", __pyx_f[0], 110, 0, __PYX_ERR(0, 110, __pyx_L1_error));
 
-  /* "ateams/arithmetic/Sparse.pyx":80
- * 		cdef Vector[int] iterable;
+  /* "ateams/arithmetic/Sparse.pyx":117
+ * 		cdef Set[int] columns;
  * 
  * 		M = self.shape[0];             # <<<<<<<<<<<<<<
  * 		N = self.shape[1];
  * 
  */
-  __Pyx_TraceLine(80,0,__PYX_ERR(0, 80, __pyx_L1_error))
+  __Pyx_TraceLine(117,0,__PYX_ERR(0, 117, __pyx_L1_error))
   __pyx_v_M = (__pyx_v_self->shape[0]);
 
-  /* "ateams/arithmetic/Sparse.pyx":81
+  /* "ateams/arithmetic/Sparse.pyx":118
  * 
  * 		M = self.shape[0];
  * 		N = self.shape[1];             # <<<<<<<<<<<<<<
  * 
  * 		for i in range(M):
  */
-  __Pyx_TraceLine(81,0,__PYX_ERR(0, 81, __pyx_L1_error))
+  __Pyx_TraceLine(118,0,__PYX_ERR(0, 118, __pyx_L1_error))
   __pyx_v_N = (__pyx_v_self->shape[1]);
 
-  /* "ateams/arithmetic/Sparse.pyx":83
+  /* "ateams/arithmetic/Sparse.pyx":120
  * 		N = self.shape[1];
  * 
  * 		for i in range(M):             # <<<<<<<<<<<<<<
  * 			columns = Set[int]();
- * 			iterable = Vector[int]();
+ * 
  */
-  __Pyx_TraceLine(83,0,__PYX_ERR(0, 83, __pyx_L1_error))
+  __Pyx_TraceLine(120,0,__PYX_ERR(0, 120, __pyx_L1_error))
   __pyx_t_1 = __pyx_v_M;
   __pyx_t_2 = __pyx_t_1;
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "ateams/arithmetic/Sparse.pyx":84
+    /* "ateams/arithmetic/Sparse.pyx":121
  * 
  * 		for i in range(M):
  * 			columns = Set[int]();             # <<<<<<<<<<<<<<
- * 			iterable = Vector[int]();
  * 
+ * 			for j in range(N):
  */
-    __Pyx_TraceLine(84,0,__PYX_ERR(0, 84, __pyx_L1_error))
+    __Pyx_TraceLine(121,0,__PYX_ERR(0, 121, __pyx_L1_error))
     try {
       __pyx_t_4 = std::unordered_set<int> ();
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 84, __pyx_L1_error)
+      __PYX_ERR(0, 121, __pyx_L1_error)
     }
     __pyx_v_columns = __PYX_STD_MOVE_IF_SUPPORTED(__pyx_t_4);
 
-    /* "ateams/arithmetic/Sparse.pyx":85
- * 		for i in range(M):
+    /* "ateams/arithmetic/Sparse.pyx":123
  * 			columns = Set[int]();
- * 			iterable = Vector[int]();             # <<<<<<<<<<<<<<
- * 
- * 			for j in range(N):
- */
-    __Pyx_TraceLine(85,0,__PYX_ERR(0, 85, __pyx_L1_error))
-    try {
-      __pyx_t_5 = std::vector<int> ();
-    } catch(...) {
-      __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 85, __pyx_L1_error)
-    }
-    __pyx_v_iterable = __PYX_STD_MOVE_IF_SUPPORTED(__pyx_t_5);
-
-    /* "ateams/arithmetic/Sparse.pyx":87
- * 			iterable = Vector[int]();
  * 
  * 			for j in range(N):             # <<<<<<<<<<<<<<
  * 				if self.data[i,j] > 0:
  * 					columns.insert(j);
  */
-    __Pyx_TraceLine(87,0,__PYX_ERR(0, 87, __pyx_L1_error))
-    __pyx_t_6 = __pyx_v_N;
-    __pyx_t_7 = __pyx_t_6;
-    for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
-      __pyx_v_j = __pyx_t_8;
+    __Pyx_TraceLine(123,0,__PYX_ERR(0, 123, __pyx_L1_error))
+    __pyx_t_5 = __pyx_v_N;
+    __pyx_t_6 = __pyx_t_5;
+    for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+      __pyx_v_j = __pyx_t_7;
 
-      /* "ateams/arithmetic/Sparse.pyx":88
+      /* "ateams/arithmetic/Sparse.pyx":124
  * 
  * 			for j in range(N):
  * 				if self.data[i,j] > 0:             # <<<<<<<<<<<<<<
  * 					columns.insert(j);
- * 					iterable.push_back(j);
+ * 
  */
-      __Pyx_TraceLine(88,0,__PYX_ERR(0, 88, __pyx_L1_error))
-      __pyx_t_9 = __pyx_v_i;
-      __pyx_t_10 = __pyx_v_j;
-      __pyx_t_11 = ((*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_9 * __pyx_v_self->data.strides[0]) ) + __pyx_t_10 * __pyx_v_self->data.strides[1]) ))) > 0);
-      if (__pyx_t_11) {
+      __Pyx_TraceLine(124,0,__PYX_ERR(0, 124, __pyx_L1_error))
+      __pyx_t_8 = __pyx_v_i;
+      __pyx_t_9 = __pyx_v_j;
+      __pyx_t_10 = ((*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_8 * __pyx_v_self->data.strides[0]) ) + __pyx_t_9 * __pyx_v_self->data.strides[1]) ))) > 0);
+      if (__pyx_t_10) {
 
-        /* "ateams/arithmetic/Sparse.pyx":89
+        /* "ateams/arithmetic/Sparse.pyx":125
  * 			for j in range(N):
  * 				if self.data[i,j] > 0:
  * 					columns.insert(j);             # <<<<<<<<<<<<<<
- * 					iterable.push_back(j);
  * 
+ * 			self.columns[i] = columns;
  */
-        __Pyx_TraceLine(89,0,__PYX_ERR(0, 89, __pyx_L1_error))
+        __Pyx_TraceLine(125,0,__PYX_ERR(0, 125, __pyx_L1_error))
         try {
           __pyx_v_columns.insert(__pyx_v_j);
         } catch(...) {
           __Pyx_CppExn2PyErr();
-          __PYX_ERR(0, 89, __pyx_L1_error)
+          __PYX_ERR(0, 125, __pyx_L1_error)
         }
 
-        /* "ateams/arithmetic/Sparse.pyx":90
- * 				if self.data[i,j] > 0:
- * 					columns.insert(j);
- * 					iterable.push_back(j);             # <<<<<<<<<<<<<<
- * 
- * 			self.columns[i] = columns;
- */
-        __Pyx_TraceLine(90,0,__PYX_ERR(0, 90, __pyx_L1_error))
-        try {
-          __pyx_v_iterable.push_back(__pyx_v_j);
-        } catch(...) {
-          __Pyx_CppExn2PyErr();
-          __PYX_ERR(0, 90, __pyx_L1_error)
-        }
-
-        /* "ateams/arithmetic/Sparse.pyx":88
+        /* "ateams/arithmetic/Sparse.pyx":124
  * 
  * 			for j in range(N):
  * 				if self.data[i,j] > 0:             # <<<<<<<<<<<<<<
  * 					columns.insert(j);
- * 					iterable.push_back(j);
+ * 
  */
       }
     }
 
-    /* "ateams/arithmetic/Sparse.pyx":92
- * 					iterable.push_back(j);
+    /* "ateams/arithmetic/Sparse.pyx":127
+ * 					columns.insert(j);
  * 
  * 			self.columns[i] = columns;             # <<<<<<<<<<<<<<
- * 			self.iterableColumns[i] = iterable;
+ * 
  * 
  */
-    __Pyx_TraceLine(92,0,__PYX_ERR(0, 92, __pyx_L1_error))
+    __Pyx_TraceLine(127,0,__PYX_ERR(0, 127, __pyx_L1_error))
     (__pyx_v_self->columns[__pyx_v_i]) = __pyx_v_columns;
-
-    /* "ateams/arithmetic/Sparse.pyx":93
- * 
- * 			self.columns[i] = columns;
- * 			self.iterableColumns[i] = iterable;             # <<<<<<<<<<<<<<
- * 
- * 		# self.columns[-1] = Set[int]();
- */
-    __Pyx_TraceLine(93,0,__PYX_ERR(0, 93, __pyx_L1_error))
-    (__pyx_v_self->iterableColumns[__pyx_v_i]) = __pyx_v_iterable;
   }
 
-  /* "ateams/arithmetic/Sparse.pyx":72
+  /* "ateams/arithmetic/Sparse.pyx":110
  * 
  * 
- * 	cdef void _initializeColumns(self) noexcept:             # <<<<<<<<<<<<<<
+ * 	cdef void _initializeColumns(self) :             # <<<<<<<<<<<<<<
  * 		"""
  * 		Initializes the `.rows` and `.columns` data structures.
  */
@@ -22065,12 +22265,12 @@ static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix__initializeColumns(stru
   /* function exit code */
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_WriteUnraisable("ateams.arithmetic.Sparse.Matrix._initializeColumns", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
+  __Pyx_AddTraceback("ateams.arithmetic.Sparse.Matrix._initializeColumns", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 0);
 }
 
-/* "ateams/arithmetic/Sparse.pyx":99
+/* "ateams/arithmetic/Sparse.pyx":130
  * 
  * 
  * 	cdef void SwapRows(self, int i, int j) noexcept nogil:             # <<<<<<<<<<<<<<
@@ -22083,7 +22283,6 @@ static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_SwapRows(struct __pyx_o
   __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_v_t;
   std::unordered_set<int>  __pyx_v_COLUMNS;
   std::unordered_set<int>  __pyx_v_colswap;
-  std::vector<int>  __pyx_v_iterable;
   __Pyx_TraceDeclarations
   std::unordered_set<int> ::iterator __pyx_t_1;
   std::unordered_set<int> ::value_type __pyx_t_2;
@@ -22097,26 +22296,26 @@ static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_SwapRows(struct __pyx_o
   #ifdef WITH_THREAD
   PyGILState_STATE __pyx_gilstate_save;
   #endif
-  __Pyx_TraceCall("SwapRows", __pyx_f[0], 99, 1, __PYX_ERR(0, 99, __pyx_L1_error));
+  __Pyx_TraceCall("SwapRows", __pyx_f[0], 130, 1, __PYX_ERR(0, 130, __pyx_L1_error));
 
-  /* "ateams/arithmetic/Sparse.pyx":106
+  /* "ateams/arithmetic/Sparse.pyx":137
  * 		cdef int c;
  * 		cdef FFINT t;
  * 		cdef Set[int] COLUMNS = Union(self.columns[i], self.columns[j]);             # <<<<<<<<<<<<<<
  * 
  * 		for c in COLUMNS:
  */
-  __Pyx_TraceLine(106,1,__PYX_ERR(0, 106, __pyx_L1_error))
+  __Pyx_TraceLine(137,1,__PYX_ERR(0, 137, __pyx_L1_error))
   __pyx_v_COLUMNS = __pyx_f_6ateams_10arithmetic_6Sparse_Union((__pyx_v_self->columns[__pyx_v_i]), (__pyx_v_self->columns[__pyx_v_j]));
 
-  /* "ateams/arithmetic/Sparse.pyx":108
+  /* "ateams/arithmetic/Sparse.pyx":139
  * 		cdef Set[int] COLUMNS = Union(self.columns[i], self.columns[j]);
  * 
  * 		for c in COLUMNS:             # <<<<<<<<<<<<<<
  * 			t = self.data[i,c];
  * 			self.data[i,c] = self.data[j,c];
  */
-  __Pyx_TraceLine(108,1,__PYX_ERR(0, 108, __pyx_L1_error))
+  __Pyx_TraceLine(139,1,__PYX_ERR(0, 139, __pyx_L1_error))
   __pyx_t_1 = __pyx_v_COLUMNS.begin();
   for (;;) {
     if (!(__pyx_t_1 != __pyx_v_COLUMNS.end())) break;
@@ -22124,115 +22323,85 @@ static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_SwapRows(struct __pyx_o
     ++__pyx_t_1;
     __pyx_v_c = __pyx_t_2;
 
-    /* "ateams/arithmetic/Sparse.pyx":109
+    /* "ateams/arithmetic/Sparse.pyx":140
  * 
  * 		for c in COLUMNS:
  * 			t = self.data[i,c];             # <<<<<<<<<<<<<<
  * 			self.data[i,c] = self.data[j,c];
  * 			self.data[j,c] = t;
  */
-    __Pyx_TraceLine(109,1,__PYX_ERR(0, 109, __pyx_L1_error))
+    __Pyx_TraceLine(140,1,__PYX_ERR(0, 140, __pyx_L1_error))
     __pyx_t_3 = __pyx_v_i;
     __pyx_t_4 = __pyx_v_c;
     __pyx_v_t = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_3 * __pyx_v_self->data.strides[0]) ) + __pyx_t_4 * __pyx_v_self->data.strides[1]) )));
 
-    /* "ateams/arithmetic/Sparse.pyx":110
+    /* "ateams/arithmetic/Sparse.pyx":141
  * 		for c in COLUMNS:
  * 			t = self.data[i,c];
  * 			self.data[i,c] = self.data[j,c];             # <<<<<<<<<<<<<<
  * 			self.data[j,c] = t;
  * 
  */
-    __Pyx_TraceLine(110,1,__PYX_ERR(0, 110, __pyx_L1_error))
+    __Pyx_TraceLine(141,1,__PYX_ERR(0, 141, __pyx_L1_error))
     __pyx_t_4 = __pyx_v_j;
     __pyx_t_3 = __pyx_v_c;
     __pyx_t_5 = __pyx_v_i;
     __pyx_t_6 = __pyx_v_c;
     *((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_5 * __pyx_v_self->data.strides[0]) ) + __pyx_t_6 * __pyx_v_self->data.strides[1]) )) = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_4 * __pyx_v_self->data.strides[0]) ) + __pyx_t_3 * __pyx_v_self->data.strides[1]) )));
 
-    /* "ateams/arithmetic/Sparse.pyx":111
+    /* "ateams/arithmetic/Sparse.pyx":142
  * 			t = self.data[i,c];
  * 			self.data[i,c] = self.data[j,c];
  * 			self.data[j,c] = t;             # <<<<<<<<<<<<<<
  * 
- * 		# # Swap column labels.
+ * 		# Swap the columns (just by swapping keys).
  */
-    __Pyx_TraceLine(111,1,__PYX_ERR(0, 111, __pyx_L1_error))
+    __Pyx_TraceLine(142,1,__PYX_ERR(0, 142, __pyx_L1_error))
     __pyx_t_3 = __pyx_v_j;
     __pyx_t_4 = __pyx_v_c;
     *((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_3 * __pyx_v_self->data.strides[0]) ) + __pyx_t_4 * __pyx_v_self->data.strides[1]) )) = __pyx_v_t;
 
-    /* "ateams/arithmetic/Sparse.pyx":108
+    /* "ateams/arithmetic/Sparse.pyx":139
  * 		cdef Set[int] COLUMNS = Union(self.columns[i], self.columns[j]);
  * 
  * 		for c in COLUMNS:             # <<<<<<<<<<<<<<
  * 			t = self.data[i,c];
  * 			self.data[i,c] = self.data[j,c];
  */
-    __Pyx_TraceLine(108,1,__PYX_ERR(0, 108, __pyx_L1_error))
+    __Pyx_TraceLine(139,1,__PYX_ERR(0, 139, __pyx_L1_error))
   }
 
-  /* "ateams/arithmetic/Sparse.pyx":123
+  /* "ateams/arithmetic/Sparse.pyx":145
  * 
  * 		# Swap the columns (just by swapping keys).
  * 		cdef Set[int] colswap = self.columns[i];             # <<<<<<<<<<<<<<
- * 		cdef Vector[int] iterable = self.iterableColumns[i];
- * 
+ * 		self.columns[i] = self.columns[j];
+ * 		self.columns[j] = colswap;
  */
-  __Pyx_TraceLine(123,1,__PYX_ERR(0, 123, __pyx_L1_error))
+  __Pyx_TraceLine(145,1,__PYX_ERR(0, 145, __pyx_L1_error))
   __pyx_v_colswap = (__pyx_v_self->columns[__pyx_v_i]);
 
-  /* "ateams/arithmetic/Sparse.pyx":124
+  /* "ateams/arithmetic/Sparse.pyx":146
  * 		# Swap the columns (just by swapping keys).
  * 		cdef Set[int] colswap = self.columns[i];
- * 		cdef Vector[int] iterable = self.iterableColumns[i];             # <<<<<<<<<<<<<<
- * 
- * 		self.columns[i] = self.columns[j];
- */
-  __Pyx_TraceLine(124,1,__PYX_ERR(0, 124, __pyx_L1_error))
-  __pyx_v_iterable = (__pyx_v_self->iterableColumns[__pyx_v_i]);
-
-  /* "ateams/arithmetic/Sparse.pyx":126
- * 		cdef Vector[int] iterable = self.iterableColumns[i];
- * 
  * 		self.columns[i] = self.columns[j];             # <<<<<<<<<<<<<<
- * 		self.iterableColumns[i] = self.iterableColumns[j];
  * 		self.columns[j] = colswap;
+ * 
  */
-  __Pyx_TraceLine(126,1,__PYX_ERR(0, 126, __pyx_L1_error))
+  __Pyx_TraceLine(146,1,__PYX_ERR(0, 146, __pyx_L1_error))
   (__pyx_v_self->columns[__pyx_v_i]) = (__pyx_v_self->columns[__pyx_v_j]);
 
-  /* "ateams/arithmetic/Sparse.pyx":127
- * 
+  /* "ateams/arithmetic/Sparse.pyx":147
+ * 		cdef Set[int] colswap = self.columns[i];
  * 		self.columns[i] = self.columns[j];
- * 		self.iterableColumns[i] = self.iterableColumns[j];             # <<<<<<<<<<<<<<
- * 		self.columns[j] = colswap;
- * 		self.iterableColumns[j] = iterable;
- */
-  __Pyx_TraceLine(127,1,__PYX_ERR(0, 127, __pyx_L1_error))
-  (__pyx_v_self->iterableColumns[__pyx_v_i]) = (__pyx_v_self->iterableColumns[__pyx_v_j]);
-
-  /* "ateams/arithmetic/Sparse.pyx":128
- * 		self.columns[i] = self.columns[j];
- * 		self.iterableColumns[i] = self.iterableColumns[j];
  * 		self.columns[j] = colswap;             # <<<<<<<<<<<<<<
- * 		self.iterableColumns[j] = iterable;
+ * 
  * 
  */
-  __Pyx_TraceLine(128,1,__PYX_ERR(0, 128, __pyx_L1_error))
+  __Pyx_TraceLine(147,1,__PYX_ERR(0, 147, __pyx_L1_error))
   (__pyx_v_self->columns[__pyx_v_j]) = __pyx_v_colswap;
 
-  /* "ateams/arithmetic/Sparse.pyx":129
- * 		self.iterableColumns[i] = self.iterableColumns[j];
- * 		self.columns[j] = colswap;
- * 		self.iterableColumns[j] = iterable;             # <<<<<<<<<<<<<<
- * 
- * 
- */
-  __Pyx_TraceLine(129,1,__PYX_ERR(0, 129, __pyx_L1_error))
-  (__pyx_v_self->iterableColumns[__pyx_v_j]) = __pyx_v_iterable;
-
-  /* "ateams/arithmetic/Sparse.pyx":99
+  /* "ateams/arithmetic/Sparse.pyx":130
  * 
  * 
  * 	cdef void SwapRows(self, int i, int j) noexcept nogil:             # <<<<<<<<<<<<<<
@@ -22254,199 +22423,190 @@ static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_SwapRows(struct __pyx_o
   __Pyx_TraceReturn(Py_None, 1);
 }
 
-/* "ateams/arithmetic/Sparse.pyx":132
+/* "ateams/arithmetic/Sparse.pyx":150
  * 
  * 
- * 	cdef void AddRows(self, int i, int j, FFINT ratio) noexcept nogil:             # <<<<<<<<<<<<<<
+ * 	cdef void AddRows(self, int i, int j, int MINCOL, int MAXCOL, FFINT ratio) noexcept nogil:             # <<<<<<<<<<<<<<
  * 		"""
  * 		Adds rows `i` and `j`.
  */
 
-static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_AddRows(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, int __pyx_v_i, int __pyx_v_j, __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_v_ratio) {
-  int __pyx_v_k;
-  int __pyx_v_N;
+static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_AddRows(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, int __pyx_v_i, int __pyx_v_j, int __pyx_v_MINCOL, int __pyx_v_MAXCOL, __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_v_ratio) {
   int __pyx_v_c;
   __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_v_p;
   __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_v_mult;
   __Pyx_TraceDeclarations
-  int __pyx_t_1;
-  int __pyx_t_2;
-  int __pyx_t_3;
-  Py_ssize_t __pyx_t_4;
-  Py_ssize_t __pyx_t_5;
-  __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_t_6;
-  __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_t_7;
-  Py_ssize_t __pyx_t_8;
-  Py_ssize_t __pyx_t_9;
-  int __pyx_t_10;
-  std::unordered_set<int> ::iterator __pyx_t_11;
-  std::unordered_set<int>  *__pyx_t_12;
-  std::unordered_set<int> ::value_type __pyx_t_13;
+  std::unordered_set<int> ::iterator __pyx_t_1;
+  std::unordered_set<int>  *__pyx_t_2;
+  std::unordered_set<int> ::value_type __pyx_t_3;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  Py_ssize_t __pyx_t_7;
+  __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_t_8;
+  __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_t_9;
+  Py_ssize_t __pyx_t_10;
+  Py_ssize_t __pyx_t_11;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   #ifdef WITH_THREAD
   PyGILState_STATE __pyx_gilstate_save;
   #endif
-  __Pyx_TraceCall("AddRows", __pyx_f[0], 132, 1, __PYX_ERR(0, 132, __pyx_L1_error));
+  __Pyx_TraceCall("AddRows", __pyx_f[0], 150, 1, __PYX_ERR(0, 150, __pyx_L1_error));
 
-  /* "ateams/arithmetic/Sparse.pyx":143
+  /* "ateams/arithmetic/Sparse.pyx":161
  * 		cdef FFINT p, q, mult;
  * 
- * 		N = self.iterableColumns[i].size();             # <<<<<<<<<<<<<<
+ * 		for c in self.columns[i]:             # <<<<<<<<<<<<<<
+ * 			if c < MINCOL or c >= MAXCOL: continue
  * 
- * 		# if self.parallel:
  */
-  __Pyx_TraceLine(143,1,__PYX_ERR(0, 143, __pyx_L1_error))
-  __pyx_v_N = (__pyx_v_self->iterableColumns[__pyx_v_i]).size();
+  __Pyx_TraceLine(161,1,__PYX_ERR(0, 161, __pyx_L1_error))
+  __pyx_t_2 = &(__pyx_v_self->columns[__pyx_v_i]);
+  __pyx_t_1 = __pyx_t_2->begin();
+  for (;;) {
+    if (!(__pyx_t_1 != __pyx_t_2->end())) break;
+    __pyx_t_3 = *__pyx_t_1;
+    ++__pyx_t_1;
+    __pyx_v_c = __pyx_t_3;
 
-  /* "ateams/arithmetic/Sparse.pyx":157
- * 		# 		else: self.columns[j].insert(c)
- * 		# else:
- * 		for k in range(N):             # <<<<<<<<<<<<<<
- * 			c = self.iterableColumns[i][k]
+    /* "ateams/arithmetic/Sparse.pyx":162
+ * 
+ * 		for c in self.columns[i]:
+ * 			if c < MINCOL or c >= MAXCOL: continue             # <<<<<<<<<<<<<<
+ * 
  * 			p = self.data[i,c]
  */
-  __Pyx_TraceLine(157,1,__PYX_ERR(0, 157, __pyx_L1_error))
-  __pyx_t_1 = __pyx_v_N;
-  __pyx_t_2 = __pyx_t_1;
-  for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
-    __pyx_v_k = __pyx_t_3;
+    __Pyx_TraceLine(162,1,__PYX_ERR(0, 162, __pyx_L1_error))
+    __pyx_t_5 = (__pyx_v_c < __pyx_v_MINCOL);
+    if (!__pyx_t_5) {
+    } else {
+      __pyx_t_4 = __pyx_t_5;
+      goto __pyx_L6_bool_binop_done;
+    }
+    __pyx_t_5 = (__pyx_v_c >= __pyx_v_MAXCOL);
+    __pyx_t_4 = __pyx_t_5;
+    __pyx_L6_bool_binop_done:;
+    if (__pyx_t_4) {
+      goto __pyx_L3_continue;
+    }
 
-    /* "ateams/arithmetic/Sparse.pyx":158
- * 		# else:
- * 		for k in range(N):
- * 			c = self.iterableColumns[i][k]             # <<<<<<<<<<<<<<
- * 			p = self.data[i,c]
- * 			mult = self.multiplication[p, ratio]
- */
-    __Pyx_TraceLine(158,1,__PYX_ERR(0, 158, __pyx_L1_error))
-    __pyx_v_c = ((__pyx_v_self->iterableColumns[__pyx_v_i])[__pyx_v_k]);
-
-    /* "ateams/arithmetic/Sparse.pyx":159
- * 		for k in range(N):
- * 			c = self.iterableColumns[i][k]
+    /* "ateams/arithmetic/Sparse.pyx":164
+ * 			if c < MINCOL or c >= MAXCOL: continue
+ * 
  * 			p = self.data[i,c]             # <<<<<<<<<<<<<<
  * 			mult = self.multiplication[p, ratio]
  * 			self.data[j,c] = self.addition[mult,self.data[j,c]]
  */
-    __Pyx_TraceLine(159,1,__PYX_ERR(0, 159, __pyx_L1_error))
-    __pyx_t_4 = __pyx_v_i;
-    __pyx_t_5 = __pyx_v_c;
-    __pyx_v_p = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_4 * __pyx_v_self->data.strides[0]) ) + __pyx_t_5 * __pyx_v_self->data.strides[1]) )));
+    __Pyx_TraceLine(164,1,__PYX_ERR(0, 164, __pyx_L1_error))
+    __pyx_t_6 = __pyx_v_i;
+    __pyx_t_7 = __pyx_v_c;
+    __pyx_v_p = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_6 * __pyx_v_self->data.strides[0]) ) + __pyx_t_7 * __pyx_v_self->data.strides[1]) )));
 
-    /* "ateams/arithmetic/Sparse.pyx":160
- * 			c = self.iterableColumns[i][k]
+    /* "ateams/arithmetic/Sparse.pyx":165
+ * 
  * 			p = self.data[i,c]
  * 			mult = self.multiplication[p, ratio]             # <<<<<<<<<<<<<<
  * 			self.data[j,c] = self.addition[mult,self.data[j,c]]
  * 
  */
-    __Pyx_TraceLine(160,1,__PYX_ERR(0, 160, __pyx_L1_error))
-    __pyx_t_6 = __pyx_v_p;
-    __pyx_t_7 = __pyx_v_ratio;
-    __pyx_v_mult = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->multiplication.data + __pyx_t_6 * __pyx_v_self->multiplication.strides[0]) ) + __pyx_t_7 * __pyx_v_self->multiplication.strides[1]) )));
+    __Pyx_TraceLine(165,1,__PYX_ERR(0, 165, __pyx_L1_error))
+    __pyx_t_8 = __pyx_v_p;
+    __pyx_t_9 = __pyx_v_ratio;
+    __pyx_v_mult = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->multiplication.data + __pyx_t_8 * __pyx_v_self->multiplication.strides[0]) ) + __pyx_t_9 * __pyx_v_self->multiplication.strides[1]) )));
 
-    /* "ateams/arithmetic/Sparse.pyx":161
+    /* "ateams/arithmetic/Sparse.pyx":166
  * 			p = self.data[i,c]
  * 			mult = self.multiplication[p, ratio]
  * 			self.data[j,c] = self.addition[mult,self.data[j,c]]             # <<<<<<<<<<<<<<
  * 
- * 			# Throw out anything that results in zero, and add anything that
- */
-    __Pyx_TraceLine(161,1,__PYX_ERR(0, 161, __pyx_L1_error))
-    __pyx_t_5 = __pyx_v_j;
-    __pyx_t_4 = __pyx_v_c;
-    __pyx_t_7 = __pyx_v_mult;
-    __pyx_t_6 = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_5 * __pyx_v_self->data.strides[0]) ) + __pyx_t_4 * __pyx_v_self->data.strides[1]) )));
-    __pyx_t_8 = __pyx_v_j;
-    __pyx_t_9 = __pyx_v_c;
-    *((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_8 * __pyx_v_self->data.strides[0]) ) + __pyx_t_9 * __pyx_v_self->data.strides[1]) )) = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->addition.data + __pyx_t_7 * __pyx_v_self->addition.strides[0]) ) + __pyx_t_6 * __pyx_v_self->addition.strides[1]) )));
-
-    /* "ateams/arithmetic/Sparse.pyx":165
- * 			# Throw out anything that results in zero, and add anything that
- * 			# results in something nonzero.
- * 			if self.data[j,c] < 1: self.columns[j].erase(c)             # <<<<<<<<<<<<<<
- * 			else: self.columns[j].insert(c)
- * 
- */
-    __Pyx_TraceLine(165,1,__PYX_ERR(0, 165, __pyx_L1_error))
-    __pyx_t_4 = __pyx_v_j;
-    __pyx_t_5 = __pyx_v_c;
-    __pyx_t_10 = ((*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_4 * __pyx_v_self->data.strides[0]) ) + __pyx_t_5 * __pyx_v_self->data.strides[1]) ))) < 1);
-    if (__pyx_t_10) {
-      (void)((__pyx_v_self->columns[__pyx_v_j]).erase(__pyx_v_c));
-      goto __pyx_L5;
-    }
-
-    /* "ateams/arithmetic/Sparse.pyx":166
- * 			# results in something nonzero.
- * 			if self.data[j,c] < 1: self.columns[j].erase(c)
- * 			else: self.columns[j].insert(c)             # <<<<<<<<<<<<<<
- * 
- * 		# Re-do the `j`th column.
+ * 			# If we aren't doing things in parallel, we can write to the column
  */
     __Pyx_TraceLine(166,1,__PYX_ERR(0, 166, __pyx_L1_error))
-    /*else*/ {
-      try {
-        (__pyx_v_self->columns[__pyx_v_j]).insert(__pyx_v_c);
-      } catch(...) {
-        #ifdef WITH_THREAD
-        PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-        #endif
-        __Pyx_CppExn2PyErr();
-        #ifdef WITH_THREAD
-        __Pyx_PyGILState_Release(__pyx_gilstate_save);
-        #endif
-        __PYX_ERR(0, 166, __pyx_L1_error)
+    __pyx_t_7 = __pyx_v_j;
+    __pyx_t_6 = __pyx_v_c;
+    __pyx_t_9 = __pyx_v_mult;
+    __pyx_t_8 = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_7 * __pyx_v_self->data.strides[0]) ) + __pyx_t_6 * __pyx_v_self->data.strides[1]) )));
+    __pyx_t_10 = __pyx_v_j;
+    __pyx_t_11 = __pyx_v_c;
+    *((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_10 * __pyx_v_self->data.strides[0]) ) + __pyx_t_11 * __pyx_v_self->data.strides[1]) )) = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->addition.data + __pyx_t_9 * __pyx_v_self->addition.strides[0]) ) + __pyx_t_8 * __pyx_v_self->addition.strides[1]) )));
+
+    /* "ateams/arithmetic/Sparse.pyx":171
+ * 			# dictionaries. Otherwise, we just re-scan the array and modify the
+ * 			# sets where necessary.
+ * 			if not self.parallel:             # <<<<<<<<<<<<<<
+ * 				# Throw out anything that results in zero, and add anything that
+ * 				# results in something nonzero.
+ */
+    __Pyx_TraceLine(171,1,__PYX_ERR(0, 171, __pyx_L1_error))
+    __pyx_t_4 = (!(__pyx_v_self->parallel != 0));
+    if (__pyx_t_4) {
+
+      /* "ateams/arithmetic/Sparse.pyx":174
+ * 				# Throw out anything that results in zero, and add anything that
+ * 				# results in something nonzero.
+ * 				if self.data[j,c] < 1: self.columns[j].erase(c)             # <<<<<<<<<<<<<<
+ * 				else: self.columns[j].insert(c)
+ * 
+ */
+      __Pyx_TraceLine(174,1,__PYX_ERR(0, 174, __pyx_L1_error))
+      __pyx_t_6 = __pyx_v_j;
+      __pyx_t_7 = __pyx_v_c;
+      __pyx_t_4 = ((*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_6 * __pyx_v_self->data.strides[0]) ) + __pyx_t_7 * __pyx_v_self->data.strides[1]) ))) < 1);
+      if (__pyx_t_4) {
+        (void)((__pyx_v_self->columns[__pyx_v_j]).erase(__pyx_v_c));
+        goto __pyx_L9;
       }
-    }
-    __pyx_L5:;
-  }
 
-  /* "ateams/arithmetic/Sparse.pyx":169
- * 
- * 		# Re-do the `j`th column.
- * 		self.iterableColumns[j].clear();             # <<<<<<<<<<<<<<
- * 		for c in self.columns[j]: self.iterableColumns[j].push_back(c);
- * 
- */
-  __Pyx_TraceLine(169,1,__PYX_ERR(0, 169, __pyx_L1_error))
-  (__pyx_v_self->iterableColumns[__pyx_v_j]).clear();
-
-  /* "ateams/arithmetic/Sparse.pyx":170
- * 		# Re-do the `j`th column.
- * 		self.iterableColumns[j].clear();
- * 		for c in self.columns[j]: self.iterableColumns[j].push_back(c);             # <<<<<<<<<<<<<<
+      /* "ateams/arithmetic/Sparse.pyx":175
+ * 				# results in something nonzero.
+ * 				if self.data[j,c] < 1: self.columns[j].erase(c)
+ * 				else: self.columns[j].insert(c)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __Pyx_TraceLine(170,1,__PYX_ERR(0, 170, __pyx_L1_error))
-  __pyx_t_12 = &(__pyx_v_self->columns[__pyx_v_j]);
-  __pyx_t_11 = __pyx_t_12->begin();
-  for (;;) {
-    if (!(__pyx_t_11 != __pyx_t_12->end())) break;
-    __pyx_t_13 = *__pyx_t_11;
-    ++__pyx_t_11;
-    __pyx_v_c = __pyx_t_13;
-    try {
-      (__pyx_v_self->iterableColumns[__pyx_v_j]).push_back(__pyx_v_c);
-    } catch(...) {
-      #ifdef WITH_THREAD
-      PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-      #endif
-      __Pyx_CppExn2PyErr();
-      #ifdef WITH_THREAD
-      __Pyx_PyGILState_Release(__pyx_gilstate_save);
-      #endif
-      __PYX_ERR(0, 170, __pyx_L1_error)
+      __Pyx_TraceLine(175,1,__PYX_ERR(0, 175, __pyx_L1_error))
+      /*else*/ {
+        try {
+          (__pyx_v_self->columns[__pyx_v_j]).insert(__pyx_v_c);
+        } catch(...) {
+          #ifdef WITH_THREAD
+          PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+          #endif
+          __Pyx_CppExn2PyErr();
+          #ifdef WITH_THREAD
+          __Pyx_PyGILState_Release(__pyx_gilstate_save);
+          #endif
+          __PYX_ERR(0, 175, __pyx_L1_error)
+        }
+      }
+      __pyx_L9:;
+
+      /* "ateams/arithmetic/Sparse.pyx":171
+ * 			# dictionaries. Otherwise, we just re-scan the array and modify the
+ * 			# sets where necessary.
+ * 			if not self.parallel:             # <<<<<<<<<<<<<<
+ * 				# Throw out anything that results in zero, and add anything that
+ * 				# results in something nonzero.
+ */
     }
+
+    /* "ateams/arithmetic/Sparse.pyx":161
+ * 		cdef FFINT p, q, mult;
+ * 
+ * 		for c in self.columns[i]:             # <<<<<<<<<<<<<<
+ * 			if c < MINCOL or c >= MAXCOL: continue
+ * 
+ */
+    __Pyx_TraceLine(161,1,__PYX_ERR(0, 161, __pyx_L1_error))
+    __pyx_L3_continue:;
   }
 
-  /* "ateams/arithmetic/Sparse.pyx":132
+  /* "ateams/arithmetic/Sparse.pyx":150
  * 
  * 
- * 	cdef void AddRows(self, int i, int j, FFINT ratio) noexcept nogil:             # <<<<<<<<<<<<<<
+ * 	cdef void AddRows(self, int i, int j, int MINCOL, int MAXCOL, FFINT ratio) noexcept nogil:             # <<<<<<<<<<<<<<
  * 		"""
  * 		Adds rows `i` and `j`.
  */
@@ -22465,7 +22625,126 @@ static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_AddRows(struct __pyx_ob
   __Pyx_TraceReturn(Py_None, 1);
 }
 
-/* "ateams/arithmetic/Sparse.pyx":173
+/* "ateams/arithmetic/Sparse.pyx":178
+ * 
+ * 
+ * 	cdef void RescanColumns(self, int MINCOL) noexcept nogil:             # <<<<<<<<<<<<<<
+ * 		"""
+ * 		If we aren't doing things in parallel, we need to re-scan the array.
+ */
+
+static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_RescanColumns(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, int __pyx_v_MINCOL) {
+  int __pyx_v_i;
+  int __pyx_v_j;
+  __Pyx_TraceDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  int __pyx_t_6;
+  Py_ssize_t __pyx_t_7;
+  Py_ssize_t __pyx_t_8;
+  int __pyx_t_9;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  #ifdef WITH_THREAD
+  PyGILState_STATE __pyx_gilstate_save;
+  #endif
+  __Pyx_TraceCall("RescanColumns", __pyx_f[0], 178, 1, __PYX_ERR(0, 178, __pyx_L1_error));
+
+  /* "ateams/arithmetic/Sparse.pyx":184
+ * 		cdef int i, j;
+ * 
+ * 		for i in range(self.shape[0]):             # <<<<<<<<<<<<<<
+ * 			for j in range(MINCOL, self.shape[1]):
+ * 				if self.data[i,j] < 1: self.columns[i].erase(j);
+ */
+  __Pyx_TraceLine(184,1,__PYX_ERR(0, 184, __pyx_L1_error))
+  __pyx_t_1 = (__pyx_v_self->shape[0]);
+  __pyx_t_2 = __pyx_t_1;
+  for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
+    __pyx_v_i = __pyx_t_3;
+
+    /* "ateams/arithmetic/Sparse.pyx":185
+ * 
+ * 		for i in range(self.shape[0]):
+ * 			for j in range(MINCOL, self.shape[1]):             # <<<<<<<<<<<<<<
+ * 				if self.data[i,j] < 1: self.columns[i].erase(j);
+ * 				else: self.columns[i].insert(j);
+ */
+    __Pyx_TraceLine(185,1,__PYX_ERR(0, 185, __pyx_L1_error))
+    __pyx_t_4 = (__pyx_v_self->shape[1]);
+    __pyx_t_5 = __pyx_t_4;
+    for (__pyx_t_6 = __pyx_v_MINCOL; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
+      __pyx_v_j = __pyx_t_6;
+
+      /* "ateams/arithmetic/Sparse.pyx":186
+ * 		for i in range(self.shape[0]):
+ * 			for j in range(MINCOL, self.shape[1]):
+ * 				if self.data[i,j] < 1: self.columns[i].erase(j);             # <<<<<<<<<<<<<<
+ * 				else: self.columns[i].insert(j);
+ * 
+ */
+      __Pyx_TraceLine(186,1,__PYX_ERR(0, 186, __pyx_L1_error))
+      __pyx_t_7 = __pyx_v_i;
+      __pyx_t_8 = __pyx_v_j;
+      __pyx_t_9 = ((*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_7 * __pyx_v_self->data.strides[0]) ) + __pyx_t_8 * __pyx_v_self->data.strides[1]) ))) < 1);
+      if (__pyx_t_9) {
+        (void)((__pyx_v_self->columns[__pyx_v_i]).erase(__pyx_v_j));
+        goto __pyx_L7;
+      }
+
+      /* "ateams/arithmetic/Sparse.pyx":187
+ * 			for j in range(MINCOL, self.shape[1]):
+ * 				if self.data[i,j] < 1: self.columns[i].erase(j);
+ * 				else: self.columns[i].insert(j);             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+      __Pyx_TraceLine(187,1,__PYX_ERR(0, 187, __pyx_L1_error))
+      /*else*/ {
+        try {
+          (__pyx_v_self->columns[__pyx_v_i]).insert(__pyx_v_j);
+        } catch(...) {
+          #ifdef WITH_THREAD
+          PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+          #endif
+          __Pyx_CppExn2PyErr();
+          #ifdef WITH_THREAD
+          __Pyx_PyGILState_Release(__pyx_gilstate_save);
+          #endif
+          __PYX_ERR(0, 187, __pyx_L1_error)
+        }
+      }
+      __pyx_L7:;
+    }
+  }
+
+  /* "ateams/arithmetic/Sparse.pyx":178
+ * 
+ * 
+ * 	cdef void RescanColumns(self, int MINCOL) noexcept nogil:             # <<<<<<<<<<<<<<
+ * 		"""
+ * 		If we aren't doing things in parallel, we need to re-scan the array.
+ */
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  #ifdef WITH_THREAD
+  __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+  #endif
+  __Pyx_WriteUnraisable("ateams.arithmetic.Sparse.Matrix.RescanColumns", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
+  #ifdef WITH_THREAD
+  __Pyx_PyGILState_Release(__pyx_gilstate_save);
+  #endif
+  __pyx_L0:;
+  __Pyx_TraceReturn(Py_None, 1);
+}
+
+/* "ateams/arithmetic/Sparse.pyx":190
  * 
  * 
  * 	cdef void MultiplyRow(self, int i, FFINT q) noexcept nogil:             # <<<<<<<<<<<<<<
@@ -22474,322 +22753,77 @@ static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_AddRows(struct __pyx_ob
  */
 
 static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_MultiplyRow(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, int __pyx_v_i, __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_v_q) {
-  int __pyx_v_k;
   int __pyx_v_c;
-  int __pyx_v_N;
   __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_v_p;
   __Pyx_TraceDeclarations
-  __Pyx_RefNannyDeclarations
-  int __pyx_t_1;
-  int __pyx_t_2;
-  int __pyx_t_3;
-  int __pyx_t_4;
+  std::unordered_set<int> ::iterator __pyx_t_1;
+  std::unordered_set<int>  *__pyx_t_2;
+  std::unordered_set<int> ::value_type __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
   Py_ssize_t __pyx_t_5;
-  Py_ssize_t __pyx_t_6;
+  __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_t_6;
   __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_t_7;
-  __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_t_8;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   #ifdef WITH_THREAD
   PyGILState_STATE __pyx_gilstate_save;
   #endif
-  __Pyx_RefNannySetupContext("MultiplyRow", 1);
-  __Pyx_TraceCall("MultiplyRow", __pyx_f[0], 173, 1, __PYX_ERR(0, 173, __pyx_L1_error));
+  __Pyx_TraceCall("MultiplyRow", __pyx_f[0], 190, 1, __PYX_ERR(0, 190, __pyx_L1_error));
 
-  /* "ateams/arithmetic/Sparse.pyx":180
+  /* "ateams/arithmetic/Sparse.pyx":197
  * 		cdef FFINT p;
  * 
- * 		N = self.iterableColumns[i].size();             # <<<<<<<<<<<<<<
+ * 		for c in self.columns[i]:             # <<<<<<<<<<<<<<
+ * 			p = self.data[i,c];
+ * 			self.data[i,c] = self.multiplication[q,p];
+ */
+  __Pyx_TraceLine(197,1,__PYX_ERR(0, 197, __pyx_L1_error))
+  __pyx_t_2 = &(__pyx_v_self->columns[__pyx_v_i]);
+  __pyx_t_1 = __pyx_t_2->begin();
+  for (;;) {
+    if (!(__pyx_t_1 != __pyx_t_2->end())) break;
+    __pyx_t_3 = *__pyx_t_1;
+    ++__pyx_t_1;
+    __pyx_v_c = __pyx_t_3;
+
+    /* "ateams/arithmetic/Sparse.pyx":198
  * 
- * 		if self.parallel:
- */
-  __Pyx_TraceLine(180,1,__PYX_ERR(0, 180, __pyx_L1_error))
-  __pyx_v_N = (__pyx_v_self->iterableColumns[__pyx_v_i]).size();
-
-  /* "ateams/arithmetic/Sparse.pyx":182
- * 		N = self.iterableColumns[i].size();
+ * 		for c in self.columns[i]:
+ * 			p = self.data[i,c];             # <<<<<<<<<<<<<<
+ * 			self.data[i,c] = self.multiplication[q,p];
  * 
- * 		if self.parallel:             # <<<<<<<<<<<<<<
- * 			for k in prange(N):
- * 				c = self.iterableColumns[i][k];
  */
-  __Pyx_TraceLine(182,1,__PYX_ERR(0, 182, __pyx_L1_error))
-  __pyx_t_1 = (__pyx_v_self->parallel != 0);
-  if (__pyx_t_1) {
+    __Pyx_TraceLine(198,1,__PYX_ERR(0, 198, __pyx_L1_error))
+    __pyx_t_4 = __pyx_v_i;
+    __pyx_t_5 = __pyx_v_c;
+    __pyx_v_p = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_4 * __pyx_v_self->data.strides[0]) ) + __pyx_t_5 * __pyx_v_self->data.strides[1]) )));
 
-    /* "ateams/arithmetic/Sparse.pyx":183
+    /* "ateams/arithmetic/Sparse.pyx":199
+ * 		for c in self.columns[i]:
+ * 			p = self.data[i,c];
+ * 			self.data[i,c] = self.multiplication[q,p];             # <<<<<<<<<<<<<<
  * 
- * 		if self.parallel:
- * 			for k in prange(N):             # <<<<<<<<<<<<<<
- * 				c = self.iterableColumns[i][k];
- * 				p = self.data[i,c];
- */
-    __Pyx_TraceLine(183,1,__PYX_ERR(0, 183, __pyx_L1_error))
-    {
-        #ifdef WITH_THREAD
-        PyThreadState *_save;
-        _save = NULL;
-        if (PyGILState_Check()) {
-          Py_UNBLOCK_THREADS
-        }
-        __Pyx_FastGIL_Remember();
-        #endif
-        /*try:*/ {
-          __pyx_t_2 = __pyx_v_N;
-          {
-              int __pyx_parallel_temp0 = ((int)0xbad0bad0);
-              int __pyx_parallel_temp1 = ((int)0xbad0bad0);
-              __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_parallel_temp2 = ((__pyx_t_6ateams_10arithmetic_6common_FFINT)0xbad0bad0);
-              const char *__pyx_parallel_filename = NULL; int __pyx_parallel_lineno = 0, __pyx_parallel_clineno = 0;
-              PyObject *__pyx_parallel_exc_type = NULL, *__pyx_parallel_exc_value = NULL, *__pyx_parallel_exc_tb = NULL;
-              int __pyx_parallel_why;
-              __pyx_parallel_why = 0;
-              #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-                  #undef likely
-                  #undef unlikely
-                  #define likely(x)   (x)
-                  #define unlikely(x) (x)
-              #endif
-              __pyx_t_4 = (__pyx_t_2 - 0 + 1 - 1/abs(1)) / 1;
-              if (__pyx_t_4 > 0)
-              {
-                  #ifdef _OPENMP
-                  #pragma omp parallel private(__pyx_t_5, __pyx_t_6, __pyx_t_7, __pyx_t_8) private(__pyx_filename, __pyx_lineno, __pyx_clineno) shared(__pyx_parallel_why, __pyx_parallel_exc_type, __pyx_parallel_exc_value, __pyx_parallel_exc_tb)
-                  #endif /* _OPENMP */
-                  {
-                      #ifdef _OPENMP
-                      #ifdef WITH_THREAD
-                      PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-                      #endif
-                      Py_BEGIN_ALLOW_THREADS
-                      #endif /* _OPENMP */
-                      #ifdef _OPENMP
-                      #pragma omp for lastprivate(__pyx_v_c) firstprivate(__pyx_v_k) lastprivate(__pyx_v_k) lastprivate(__pyx_v_p)
-                      #endif /* _OPENMP */
-                      for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_4; __pyx_t_3++){
-                          if (__pyx_parallel_why < 2)
-                          {
-                              __pyx_v_k = (int)(0 + 1 * __pyx_t_3);
-                              /* Initialize private variables to invalid values */
-                              __pyx_v_c = ((int)0xbad0bad0);
-                              __pyx_v_p = ((__pyx_t_6ateams_10arithmetic_6common_FFINT)0xbad0bad0);
-
-                              /* "ateams/arithmetic/Sparse.pyx":184
- * 		if self.parallel:
- * 			for k in prange(N):
- * 				c = self.iterableColumns[i][k];             # <<<<<<<<<<<<<<
- * 				p = self.data[i,c];
- * 				self.data[i,c] = self.multiplication[q,p];
- */
-                              __Pyx_TraceLine(184,1,__PYX_ERR(0, 184, __pyx_L9_error))
-                              __pyx_v_c = ((__pyx_v_self->iterableColumns[__pyx_v_i])[__pyx_v_k]);
-
-                              /* "ateams/arithmetic/Sparse.pyx":185
- * 			for k in prange(N):
- * 				c = self.iterableColumns[i][k];
- * 				p = self.data[i,c];             # <<<<<<<<<<<<<<
- * 				self.data[i,c] = self.multiplication[q,p];
- * 		else:
- */
-                              __Pyx_TraceLine(185,1,__PYX_ERR(0, 185, __pyx_L9_error))
-                              __pyx_t_5 = __pyx_v_i;
-                              __pyx_t_6 = __pyx_v_c;
-                              __pyx_v_p = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_5 * __pyx_v_self->data.strides[0]) ) + __pyx_t_6 * __pyx_v_self->data.strides[1]) )));
-
-                              /* "ateams/arithmetic/Sparse.pyx":186
- * 				c = self.iterableColumns[i][k];
- * 				p = self.data[i,c];
- * 				self.data[i,c] = self.multiplication[q,p];             # <<<<<<<<<<<<<<
- * 		else:
- * 			for k in range(N):
- */
-                              __Pyx_TraceLine(186,1,__PYX_ERR(0, 186, __pyx_L9_error))
-                              __pyx_t_7 = __pyx_v_q;
-                              __pyx_t_8 = __pyx_v_p;
-                              __pyx_t_6 = __pyx_v_i;
-                              __pyx_t_5 = __pyx_v_c;
-                              *((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_6 * __pyx_v_self->data.strides[0]) ) + __pyx_t_5 * __pyx_v_self->data.strides[1]) )) = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->multiplication.data + __pyx_t_7 * __pyx_v_self->multiplication.strides[0]) ) + __pyx_t_8 * __pyx_v_self->multiplication.strides[1]) )));
-                              goto __pyx_L12;
-                              __pyx_L9_error:;
-                              {
-                                  #ifdef WITH_THREAD
-                                  PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-                                  #endif
-                                  #ifdef _OPENMP
-                                  #pragma omp flush(__pyx_parallel_exc_type)
-                                  #endif /* _OPENMP */
-                                  if (!__pyx_parallel_exc_type) {
-                                    __Pyx_ErrFetchWithState(&__pyx_parallel_exc_type, &__pyx_parallel_exc_value, &__pyx_parallel_exc_tb);
-                                    __pyx_parallel_filename = __pyx_filename; __pyx_parallel_lineno = __pyx_lineno; __pyx_parallel_clineno = __pyx_clineno;
-                                    __Pyx_GOTREF(__pyx_parallel_exc_type);
-                                  }
-                                  #ifdef WITH_THREAD
-                                  __Pyx_PyGILState_Release(__pyx_gilstate_save);
-                                  #endif
-                              }
-                              __pyx_parallel_why = 4;
-                              goto __pyx_L11;
-                              __pyx_L11:;
-                              #ifdef _OPENMP
-                              #pragma omp critical(__pyx_parallel_lastprivates0)
-                              #endif /* _OPENMP */
-                              {
-                                  __pyx_parallel_temp0 = __pyx_v_c;
-                                  __pyx_parallel_temp1 = __pyx_v_k;
-                                  __pyx_parallel_temp2 = __pyx_v_p;
-                              }
-                              __pyx_L12:;
-                              #ifdef _OPENMP
-                              #pragma omp flush(__pyx_parallel_why)
-                              #endif /* _OPENMP */
-                          }
-                      }
-                      #ifdef _OPENMP
-                      Py_END_ALLOW_THREADS
-                      #else
-{
-#ifdef WITH_THREAD
-                      PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-                      #endif
-                      #endif /* _OPENMP */
-                      /* Clean up any temporaries */
-                      #ifdef WITH_THREAD
-                      __Pyx_PyGILState_Release(__pyx_gilstate_save);
-                      #endif
-                      #ifndef _OPENMP
-}
-#endif /* _OPENMP */
-                  }
-              }
-              if (__pyx_parallel_exc_type) {
-                /* This may have been overridden by a continue, break or return in another thread. Prefer the error. */
-                __pyx_parallel_why = 4;
-              }
-              if (__pyx_parallel_why) {
-                __pyx_v_c = __pyx_parallel_temp0;
-                __pyx_v_k = __pyx_parallel_temp1;
-                __pyx_v_p = __pyx_parallel_temp2;
-                switch (__pyx_parallel_why) {
-                      case 4:
-                  {
-                      #ifdef WITH_THREAD
-                      PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-                      #endif
-                      __Pyx_GIVEREF(__pyx_parallel_exc_type);
-                      __Pyx_ErrRestoreWithState(__pyx_parallel_exc_type, __pyx_parallel_exc_value, __pyx_parallel_exc_tb);
-                      __pyx_filename = __pyx_parallel_filename; __pyx_lineno = __pyx_parallel_lineno; __pyx_clineno = __pyx_parallel_clineno;
-                      #ifdef WITH_THREAD
-                      __Pyx_PyGILState_Release(__pyx_gilstate_save);
-                      #endif
-                  }
-                  goto __pyx_L5_error;
-                }
-              }
-          }
-          #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-              #undef likely
-              #undef unlikely
-              #define likely(x)   __builtin_expect(!!(x), 1)
-              #define unlikely(x) __builtin_expect(!!(x), 0)
-          #endif
-        }
-
-        /* "ateams/arithmetic/Sparse.pyx":183
  * 
- * 		if self.parallel:
- * 			for k in prange(N):             # <<<<<<<<<<<<<<
- * 				c = self.iterableColumns[i][k];
- * 				p = self.data[i,c];
  */
-        __Pyx_TraceLine(183,1,__PYX_ERR(0, 183, __pyx_L5_error))
-        /*finally:*/ {
-          /*normal exit:*/{
-            #ifdef WITH_THREAD
-            __Pyx_FastGIL_Forget();
-            if (_save) {
-              Py_BLOCK_THREADS
-            }
-            #endif
-            goto __pyx_L6;
-          }
-          __pyx_L5_error: {
-            #ifdef WITH_THREAD
-            __Pyx_FastGIL_Forget();
-            if (_save) {
-              Py_BLOCK_THREADS
-            }
-            #endif
-            goto __pyx_L1_error;
-          }
-          __pyx_L6:;
-        }
-    }
+    __Pyx_TraceLine(199,1,__PYX_ERR(0, 199, __pyx_L1_error))
+    __pyx_t_6 = __pyx_v_q;
+    __pyx_t_7 = __pyx_v_p;
+    __pyx_t_5 = __pyx_v_i;
+    __pyx_t_4 = __pyx_v_c;
+    *((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_5 * __pyx_v_self->data.strides[0]) ) + __pyx_t_4 * __pyx_v_self->data.strides[1]) )) = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->multiplication.data + __pyx_t_6 * __pyx_v_self->multiplication.strides[0]) ) + __pyx_t_7 * __pyx_v_self->multiplication.strides[1]) )));
 
-    /* "ateams/arithmetic/Sparse.pyx":182
- * 		N = self.iterableColumns[i].size();
+    /* "ateams/arithmetic/Sparse.pyx":197
+ * 		cdef FFINT p;
  * 
- * 		if self.parallel:             # <<<<<<<<<<<<<<
- * 			for k in prange(N):
- * 				c = self.iterableColumns[i][k];
+ * 		for c in self.columns[i]:             # <<<<<<<<<<<<<<
+ * 			p = self.data[i,c];
+ * 			self.data[i,c] = self.multiplication[q,p];
  */
-    goto __pyx_L3;
+    __Pyx_TraceLine(197,1,__PYX_ERR(0, 197, __pyx_L1_error))
   }
 
-  /* "ateams/arithmetic/Sparse.pyx":188
- * 				self.data[i,c] = self.multiplication[q,p];
- * 		else:
- * 			for k in range(N):             # <<<<<<<<<<<<<<
- * 				c = self.iterableColumns[i][k];
- * 				p = self.data[i,c];
- */
-  __Pyx_TraceLine(188,1,__PYX_ERR(0, 188, __pyx_L1_error))
-  /*else*/ {
-    __pyx_t_4 = __pyx_v_N;
-    __pyx_t_3 = __pyx_t_4;
-    for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2+=1) {
-      __pyx_v_k = __pyx_t_2;
-
-      /* "ateams/arithmetic/Sparse.pyx":189
- * 		else:
- * 			for k in range(N):
- * 				c = self.iterableColumns[i][k];             # <<<<<<<<<<<<<<
- * 				p = self.data[i,c];
- * 				self.data[i,c] = self.multiplication[q,p];
- */
-      __Pyx_TraceLine(189,1,__PYX_ERR(0, 189, __pyx_L1_error))
-      __pyx_v_c = ((__pyx_v_self->iterableColumns[__pyx_v_i])[__pyx_v_k]);
-
-      /* "ateams/arithmetic/Sparse.pyx":190
- * 			for k in range(N):
- * 				c = self.iterableColumns[i][k];
- * 				p = self.data[i,c];             # <<<<<<<<<<<<<<
- * 				self.data[i,c] = self.multiplication[q,p];
- * 
- */
-      __Pyx_TraceLine(190,1,__PYX_ERR(0, 190, __pyx_L1_error))
-      __pyx_t_5 = __pyx_v_i;
-      __pyx_t_6 = __pyx_v_c;
-      __pyx_v_p = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_5 * __pyx_v_self->data.strides[0]) ) + __pyx_t_6 * __pyx_v_self->data.strides[1]) )));
-
-      /* "ateams/arithmetic/Sparse.pyx":191
- * 				c = self.iterableColumns[i][k];
- * 				p = self.data[i,c];
- * 				self.data[i,c] = self.multiplication[q,p];             # <<<<<<<<<<<<<<
- * 
- * 
- */
-      __Pyx_TraceLine(191,1,__PYX_ERR(0, 191, __pyx_L1_error))
-      __pyx_t_8 = __pyx_v_q;
-      __pyx_t_7 = __pyx_v_p;
-      __pyx_t_6 = __pyx_v_i;
-      __pyx_t_5 = __pyx_v_c;
-      *((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_6 * __pyx_v_self->data.strides[0]) ) + __pyx_t_5 * __pyx_v_self->data.strides[1]) )) = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->multiplication.data + __pyx_t_8 * __pyx_v_self->multiplication.strides[0]) ) + __pyx_t_7 * __pyx_v_self->multiplication.strides[1]) )));
-    }
-  }
-  __pyx_L3:;
-
-  /* "ateams/arithmetic/Sparse.pyx":173
+  /* "ateams/arithmetic/Sparse.pyx":190
  * 
  * 
  * 	cdef void MultiplyRow(self, int i, FFINT q) noexcept nogil:             # <<<<<<<<<<<<<<
@@ -22809,10 +22843,9 @@ static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_MultiplyRow(struct __py
   #endif
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 1);
-  __Pyx_RefNannyFinishContextNogil()
 }
 
-/* "ateams/arithmetic/Sparse.pyx":196
+/* "ateams/arithmetic/Sparse.pyx":202
  * 
  * 
  * 	cdef int PivotRow(self, int c, int pivots) noexcept nogil:             # <<<<<<<<<<<<<<
@@ -22835,29 +22868,29 @@ static int __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_PivotRow(struct __pyx_ob
   #ifdef WITH_THREAD
   PyGILState_STATE __pyx_gilstate_save;
   #endif
-  __Pyx_TraceCall("PivotRow", __pyx_f[0], 196, 1, __PYX_ERR(0, 196, __pyx_L1_error));
+  __Pyx_TraceCall("PivotRow", __pyx_f[0], 202, 1, __PYX_ERR(0, 202, __pyx_L1_error));
 
-  /* "ateams/arithmetic/Sparse.pyx":203
+  /* "ateams/arithmetic/Sparse.pyx":209
  * 		cdef int i;
  * 
  * 		for i in range(self.shape[0]):             # <<<<<<<<<<<<<<
  * 			if self.columns[i].contains(c) and i > pivots-1: return i
  * 
  */
-  __Pyx_TraceLine(203,1,__PYX_ERR(0, 203, __pyx_L1_error))
+  __Pyx_TraceLine(209,1,__PYX_ERR(0, 209, __pyx_L1_error))
   __pyx_t_1 = (__pyx_v_self->shape[0]);
   __pyx_t_2 = __pyx_t_1;
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "ateams/arithmetic/Sparse.pyx":204
+    /* "ateams/arithmetic/Sparse.pyx":210
  * 
  * 		for i in range(self.shape[0]):
  * 			if self.columns[i].contains(c) and i > pivots-1: return i             # <<<<<<<<<<<<<<
  * 
  * 		return -1
  */
-    __Pyx_TraceLine(204,1,__PYX_ERR(0, 204, __pyx_L1_error))
+    __Pyx_TraceLine(210,1,__PYX_ERR(0, 210, __pyx_L1_error))
     __pyx_t_5 = (__pyx_v_self->columns[__pyx_v_i]).contains(__pyx_v_c);
     if (__pyx_t_5) {
     } else {
@@ -22873,18 +22906,18 @@ static int __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_PivotRow(struct __pyx_ob
     }
   }
 
-  /* "ateams/arithmetic/Sparse.pyx":206
+  /* "ateams/arithmetic/Sparse.pyx":212
  * 			if self.columns[i].contains(c) and i > pivots-1: return i
  * 
  * 		return -1             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __Pyx_TraceLine(206,1,__PYX_ERR(0, 206, __pyx_L1_error))
+  __Pyx_TraceLine(212,1,__PYX_ERR(0, 212, __pyx_L1_error))
   __pyx_r = -1;
   goto __pyx_L0;
 
-  /* "ateams/arithmetic/Sparse.pyx":196
+  /* "ateams/arithmetic/Sparse.pyx":202
  * 
  * 
  * 	cdef int PivotRow(self, int c, int pivots) noexcept nogil:             # <<<<<<<<<<<<<<
@@ -22907,10 +22940,10 @@ static int __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_PivotRow(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "ateams/arithmetic/Sparse.pyx":209
+/* "ateams/arithmetic/Sparse.pyx":215
  * 
  * 
- * 	cdef int HighestZeroRow(self, int AUGMENT=-1) noexcept:             # <<<<<<<<<<<<<<
+ * 	cdef int HighestZeroRow(self, int AUGMENT=-1) :             # <<<<<<<<<<<<<<
  * 		"""
  * 		Report the first lowest-indexed zero row; if no such row exists,
  */
@@ -22933,64 +22966,64 @@ static int __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_HighestZeroRow(struct __
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("HighestZeroRow", 1);
-  __Pyx_TraceCall("HighestZeroRow", __pyx_f[0], 209, 0, __PYX_ERR(0, 209, __pyx_L1_error));
+  __Pyx_TraceCall("HighestZeroRow", __pyx_f[0], 215, 0, __PYX_ERR(0, 215, __pyx_L1_error));
   if (__pyx_optional_args) {
     if (__pyx_optional_args->__pyx_n > 0) {
       __pyx_v_AUGMENT = __pyx_optional_args->AUGMENT;
     }
   }
 
-  /* "ateams/arithmetic/Sparse.pyx":216
+  /* "ateams/arithmetic/Sparse.pyx":222
  * 		"""
  * 		# Catch for optional arguments.
  * 		if AUGMENT < 0: AUGMENT = self.shape[1]             # <<<<<<<<<<<<<<
  * 		cdef int i, c;
  * 		cdef bool single;
  */
-  __Pyx_TraceLine(216,0,__PYX_ERR(0, 216, __pyx_L1_error))
+  __Pyx_TraceLine(222,0,__PYX_ERR(0, 222, __pyx_L1_error))
   __pyx_t_1 = (__pyx_v_AUGMENT < 0);
   if (__pyx_t_1) {
     __pyx_v_AUGMENT = (__pyx_v_self->shape[1]);
   }
 
-  /* "ateams/arithmetic/Sparse.pyx":220
+  /* "ateams/arithmetic/Sparse.pyx":226
  * 		cdef bool single;
  * 
  * 		for i in range(self.shape[0]):             # <<<<<<<<<<<<<<
- * 			c = min(self.iterableColumns[i])
+ * 			c = min(self.columns[i])
  * 			if c >= AUGMENT: return i
  */
-  __Pyx_TraceLine(220,0,__PYX_ERR(0, 220, __pyx_L1_error))
+  __Pyx_TraceLine(226,0,__PYX_ERR(0, 226, __pyx_L1_error))
   __pyx_t_2 = (__pyx_v_self->shape[0]);
   __pyx_t_3 = __pyx_t_2;
   for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
     __pyx_v_i = __pyx_t_4;
 
-    /* "ateams/arithmetic/Sparse.pyx":221
+    /* "ateams/arithmetic/Sparse.pyx":227
  * 
  * 		for i in range(self.shape[0]):
- * 			c = min(self.iterableColumns[i])             # <<<<<<<<<<<<<<
+ * 			c = min(self.columns[i])             # <<<<<<<<<<<<<<
  * 			if c >= AUGMENT: return i
  * 
  */
-    __Pyx_TraceLine(221,0,__PYX_ERR(0, 221, __pyx_L1_error))
-    __pyx_t_5 = __pyx_convert_vector_to_py_int((__pyx_v_self->iterableColumns[__pyx_v_i])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 221, __pyx_L1_error)
+    __Pyx_TraceLine(227,0,__PYX_ERR(0, 227, __pyx_L1_error))
+    __pyx_t_5 = __pyx_convert_unordered_set_to_py_int((__pyx_v_self->columns[__pyx_v_i])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 227, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_builtin_min, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 221, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_builtin_min, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 227, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 221, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 227, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __pyx_v_c = __pyx_t_7;
 
-    /* "ateams/arithmetic/Sparse.pyx":222
+    /* "ateams/arithmetic/Sparse.pyx":228
  * 		for i in range(self.shape[0]):
- * 			c = min(self.iterableColumns[i])
+ * 			c = min(self.columns[i])
  * 			if c >= AUGMENT: return i             # <<<<<<<<<<<<<<
  * 
  * 		return -1
  */
-    __Pyx_TraceLine(222,0,__PYX_ERR(0, 222, __pyx_L1_error))
+    __Pyx_TraceLine(228,0,__PYX_ERR(0, 228, __pyx_L1_error))
     __pyx_t_1 = (__pyx_v_c >= __pyx_v_AUGMENT);
     if (__pyx_t_1) {
       __pyx_r = __pyx_v_i;
@@ -22998,21 +23031,21 @@ static int __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_HighestZeroRow(struct __
     }
   }
 
-  /* "ateams/arithmetic/Sparse.pyx":224
+  /* "ateams/arithmetic/Sparse.pyx":230
  * 			if c >= AUGMENT: return i
  * 
  * 		return -1             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __Pyx_TraceLine(224,0,__PYX_ERR(0, 224, __pyx_L1_error))
+  __Pyx_TraceLine(230,0,__PYX_ERR(0, 230, __pyx_L1_error))
   __pyx_r = -1;
   goto __pyx_L0;
 
-  /* "ateams/arithmetic/Sparse.pyx":209
+  /* "ateams/arithmetic/Sparse.pyx":215
  * 
  * 
- * 	cdef int HighestZeroRow(self, int AUGMENT=-1) noexcept:             # <<<<<<<<<<<<<<
+ * 	cdef int HighestZeroRow(self, int AUGMENT=-1) :             # <<<<<<<<<<<<<<
  * 		"""
  * 		Report the first lowest-indexed zero row; if no such row exists,
  */
@@ -23021,7 +23054,7 @@ static int __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_HighestZeroRow(struct __
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_WriteUnraisable("ateams.arithmetic.Sparse.Matrix.HighestZeroRow", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
+  __Pyx_AddTraceback("ateams.arithmetic.Sparse.Matrix.HighestZeroRow", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 0);
@@ -23029,10 +23062,297 @@ static int __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_HighestZeroRow(struct __
   return __pyx_r;
 }
 
-/* "ateams/arithmetic/Sparse.pyx":227
+/* "ateams/arithmetic/Sparse.pyx":233
  * 
  * 
- * 	cdef TABLE ToArray(self) noexcept: return self.data             # <<<<<<<<<<<<<<
+ * 	cdef void BlockAddRows(             # <<<<<<<<<<<<<<
+ * 		self,
+ * 		int i,
+ */
+
+static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_BlockAddRows(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *__pyx_v_self, int __pyx_v_i, int __pyx_v_j, __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_v_ratio, int __pyx_v_start, CYTHON_UNUSED int __pyx_v_stop, CYTHON_UNUSED PyObject *__pyx_v_schedule) {
+  int __pyx_v_k;
+  CYTHON_UNUSED int __pyx_v_N;
+  CYTHON_UNUSED int __pyx_v_first;
+  int __pyx_v_MINCOL;
+  int __pyx_v_MAXCOL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  #ifdef WITH_THREAD
+  PyGILState_STATE __pyx_gilstate_save;
+  #endif
+  __Pyx_RefNannySetupContext("BlockAddRows", 1);
+  __Pyx_TraceCall("BlockAddRows", __pyx_f[0], 233, 1, __PYX_ERR(0, 233, __pyx_L1_error));
+
+  /* "ateams/arithmetic/Sparse.pyx":245
+ * 
+ * 		# Determine the lowest index required by `start` based on the block size.
+ * 		first = start//self.blockSize;             # <<<<<<<<<<<<<<
+ * 		N = self.blockSchema.size();
+ * 
+ */
+  __Pyx_TraceLine(245,1,__PYX_ERR(0, 245, __pyx_L1_error))
+  __pyx_v_first = (__pyx_v_start / __pyx_v_self->blockSize);
+
+  /* "ateams/arithmetic/Sparse.pyx":246
+ * 		# Determine the lowest index required by `start` based on the block size.
+ * 		first = start//self.blockSize;
+ * 		N = self.blockSchema.size();             # <<<<<<<<<<<<<<
+ * 
+ * 		# Compute block-wise.
+ */
+  __Pyx_TraceLine(246,1,__PYX_ERR(0, 246, __pyx_L1_error))
+  __pyx_v_N = __pyx_v_self->blockSchema.size();
+
+  /* "ateams/arithmetic/Sparse.pyx":249
+ * 
+ * 		# Compute block-wise.
+ * 		for k in prange(first, N, schedule="static", nogil=True, num_threads=self.cores, chunksize=1):             # <<<<<<<<<<<<<<
+ * 			MINCOL = self.blockSchema[k][0]
+ * 			MAXCOL = self.blockSchema[k][1]
+ */
+  __Pyx_TraceLine(249,1,__PYX_ERR(0, 249, __pyx_L1_error))
+  {
+      #ifdef WITH_THREAD
+      PyThreadState *_save;
+      _save = NULL;
+      if (PyGILState_Check()) {
+        Py_UNBLOCK_THREADS
+      }
+      __Pyx_FastGIL_Remember();
+      #endif
+      /*try:*/ {
+        __pyx_t_1 = __pyx_v_first;
+        __pyx_t_2 = __pyx_v_N;
+        {
+            int __pyx_parallel_temp0 = ((int)0xbad0bad0);
+            int __pyx_parallel_temp1 = ((int)0xbad0bad0);
+            int __pyx_parallel_temp2 = ((int)0xbad0bad0);
+            const char *__pyx_parallel_filename = NULL; int __pyx_parallel_lineno = 0, __pyx_parallel_clineno = 0;
+            PyObject *__pyx_parallel_exc_type = NULL, *__pyx_parallel_exc_value = NULL, *__pyx_parallel_exc_tb = NULL;
+            int __pyx_parallel_why;
+            __pyx_parallel_why = 0;
+            __pyx_t_5 = 1;
+            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
+                #undef likely
+                #undef unlikely
+                #define likely(x)   (x)
+                #define unlikely(x) (x)
+            #endif
+            __pyx_t_4 = (__pyx_t_2 - __pyx_t_1 + 1 - 1/abs(1)) / 1;
+            if (__pyx_t_4 > 0)
+            {
+                #ifdef _OPENMP
+                #pragma omp parallel num_threads(__pyx_v_self->cores) private(__pyx_filename, __pyx_lineno, __pyx_clineno) shared(__pyx_parallel_why, __pyx_parallel_exc_type, __pyx_parallel_exc_value, __pyx_parallel_exc_tb)
+                #endif /* _OPENMP */
+                {
+                    #ifdef _OPENMP
+                    #ifdef WITH_THREAD
+                    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+                    #endif
+                    Py_BEGIN_ALLOW_THREADS
+                    #endif /* _OPENMP */
+                    #ifdef _OPENMP
+                    #pragma omp for lastprivate(__pyx_v_MAXCOL) lastprivate(__pyx_v_MINCOL) firstprivate(__pyx_v_k) lastprivate(__pyx_v_k) schedule(static, __pyx_t_5)
+                    #endif /* _OPENMP */
+                    for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_4; __pyx_t_3++){
+                        if (__pyx_parallel_why < 2)
+                        {
+                            __pyx_v_k = (int)(__pyx_t_1 + 1 * __pyx_t_3);
+                            /* Initialize private variables to invalid values */
+                            __pyx_v_MAXCOL = ((int)0xbad0bad0);
+                            __pyx_v_MINCOL = ((int)0xbad0bad0);
+
+                            /* "ateams/arithmetic/Sparse.pyx":250
+ * 		# Compute block-wise.
+ * 		for k in prange(first, N, schedule="static", nogil=True, num_threads=self.cores, chunksize=1):
+ * 			MINCOL = self.blockSchema[k][0]             # <<<<<<<<<<<<<<
+ * 			MAXCOL = self.blockSchema[k][1]
+ * 
+ */
+                            __Pyx_TraceLine(250,1,__PYX_ERR(0, 250, __pyx_L8_error))
+                            __pyx_v_MINCOL = ((__pyx_v_self->blockSchema[__pyx_v_k])[0]);
+
+                            /* "ateams/arithmetic/Sparse.pyx":251
+ * 		for k in prange(first, N, schedule="static", nogil=True, num_threads=self.cores, chunksize=1):
+ * 			MINCOL = self.blockSchema[k][0]
+ * 			MAXCOL = self.blockSchema[k][1]             # <<<<<<<<<<<<<<
+ * 
+ * 			self.AddRows(i, j, MINCOL, MAXCOL, ratio);
+ */
+                            __Pyx_TraceLine(251,1,__PYX_ERR(0, 251, __pyx_L8_error))
+                            __pyx_v_MAXCOL = ((__pyx_v_self->blockSchema[__pyx_v_k])[1]);
+
+                            /* "ateams/arithmetic/Sparse.pyx":253
+ * 			MAXCOL = self.blockSchema[k][1]
+ * 
+ * 			self.AddRows(i, j, MINCOL, MAXCOL, ratio);             # <<<<<<<<<<<<<<
+ * 
+ * 		self.RescanColumns(start);
+ */
+                            __Pyx_TraceLine(253,1,__PYX_ERR(0, 253, __pyx_L8_error))
+                            ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->AddRows(__pyx_v_self, __pyx_v_i, __pyx_v_j, __pyx_v_MINCOL, __pyx_v_MAXCOL, __pyx_v_ratio);
+                            goto __pyx_L11;
+                            __pyx_L8_error:;
+                            {
+                                #ifdef WITH_THREAD
+                                PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+                                #endif
+                                #ifdef _OPENMP
+                                #pragma omp flush(__pyx_parallel_exc_type)
+                                #endif /* _OPENMP */
+                                if (!__pyx_parallel_exc_type) {
+                                  __Pyx_ErrFetchWithState(&__pyx_parallel_exc_type, &__pyx_parallel_exc_value, &__pyx_parallel_exc_tb);
+                                  __pyx_parallel_filename = __pyx_filename; __pyx_parallel_lineno = __pyx_lineno; __pyx_parallel_clineno = __pyx_clineno;
+                                  __Pyx_GOTREF(__pyx_parallel_exc_type);
+                                }
+                                #ifdef WITH_THREAD
+                                __Pyx_PyGILState_Release(__pyx_gilstate_save);
+                                #endif
+                            }
+                            __pyx_parallel_why = 4;
+                            goto __pyx_L10;
+                            __pyx_L10:;
+                            #ifdef _OPENMP
+                            #pragma omp critical(__pyx_parallel_lastprivates0)
+                            #endif /* _OPENMP */
+                            {
+                                __pyx_parallel_temp0 = __pyx_v_MAXCOL;
+                                __pyx_parallel_temp1 = __pyx_v_MINCOL;
+                                __pyx_parallel_temp2 = __pyx_v_k;
+                            }
+                            __pyx_L11:;
+                            #ifdef _OPENMP
+                            #pragma omp flush(__pyx_parallel_why)
+                            #endif /* _OPENMP */
+                        }
+                    }
+                    #ifdef _OPENMP
+                    Py_END_ALLOW_THREADS
+                    #else
+{
+#ifdef WITH_THREAD
+                    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+                    #endif
+                    #endif /* _OPENMP */
+                    /* Clean up any temporaries */
+                    #ifdef WITH_THREAD
+                    __Pyx_PyGILState_Release(__pyx_gilstate_save);
+                    #endif
+                    #ifndef _OPENMP
+}
+#endif /* _OPENMP */
+                }
+            }
+            if (__pyx_parallel_exc_type) {
+              /* This may have been overridden by a continue, break or return in another thread. Prefer the error. */
+              __pyx_parallel_why = 4;
+            }
+            if (__pyx_parallel_why) {
+              __pyx_v_MAXCOL = __pyx_parallel_temp0;
+              __pyx_v_MINCOL = __pyx_parallel_temp1;
+              __pyx_v_k = __pyx_parallel_temp2;
+              switch (__pyx_parallel_why) {
+                    case 4:
+                {
+                    #ifdef WITH_THREAD
+                    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+                    #endif
+                    __Pyx_GIVEREF(__pyx_parallel_exc_type);
+                    __Pyx_ErrRestoreWithState(__pyx_parallel_exc_type, __pyx_parallel_exc_value, __pyx_parallel_exc_tb);
+                    __pyx_filename = __pyx_parallel_filename; __pyx_lineno = __pyx_parallel_lineno; __pyx_clineno = __pyx_parallel_clineno;
+                    #ifdef WITH_THREAD
+                    __Pyx_PyGILState_Release(__pyx_gilstate_save);
+                    #endif
+                }
+                goto __pyx_L4_error;
+              }
+            }
+        }
+        #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
+            #undef likely
+            #undef unlikely
+            #define likely(x)   __builtin_expect(!!(x), 1)
+            #define unlikely(x) __builtin_expect(!!(x), 0)
+        #endif
+      }
+
+      /* "ateams/arithmetic/Sparse.pyx":249
+ * 
+ * 		# Compute block-wise.
+ * 		for k in prange(first, N, schedule="static", nogil=True, num_threads=self.cores, chunksize=1):             # <<<<<<<<<<<<<<
+ * 			MINCOL = self.blockSchema[k][0]
+ * 			MAXCOL = self.blockSchema[k][1]
+ */
+      __Pyx_TraceLine(249,1,__PYX_ERR(0, 249, __pyx_L4_error))
+      /*finally:*/ {
+        /*normal exit:*/{
+          #ifdef WITH_THREAD
+          __Pyx_FastGIL_Forget();
+          if (_save) {
+            Py_BLOCK_THREADS
+          }
+          #endif
+          goto __pyx_L5;
+        }
+        __pyx_L4_error: {
+          #ifdef WITH_THREAD
+          __Pyx_FastGIL_Forget();
+          if (_save) {
+            Py_BLOCK_THREADS
+          }
+          #endif
+          goto __pyx_L1_error;
+        }
+        __pyx_L5:;
+      }
+  }
+
+  /* "ateams/arithmetic/Sparse.pyx":255
+ * 			self.AddRows(i, j, MINCOL, MAXCOL, ratio);
+ * 
+ * 		self.RescanColumns(start);             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_TraceLine(255,1,__PYX_ERR(0, 255, __pyx_L1_error))
+  ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->RescanColumns(__pyx_v_self, __pyx_v_start);
+
+  /* "ateams/arithmetic/Sparse.pyx":233
+ * 
+ * 
+ * 	cdef void BlockAddRows(             # <<<<<<<<<<<<<<
+ * 		self,
+ * 		int i,
+ */
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  #ifdef WITH_THREAD
+  __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+  #endif
+  __Pyx_WriteUnraisable("ateams.arithmetic.Sparse.Matrix.BlockAddRows", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
+  #ifdef WITH_THREAD
+  __Pyx_PyGILState_Release(__pyx_gilstate_save);
+  #endif
+  __pyx_L0:;
+  __Pyx_TraceReturn(Py_None, 1);
+  __Pyx_RefNannyFinishContextNogil()
+}
+
+/* "ateams/arithmetic/Sparse.pyx":258
+ * 
+ * 
+ * 	cdef TABLE ToArray(self) : return self.data             # <<<<<<<<<<<<<<
  * 
  * 
  */
@@ -23043,7 +23363,7 @@ static __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_f_6ateams_10arithmetic_6
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_TraceCall("ToArray", __pyx_f[0], 227, 0, __PYX_ERR(0, 227, __pyx_L1_error));
+  __Pyx_TraceCall("ToArray", __pyx_f[0], 258, 0, __PYX_ERR(0, 258, __pyx_L1_error));
   __PYX_INC_MEMVIEW(&__pyx_v_self->data, 1);
   __pyx_r = __pyx_v_self->data;
   goto __pyx_L0;
@@ -23063,7 +23383,7 @@ static __pyx_t_6ateams_10arithmetic_6common_TABLE __pyx_f_6ateams_10arithmetic_6
   return __pyx_r;
 }
 
-/* "ateams/arithmetic/Sparse.pyx":230
+/* "ateams/arithmetic/Sparse.pyx":261
  * 
  * 
  * 	cdef void RREF(self, int AUGMENT=-1) noexcept nogil:             # <<<<<<<<<<<<<<
@@ -23084,7 +23404,6 @@ static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_RREF(struct __pyx_obj_6
   int __pyx_v_m;
   int __pyx_v_column;
   __Pyx_TraceDeclarations
-  __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   std::vector<int>  __pyx_t_2;
   int __pyx_t_3;
@@ -23097,42 +23416,40 @@ static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_RREF(struct __pyx_obj_6
   int __pyx_t_10;
   int __pyx_t_11;
   int __pyx_t_12;
-  int __pyx_t_13;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   #ifdef WITH_THREAD
   PyGILState_STATE __pyx_gilstate_save;
   #endif
-  __Pyx_RefNannySetupContext("RREF", 1);
-  __Pyx_TraceCall("RREF", __pyx_f[0], 230, 1, __PYX_ERR(0, 230, __pyx_L1_error));
+  __Pyx_TraceCall("RREF", __pyx_f[0], 261, 1, __PYX_ERR(0, 261, __pyx_L1_error));
   if (__pyx_optional_args) {
     if (__pyx_optional_args->__pyx_n > 0) {
       __pyx_v_AUGMENT = __pyx_optional_args->AUGMENT;
     }
   }
 
-  /* "ateams/arithmetic/Sparse.pyx":235
+  /* "ateams/arithmetic/Sparse.pyx":266
  * 		"""
  * 		# Catch for optional arguments.
  * 		if AUGMENT < 0: AUGMENT = self.shape[1]             # <<<<<<<<<<<<<<
  * 
  * 		cdef Vector[int] PIVOTS = Vector[int](self.shape[0]);
  */
-  __Pyx_TraceLine(235,1,__PYX_ERR(0, 235, __pyx_L1_error))
+  __Pyx_TraceLine(266,1,__PYX_ERR(0, 266, __pyx_L1_error))
   __pyx_t_1 = (__pyx_v_AUGMENT < 0);
   if (__pyx_t_1) {
     __pyx_v_AUGMENT = (__pyx_v_self->shape[1]);
   }
 
-  /* "ateams/arithmetic/Sparse.pyx":237
+  /* "ateams/arithmetic/Sparse.pyx":268
  * 		if AUGMENT < 0: AUGMENT = self.shape[1]
  * 
  * 		cdef Vector[int] PIVOTS = Vector[int](self.shape[0]);             # <<<<<<<<<<<<<<
- * 		cdef int i, k, pivot, pivots;
+ * 		cdef int i, k, j, pivot, pivots;
  * 		cdef FFINT q, ratio;
  */
-  __Pyx_TraceLine(237,1,__PYX_ERR(0, 237, __pyx_L1_error))
+  __Pyx_TraceLine(268,1,__PYX_ERR(0, 268, __pyx_L1_error))
   try {
     __pyx_t_2 = std::vector<int> ((__pyx_v_self->shape[0]));
   } catch(...) {
@@ -23143,426 +23460,227 @@ static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_RREF(struct __pyx_obj_6
     #ifdef WITH_THREAD
     __Pyx_PyGILState_Release(__pyx_gilstate_save);
     #endif
-    __PYX_ERR(0, 237, __pyx_L1_error)
+    __PYX_ERR(0, 268, __pyx_L1_error)
   }
   __pyx_v_PIVOTS = __PYX_STD_MOVE_IF_SUPPORTED(__pyx_t_2);
 
-  /* "ateams/arithmetic/Sparse.pyx":241
+  /* "ateams/arithmetic/Sparse.pyx":272
  * 		cdef FFINT q, ratio;
  * 
  * 		pivots = 0;             # <<<<<<<<<<<<<<
  * 
  * 		# Compute REF.
  */
-  __Pyx_TraceLine(241,1,__PYX_ERR(0, 241, __pyx_L1_error))
+  __Pyx_TraceLine(272,1,__PYX_ERR(0, 272, __pyx_L1_error))
   __pyx_v_pivots = 0;
 
-  /* "ateams/arithmetic/Sparse.pyx":244
+  /* "ateams/arithmetic/Sparse.pyx":275
  * 
  * 		# Compute REF.
  * 		for i in range(AUGMENT):             # <<<<<<<<<<<<<<
  * 			# Find the row with a pivot in this column (if one exists). If it
  * 			# doesn't, continue; otherwise, invert the row.
  */
-  __Pyx_TraceLine(244,1,__PYX_ERR(0, 244, __pyx_L1_error))
+  __Pyx_TraceLine(275,1,__PYX_ERR(0, 275, __pyx_L1_error))
   __pyx_t_3 = __pyx_v_AUGMENT;
   __pyx_t_4 = __pyx_t_3;
   for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
     __pyx_v_i = __pyx_t_5;
 
-    /* "ateams/arithmetic/Sparse.pyx":247
+    /* "ateams/arithmetic/Sparse.pyx":278
  * 			# Find the row with a pivot in this column (if one exists). If it
  * 			# doesn't, continue; otherwise, invert the row.
  * 			pivot = self.PivotRow(i, pivots)             # <<<<<<<<<<<<<<
  * 			if pivot < 0: continue
  * 
  */
-    __Pyx_TraceLine(247,1,__PYX_ERR(0, 247, __pyx_L1_error))
+    __Pyx_TraceLine(278,1,__PYX_ERR(0, 278, __pyx_L1_error))
     __pyx_v_pivot = ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->PivotRow(__pyx_v_self, __pyx_v_i, __pyx_v_pivots);
 
-    /* "ateams/arithmetic/Sparse.pyx":248
+    /* "ateams/arithmetic/Sparse.pyx":279
  * 			# doesn't, continue; otherwise, invert the row.
  * 			pivot = self.PivotRow(i, pivots)
  * 			if pivot < 0: continue             # <<<<<<<<<<<<<<
  * 
  * 			# Store the column and swap row entries.
  */
-    __Pyx_TraceLine(248,1,__PYX_ERR(0, 248, __pyx_L1_error))
+    __Pyx_TraceLine(279,1,__PYX_ERR(0, 279, __pyx_L1_error))
     __pyx_t_1 = (__pyx_v_pivot < 0);
     if (__pyx_t_1) {
       goto __pyx_L4_continue;
     }
 
-    /* "ateams/arithmetic/Sparse.pyx":251
+    /* "ateams/arithmetic/Sparse.pyx":282
  * 
  * 			# Store the column and swap row entries.
  * 			PIVOTS[pivots] = i             # <<<<<<<<<<<<<<
  * 			self.SwapRows(pivots, pivot);
  * 
  */
-    __Pyx_TraceLine(251,1,__PYX_ERR(0, 251, __pyx_L1_error))
+    __Pyx_TraceLine(282,1,__PYX_ERR(0, 282, __pyx_L1_error))
     (__pyx_v_PIVOTS[__pyx_v_pivots]) = __pyx_v_i;
 
-    /* "ateams/arithmetic/Sparse.pyx":252
+    /* "ateams/arithmetic/Sparse.pyx":283
  * 			# Store the column and swap row entries.
  * 			PIVOTS[pivots] = i
  * 			self.SwapRows(pivots, pivot);             # <<<<<<<<<<<<<<
  * 
  * 			# Invert the pivot row and increment the number of pivots.
  */
-    __Pyx_TraceLine(252,1,__PYX_ERR(0, 252, __pyx_L1_error))
+    __Pyx_TraceLine(283,1,__PYX_ERR(0, 283, __pyx_L1_error))
     ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->SwapRows(__pyx_v_self, __pyx_v_pivots, __pyx_v_pivot);
 
-    /* "ateams/arithmetic/Sparse.pyx":255
+    /* "ateams/arithmetic/Sparse.pyx":286
  * 
  * 			# Invert the pivot row and increment the number of pivots.
  * 			q = self.inverses[self.data[pivots,i]]             # <<<<<<<<<<<<<<
  * 			self.MultiplyRow(pivots, q);
  * 			pivots += 1;
  */
-    __Pyx_TraceLine(255,1,__PYX_ERR(0, 255, __pyx_L1_error))
+    __Pyx_TraceLine(286,1,__PYX_ERR(0, 286, __pyx_L1_error))
     __pyx_t_6 = __pyx_v_pivots;
     __pyx_t_7 = __pyx_v_i;
     __pyx_t_8 = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_6 * __pyx_v_self->data.strides[0]) ) + __pyx_t_7 * __pyx_v_self->data.strides[1]) )));
     __pyx_v_q = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=0 */ (__pyx_v_self->inverses.data + __pyx_t_8 * __pyx_v_self->inverses.strides[0]) )));
 
-    /* "ateams/arithmetic/Sparse.pyx":256
+    /* "ateams/arithmetic/Sparse.pyx":287
  * 			# Invert the pivot row and increment the number of pivots.
  * 			q = self.inverses[self.data[pivots,i]]
  * 			self.MultiplyRow(pivots, q);             # <<<<<<<<<<<<<<
  * 			pivots += 1;
  * 
  */
-    __Pyx_TraceLine(256,1,__PYX_ERR(0, 256, __pyx_L1_error))
+    __Pyx_TraceLine(287,1,__PYX_ERR(0, 287, __pyx_L1_error))
     ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->MultiplyRow(__pyx_v_self, __pyx_v_pivots, __pyx_v_q);
 
-    /* "ateams/arithmetic/Sparse.pyx":257
+    /* "ateams/arithmetic/Sparse.pyx":288
  * 			q = self.inverses[self.data[pivots,i]]
  * 			self.MultiplyRow(pivots, q);
  * 			pivots += 1;             # <<<<<<<<<<<<<<
  * 
  * 			# Eliminate rows below.
  */
-    __Pyx_TraceLine(257,1,__PYX_ERR(0, 257, __pyx_L1_error))
+    __Pyx_TraceLine(288,1,__PYX_ERR(0, 288, __pyx_L1_error))
     __pyx_v_pivots = (__pyx_v_pivots + 1);
 
-    /* "ateams/arithmetic/Sparse.pyx":260
+    /* "ateams/arithmetic/Sparse.pyx":291
  * 
  * 			# Eliminate rows below.
- * 			if self.parallel:             # <<<<<<<<<<<<<<
- * 				for k in prange(pivots, self.shape[0], num_threads=2):
- * 					ratio = self.negation[self.data[k,i]]
+ * 			for k in range(pivots, self.shape[0]):             # <<<<<<<<<<<<<<
+ * 				ratio = self.negation[self.data[k,i]]
+ * 
  */
-    __Pyx_TraceLine(260,1,__PYX_ERR(0, 260, __pyx_L1_error))
-    __pyx_t_1 = (__pyx_v_self->parallel != 0);
-    if (__pyx_t_1) {
+    __Pyx_TraceLine(291,1,__PYX_ERR(0, 291, __pyx_L1_error))
+    __pyx_t_9 = (__pyx_v_self->shape[0]);
+    __pyx_t_10 = __pyx_t_9;
+    for (__pyx_t_11 = __pyx_v_pivots; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
+      __pyx_v_k = __pyx_t_11;
 
-      /* "ateams/arithmetic/Sparse.pyx":261
+      /* "ateams/arithmetic/Sparse.pyx":292
  * 			# Eliminate rows below.
- * 			if self.parallel:
- * 				for k in prange(pivots, self.shape[0], num_threads=2):             # <<<<<<<<<<<<<<
- * 					ratio = self.negation[self.data[k,i]]
- * 					self.AddRows(pivots-1, k, ratio)
+ * 			for k in range(pivots, self.shape[0]):
+ * 				ratio = self.negation[self.data[k,i]]             # <<<<<<<<<<<<<<
+ * 
+ * 				# self.AddRows(pivots-1, k, 0, self.shape[1], ratio)
  */
-      __Pyx_TraceLine(261,1,__PYX_ERR(0, 261, __pyx_L1_error))
-      {
-          #ifdef WITH_THREAD
-          PyThreadState *_save;
-          _save = NULL;
-          if (PyGILState_Check()) {
-            Py_UNBLOCK_THREADS
-          }
-          __Pyx_FastGIL_Remember();
-          #endif
-          /*try:*/ {
-            __pyx_t_9 = __pyx_v_pivots;
-            __pyx_t_10 = (__pyx_v_self->shape[0]);
-            {
-                int __pyx_parallel_temp0 = ((int)0xbad0bad0);
-                __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_parallel_temp1 = ((__pyx_t_6ateams_10arithmetic_6common_FFINT)0xbad0bad0);
-                const char *__pyx_parallel_filename = NULL; int __pyx_parallel_lineno = 0, __pyx_parallel_clineno = 0;
-                PyObject *__pyx_parallel_exc_type = NULL, *__pyx_parallel_exc_value = NULL, *__pyx_parallel_exc_tb = NULL;
-                int __pyx_parallel_why;
-                __pyx_parallel_why = 0;
-                #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-                    #undef likely
-                    #undef unlikely
-                    #define likely(x)   (x)
-                    #define unlikely(x) (x)
-                #endif
-                __pyx_t_12 = (__pyx_t_10 - __pyx_t_9 + 1 - 1/abs(1)) / 1;
-                if (__pyx_t_12 > 0)
-                {
-                    #ifdef _OPENMP
-                    #pragma omp parallel num_threads(2) private(__pyx_t_6, __pyx_t_7, __pyx_t_8) private(__pyx_filename, __pyx_lineno, __pyx_clineno) shared(__pyx_parallel_why, __pyx_parallel_exc_type, __pyx_parallel_exc_value, __pyx_parallel_exc_tb)
-                    #endif /* _OPENMP */
-                    {
-                        #ifdef _OPENMP
-                        #ifdef WITH_THREAD
-                        PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-                        #endif
-                        Py_BEGIN_ALLOW_THREADS
-                        #endif /* _OPENMP */
-                        #ifdef _OPENMP
-                        #pragma omp for firstprivate(__pyx_v_k) lastprivate(__pyx_v_k) lastprivate(__pyx_v_ratio)
-                        #endif /* _OPENMP */
-                        for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_12; __pyx_t_11++){
-                            if (__pyx_parallel_why < 2)
-                            {
-                                __pyx_v_k = (int)(__pyx_t_9 + 1 * __pyx_t_11);
-                                /* Initialize private variables to invalid values */
-                                __pyx_v_ratio = ((__pyx_t_6ateams_10arithmetic_6common_FFINT)0xbad0bad0);
+      __Pyx_TraceLine(292,1,__PYX_ERR(0, 292, __pyx_L1_error))
+      __pyx_t_7 = __pyx_v_k;
+      __pyx_t_6 = __pyx_v_i;
+      __pyx_t_8 = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_7 * __pyx_v_self->data.strides[0]) ) + __pyx_t_6 * __pyx_v_self->data.strides[1]) )));
+      __pyx_v_ratio = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=0 */ (__pyx_v_self->negation.data + __pyx_t_8 * __pyx_v_self->negation.strides[0]) )));
 
-                                /* "ateams/arithmetic/Sparse.pyx":262
- * 			if self.parallel:
- * 				for k in prange(pivots, self.shape[0], num_threads=2):
- * 					ratio = self.negation[self.data[k,i]]             # <<<<<<<<<<<<<<
- * 					self.AddRows(pivots-1, k, ratio)
- * 			else:
+      /* "ateams/arithmetic/Sparse.pyx":295
+ * 
+ * 				# self.AddRows(pivots-1, k, 0, self.shape[1], ratio)
+ * 				if not self.parallel: self.AddRows(pivots-1, k, i, self.shape[1], ratio)             # <<<<<<<<<<<<<<
+ * 				else: self.BlockAddRows(pivots-1, k, ratio, i, self.shape[1], self.schedule)
+ * 
  */
-                                __Pyx_TraceLine(262,1,__PYX_ERR(0, 262, __pyx_L15_error))
-                                __pyx_t_7 = __pyx_v_k;
-                                __pyx_t_6 = __pyx_v_i;
-                                __pyx_t_8 = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_7 * __pyx_v_self->data.strides[0]) ) + __pyx_t_6 * __pyx_v_self->data.strides[1]) )));
-                                __pyx_v_ratio = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=0 */ (__pyx_v_self->negation.data + __pyx_t_8 * __pyx_v_self->negation.strides[0]) )));
-
-                                /* "ateams/arithmetic/Sparse.pyx":263
- * 				for k in prange(pivots, self.shape[0], num_threads=2):
- * 					ratio = self.negation[self.data[k,i]]
- * 					self.AddRows(pivots-1, k, ratio)             # <<<<<<<<<<<<<<
- * 			else:
- * 				for k in range(pivots, self.shape[0]):
- */
-                                __Pyx_TraceLine(263,1,__PYX_ERR(0, 263, __pyx_L15_error))
-                                ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->AddRows(__pyx_v_self, (__pyx_v_pivots - 1), __pyx_v_k, __pyx_v_ratio);
-                                goto __pyx_L18;
-                                __pyx_L15_error:;
-                                {
-                                    #ifdef WITH_THREAD
-                                    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-                                    #endif
-                                    #ifdef _OPENMP
-                                    #pragma omp flush(__pyx_parallel_exc_type)
-                                    #endif /* _OPENMP */
-                                    if (!__pyx_parallel_exc_type) {
-                                      __Pyx_ErrFetchWithState(&__pyx_parallel_exc_type, &__pyx_parallel_exc_value, &__pyx_parallel_exc_tb);
-                                      __pyx_parallel_filename = __pyx_filename; __pyx_parallel_lineno = __pyx_lineno; __pyx_parallel_clineno = __pyx_clineno;
-                                      __Pyx_GOTREF(__pyx_parallel_exc_type);
-                                    }
-                                    #ifdef WITH_THREAD
-                                    __Pyx_PyGILState_Release(__pyx_gilstate_save);
-                                    #endif
-                                }
-                                __pyx_parallel_why = 4;
-                                goto __pyx_L17;
-                                __pyx_L17:;
-                                #ifdef _OPENMP
-                                #pragma omp critical(__pyx_parallel_lastprivates1)
-                                #endif /* _OPENMP */
-                                {
-                                    __pyx_parallel_temp0 = __pyx_v_k;
-                                    __pyx_parallel_temp1 = __pyx_v_ratio;
-                                }
-                                __pyx_L18:;
-                                #ifdef _OPENMP
-                                #pragma omp flush(__pyx_parallel_why)
-                                #endif /* _OPENMP */
-                            }
-                        }
-                        #ifdef _OPENMP
-                        Py_END_ALLOW_THREADS
-                        #else
-{
-#ifdef WITH_THREAD
-                        PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-                        #endif
-                        #endif /* _OPENMP */
-                        /* Clean up any temporaries */
-                        #ifdef WITH_THREAD
-                        __Pyx_PyGILState_Release(__pyx_gilstate_save);
-                        #endif
-                        #ifndef _OPENMP
-}
-#endif /* _OPENMP */
-                    }
-                }
-                if (__pyx_parallel_exc_type) {
-                  /* This may have been overridden by a continue, break or return in another thread. Prefer the error. */
-                  __pyx_parallel_why = 4;
-                }
-                if (__pyx_parallel_why) {
-                  __pyx_v_k = __pyx_parallel_temp0;
-                  __pyx_v_ratio = __pyx_parallel_temp1;
-                  switch (__pyx_parallel_why) {
-                        case 4:
-                    {
-                        #ifdef WITH_THREAD
-                        PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-                        #endif
-                        __Pyx_GIVEREF(__pyx_parallel_exc_type);
-                        __Pyx_ErrRestoreWithState(__pyx_parallel_exc_type, __pyx_parallel_exc_value, __pyx_parallel_exc_tb);
-                        __pyx_filename = __pyx_parallel_filename; __pyx_lineno = __pyx_parallel_lineno; __pyx_clineno = __pyx_parallel_clineno;
-                        #ifdef WITH_THREAD
-                        __Pyx_PyGILState_Release(__pyx_gilstate_save);
-                        #endif
-                    }
-                    goto __pyx_L11_error;
-                  }
-                }
-            }
-            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-                #undef likely
-                #undef unlikely
-                #define likely(x)   __builtin_expect(!!(x), 1)
-                #define unlikely(x) __builtin_expect(!!(x), 0)
-            #endif
-          }
-
-          /* "ateams/arithmetic/Sparse.pyx":261
- * 			# Eliminate rows below.
- * 			if self.parallel:
- * 				for k in prange(pivots, self.shape[0], num_threads=2):             # <<<<<<<<<<<<<<
- * 					ratio = self.negation[self.data[k,i]]
- * 					self.AddRows(pivots-1, k, ratio)
- */
-          __Pyx_TraceLine(261,1,__PYX_ERR(0, 261, __pyx_L11_error))
-          /*finally:*/ {
-            /*normal exit:*/{
-              #ifdef WITH_THREAD
-              __Pyx_FastGIL_Forget();
-              if (_save) {
-                Py_BLOCK_THREADS
-              }
-              #endif
-              goto __pyx_L12;
-            }
-            __pyx_L11_error: {
-              #ifdef WITH_THREAD
-              __Pyx_FastGIL_Forget();
-              if (_save) {
-                Py_BLOCK_THREADS
-              }
-              #endif
-              goto __pyx_L1_error;
-            }
-            __pyx_L12:;
-          }
+      __Pyx_TraceLine(295,1,__PYX_ERR(0, 295, __pyx_L1_error))
+      __pyx_t_1 = (!(__pyx_v_self->parallel != 0));
+      if (__pyx_t_1) {
+        ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->AddRows(__pyx_v_self, (__pyx_v_pivots - 1), __pyx_v_k, __pyx_v_i, (__pyx_v_self->shape[1]), __pyx_v_ratio);
+        goto __pyx_L9;
       }
 
-      /* "ateams/arithmetic/Sparse.pyx":260
- * 
- * 			# Eliminate rows below.
- * 			if self.parallel:             # <<<<<<<<<<<<<<
- * 				for k in prange(pivots, self.shape[0], num_threads=2):
- * 					ratio = self.negation[self.data[k,i]]
- */
-      goto __pyx_L7;
-    }
-
-    /* "ateams/arithmetic/Sparse.pyx":265
- * 					self.AddRows(pivots-1, k, ratio)
- * 			else:
- * 				for k in range(pivots, self.shape[0]):             # <<<<<<<<<<<<<<
- * 					ratio = self.negation[self.data[k,i]]
- * 					self.AddRows(pivots-1, k, ratio)
- */
-    __Pyx_TraceLine(265,1,__PYX_ERR(0, 265, __pyx_L1_error))
-    /*else*/ {
-      __pyx_t_12 = (__pyx_v_self->shape[0]);
-      __pyx_t_11 = __pyx_t_12;
-      for (__pyx_t_10 = __pyx_v_pivots; __pyx_t_10 < __pyx_t_11; __pyx_t_10+=1) {
-        __pyx_v_k = __pyx_t_10;
-
-        /* "ateams/arithmetic/Sparse.pyx":266
- * 			else:
- * 				for k in range(pivots, self.shape[0]):
- * 					ratio = self.negation[self.data[k,i]]             # <<<<<<<<<<<<<<
- * 					self.AddRows(pivots-1, k, ratio)
- * 
- */
-        __Pyx_TraceLine(266,1,__PYX_ERR(0, 266, __pyx_L1_error))
-        __pyx_t_6 = __pyx_v_k;
-        __pyx_t_7 = __pyx_v_i;
-        __pyx_t_8 = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_6 * __pyx_v_self->data.strides[0]) ) + __pyx_t_7 * __pyx_v_self->data.strides[1]) )));
-        __pyx_v_ratio = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=0 */ (__pyx_v_self->negation.data + __pyx_t_8 * __pyx_v_self->negation.strides[0]) )));
-
-        /* "ateams/arithmetic/Sparse.pyx":267
- * 				for k in range(pivots, self.shape[0]):
- * 					ratio = self.negation[self.data[k,i]]
- * 					self.AddRows(pivots-1, k, ratio)             # <<<<<<<<<<<<<<
+      /* "ateams/arithmetic/Sparse.pyx":296
+ * 				# self.AddRows(pivots-1, k, 0, self.shape[1], ratio)
+ * 				if not self.parallel: self.AddRows(pivots-1, k, i, self.shape[1], ratio)
+ * 				else: self.BlockAddRows(pivots-1, k, ratio, i, self.shape[1], self.schedule)             # <<<<<<<<<<<<<<
  * 
  * 		# Compute RREF.
  */
-        __Pyx_TraceLine(267,1,__PYX_ERR(0, 267, __pyx_L1_error))
-        ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->AddRows(__pyx_v_self, (__pyx_v_pivots - 1), __pyx_v_k, __pyx_v_ratio);
+      __Pyx_TraceLine(296,1,__PYX_ERR(0, 296, __pyx_L1_error))
+      /*else*/ {
+        ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->BlockAddRows(__pyx_v_self, (__pyx_v_pivots - 1), __pyx_v_k, __pyx_v_ratio, __pyx_v_i, (__pyx_v_self->shape[1]), __pyx_v_self->schedule);
       }
+      __pyx_L9:;
     }
-    __pyx_L7:;
     __pyx_L4_continue:;
   }
 
-  /* "ateams/arithmetic/Sparse.pyx":271
+  /* "ateams/arithmetic/Sparse.pyx":300
  * 		# Compute RREF.
  * 		cdef int l, m, r, column;
  * 		l = pivots-1;             # <<<<<<<<<<<<<<
  * 
  * 		# Working backwards from the last nonzero row...
  */
-  __Pyx_TraceLine(271,1,__PYX_ERR(0, 271, __pyx_L1_error))
+  __Pyx_TraceLine(300,1,__PYX_ERR(0, 300, __pyx_L1_error))
   __pyx_v_l = (__pyx_v_pivots - 1);
 
-  /* "ateams/arithmetic/Sparse.pyx":274
+  /* "ateams/arithmetic/Sparse.pyx":303
  * 
  * 		# Working backwards from the last nonzero row...
  * 		while l > -1:             # <<<<<<<<<<<<<<
  * 			# ... check that we're not getting an out-of-bounds error...
  * 			if l > 0 and PIVOTS[l] < 1:
  */
-  __Pyx_TraceLine(274,1,__PYX_ERR(0, 274, __pyx_L1_error))
+  __Pyx_TraceLine(303,1,__PYX_ERR(0, 303, __pyx_L1_error))
   while (1) {
     __pyx_t_1 = (__pyx_v_l > -1L);
     if (!__pyx_t_1) break;
 
-    /* "ateams/arithmetic/Sparse.pyx":276
+    /* "ateams/arithmetic/Sparse.pyx":305
  * 		while l > -1:
  * 			# ... check that we're not getting an out-of-bounds error...
  * 			if l > 0 and PIVOTS[l] < 1:             # <<<<<<<<<<<<<<
  * 				l -= 1;
  * 				continue;
  */
-    __Pyx_TraceLine(276,1,__PYX_ERR(0, 276, __pyx_L1_error))
-    __pyx_t_13 = (__pyx_v_l > 0);
-    if (__pyx_t_13) {
+    __Pyx_TraceLine(305,1,__PYX_ERR(0, 305, __pyx_L1_error))
+    __pyx_t_12 = (__pyx_v_l > 0);
+    if (__pyx_t_12) {
     } else {
-      __pyx_t_1 = __pyx_t_13;
-      goto __pyx_L24_bool_binop_done;
+      __pyx_t_1 = __pyx_t_12;
+      goto __pyx_L13_bool_binop_done;
     }
-    __pyx_t_13 = ((__pyx_v_PIVOTS[__pyx_v_l]) < 1);
-    __pyx_t_1 = __pyx_t_13;
-    __pyx_L24_bool_binop_done:;
+    __pyx_t_12 = ((__pyx_v_PIVOTS[__pyx_v_l]) < 1);
+    __pyx_t_1 = __pyx_t_12;
+    __pyx_L13_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "ateams/arithmetic/Sparse.pyx":277
+      /* "ateams/arithmetic/Sparse.pyx":306
  * 			# ... check that we're not getting an out-of-bounds error...
  * 			if l > 0 and PIVOTS[l] < 1:
  * 				l -= 1;             # <<<<<<<<<<<<<<
  * 				continue;
  * 
  */
-      __Pyx_TraceLine(277,1,__PYX_ERR(0, 277, __pyx_L1_error))
+      __Pyx_TraceLine(306,1,__PYX_ERR(0, 306, __pyx_L1_error))
       __pyx_v_l = (__pyx_v_l - 1);
 
-      /* "ateams/arithmetic/Sparse.pyx":278
+      /* "ateams/arithmetic/Sparse.pyx":307
  * 			if l > 0 and PIVOTS[l] < 1:
  * 				l -= 1;
  * 				continue;             # <<<<<<<<<<<<<<
  * 
  * 			# ... then find the column containing the pivot element...
  */
-      __Pyx_TraceLine(278,1,__PYX_ERR(0, 278, __pyx_L1_error))
-      goto __pyx_L21_continue;
+      __Pyx_TraceLine(307,1,__PYX_ERR(0, 307, __pyx_L1_error))
+      goto __pyx_L10_continue;
 
-      /* "ateams/arithmetic/Sparse.pyx":276
+      /* "ateams/arithmetic/Sparse.pyx":305
  * 		while l > -1:
  * 			# ... check that we're not getting an out-of-bounds error...
  * 			if l > 0 and PIVOTS[l] < 1:             # <<<<<<<<<<<<<<
@@ -23571,279 +23689,81 @@ static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_RREF(struct __pyx_obj_6
  */
     }
 
-    /* "ateams/arithmetic/Sparse.pyx":281
+    /* "ateams/arithmetic/Sparse.pyx":310
  * 
  * 			# ... then find the column containing the pivot element...
  * 			column = PIVOTS[l];             # <<<<<<<<<<<<<<
  * 
  * 			# ... and, iterating over the rows *above* row `l`, eliminate the
  */
-    __Pyx_TraceLine(281,1,__PYX_ERR(0, 281, __pyx_L1_error))
+    __Pyx_TraceLine(310,1,__PYX_ERR(0, 310, __pyx_L1_error))
     __pyx_v_column = (__pyx_v_PIVOTS[__pyx_v_l]);
 
-    /* "ateams/arithmetic/Sparse.pyx":285
+    /* "ateams/arithmetic/Sparse.pyx":314
  * 			# ... and, iterating over the rows *above* row `l`, eliminate the
  * 			# nonzero entries there...
- * 			if self.parallel:             # <<<<<<<<<<<<<<
- * 				for m in prange(l, num_threads=2):
- * 					ratio = self.negation[self.data[m,column]]
- */
-    __Pyx_TraceLine(285,1,__PYX_ERR(0, 285, __pyx_L1_error))
-    __pyx_t_1 = (__pyx_v_self->parallel != 0);
-    if (__pyx_t_1) {
-
-      /* "ateams/arithmetic/Sparse.pyx":286
- * 			# nonzero entries there...
- * 			if self.parallel:
- * 				for m in prange(l, num_threads=2):             # <<<<<<<<<<<<<<
- * 					ratio = self.negation[self.data[m,column]]
- * 					self.AddRows(l, m, ratio);
- */
-      __Pyx_TraceLine(286,1,__PYX_ERR(0, 286, __pyx_L1_error))
-      {
-          #ifdef WITH_THREAD
-          PyThreadState *_save;
-          _save = NULL;
-          if (PyGILState_Check()) {
-            Py_UNBLOCK_THREADS
-          }
-          __Pyx_FastGIL_Remember();
-          #endif
-          /*try:*/ {
-            __pyx_t_3 = __pyx_v_l;
-            {
-                int __pyx_parallel_temp0 = ((int)0xbad0bad0);
-                __pyx_t_6ateams_10arithmetic_6common_FFINT __pyx_parallel_temp1 = ((__pyx_t_6ateams_10arithmetic_6common_FFINT)0xbad0bad0);
-                const char *__pyx_parallel_filename = NULL; int __pyx_parallel_lineno = 0, __pyx_parallel_clineno = 0;
-                PyObject *__pyx_parallel_exc_type = NULL, *__pyx_parallel_exc_value = NULL, *__pyx_parallel_exc_tb = NULL;
-                int __pyx_parallel_why;
-                __pyx_parallel_why = 0;
-                #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-                    #undef likely
-                    #undef unlikely
-                    #define likely(x)   (x)
-                    #define unlikely(x) (x)
-                #endif
-                __pyx_t_5 = (__pyx_t_3 - 0 + 1 - 1/abs(1)) / 1;
-                if (__pyx_t_5 > 0)
-                {
-                    #ifdef _OPENMP
-                    #pragma omp parallel num_threads(2) private(__pyx_t_6, __pyx_t_7, __pyx_t_8) private(__pyx_filename, __pyx_lineno, __pyx_clineno) shared(__pyx_parallel_why, __pyx_parallel_exc_type, __pyx_parallel_exc_value, __pyx_parallel_exc_tb)
-                    #endif /* _OPENMP */
-                    {
-                        #ifdef _OPENMP
-                        #ifdef WITH_THREAD
-                        PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-                        #endif
-                        Py_BEGIN_ALLOW_THREADS
-                        #endif /* _OPENMP */
-                        #ifdef _OPENMP
-                        #pragma omp for firstprivate(__pyx_v_m) lastprivate(__pyx_v_m) lastprivate(__pyx_v_ratio)
-                        #endif /* _OPENMP */
-                        for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_5; __pyx_t_4++){
-                            if (__pyx_parallel_why < 2)
-                            {
-                                __pyx_v_m = (int)(0 + 1 * __pyx_t_4);
-                                /* Initialize private variables to invalid values */
-                                __pyx_v_ratio = ((__pyx_t_6ateams_10arithmetic_6common_FFINT)0xbad0bad0);
-
-                                /* "ateams/arithmetic/Sparse.pyx":287
- * 			if self.parallel:
- * 				for m in prange(l, num_threads=2):
- * 					ratio = self.negation[self.data[m,column]]             # <<<<<<<<<<<<<<
- * 					self.AddRows(l, m, ratio);
- * 			else:
- */
-                                __Pyx_TraceLine(287,1,__PYX_ERR(0, 287, __pyx_L34_error))
-                                __pyx_t_7 = __pyx_v_m;
-                                __pyx_t_6 = __pyx_v_column;
-                                __pyx_t_8 = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_7 * __pyx_v_self->data.strides[0]) ) + __pyx_t_6 * __pyx_v_self->data.strides[1]) )));
-                                __pyx_v_ratio = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=0 */ (__pyx_v_self->negation.data + __pyx_t_8 * __pyx_v_self->negation.strides[0]) )));
-
-                                /* "ateams/arithmetic/Sparse.pyx":288
- * 				for m in prange(l, num_threads=2):
- * 					ratio = self.negation[self.data[m,column]]
- * 					self.AddRows(l, m, ratio);             # <<<<<<<<<<<<<<
- * 			else:
- * 				for m in range(l):
- */
-                                __Pyx_TraceLine(288,1,__PYX_ERR(0, 288, __pyx_L34_error))
-                                ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->AddRows(__pyx_v_self, __pyx_v_l, __pyx_v_m, __pyx_v_ratio);
-                                goto __pyx_L37;
-                                __pyx_L34_error:;
-                                {
-                                    #ifdef WITH_THREAD
-                                    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-                                    #endif
-                                    #ifdef _OPENMP
-                                    #pragma omp flush(__pyx_parallel_exc_type)
-                                    #endif /* _OPENMP */
-                                    if (!__pyx_parallel_exc_type) {
-                                      __Pyx_ErrFetchWithState(&__pyx_parallel_exc_type, &__pyx_parallel_exc_value, &__pyx_parallel_exc_tb);
-                                      __pyx_parallel_filename = __pyx_filename; __pyx_parallel_lineno = __pyx_lineno; __pyx_parallel_clineno = __pyx_clineno;
-                                      __Pyx_GOTREF(__pyx_parallel_exc_type);
-                                    }
-                                    #ifdef WITH_THREAD
-                                    __Pyx_PyGILState_Release(__pyx_gilstate_save);
-                                    #endif
-                                }
-                                __pyx_parallel_why = 4;
-                                goto __pyx_L36;
-                                __pyx_L36:;
-                                #ifdef _OPENMP
-                                #pragma omp critical(__pyx_parallel_lastprivates2)
-                                #endif /* _OPENMP */
-                                {
-                                    __pyx_parallel_temp0 = __pyx_v_m;
-                                    __pyx_parallel_temp1 = __pyx_v_ratio;
-                                }
-                                __pyx_L37:;
-                                #ifdef _OPENMP
-                                #pragma omp flush(__pyx_parallel_why)
-                                #endif /* _OPENMP */
-                            }
-                        }
-                        #ifdef _OPENMP
-                        Py_END_ALLOW_THREADS
-                        #else
-{
-#ifdef WITH_THREAD
-                        PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-                        #endif
-                        #endif /* _OPENMP */
-                        /* Clean up any temporaries */
-                        #ifdef WITH_THREAD
-                        __Pyx_PyGILState_Release(__pyx_gilstate_save);
-                        #endif
-                        #ifndef _OPENMP
-}
-#endif /* _OPENMP */
-                    }
-                }
-                if (__pyx_parallel_exc_type) {
-                  /* This may have been overridden by a continue, break or return in another thread. Prefer the error. */
-                  __pyx_parallel_why = 4;
-                }
-                if (__pyx_parallel_why) {
-                  __pyx_v_m = __pyx_parallel_temp0;
-                  __pyx_v_ratio = __pyx_parallel_temp1;
-                  switch (__pyx_parallel_why) {
-                        case 4:
-                    {
-                        #ifdef WITH_THREAD
-                        PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-                        #endif
-                        __Pyx_GIVEREF(__pyx_parallel_exc_type);
-                        __Pyx_ErrRestoreWithState(__pyx_parallel_exc_type, __pyx_parallel_exc_value, __pyx_parallel_exc_tb);
-                        __pyx_filename = __pyx_parallel_filename; __pyx_lineno = __pyx_parallel_lineno; __pyx_clineno = __pyx_parallel_clineno;
-                        #ifdef WITH_THREAD
-                        __Pyx_PyGILState_Release(__pyx_gilstate_save);
-                        #endif
-                    }
-                    goto __pyx_L30_error;
-                  }
-                }
-            }
-            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-                #undef likely
-                #undef unlikely
-                #define likely(x)   __builtin_expect(!!(x), 1)
-                #define unlikely(x) __builtin_expect(!!(x), 0)
-            #endif
-          }
-
-          /* "ateams/arithmetic/Sparse.pyx":286
- * 			# nonzero entries there...
- * 			if self.parallel:
- * 				for m in prange(l, num_threads=2):             # <<<<<<<<<<<<<<
- * 					ratio = self.negation[self.data[m,column]]
- * 					self.AddRows(l, m, ratio);
- */
-          __Pyx_TraceLine(286,1,__PYX_ERR(0, 286, __pyx_L30_error))
-          /*finally:*/ {
-            /*normal exit:*/{
-              #ifdef WITH_THREAD
-              __Pyx_FastGIL_Forget();
-              if (_save) {
-                Py_BLOCK_THREADS
-              }
-              #endif
-              goto __pyx_L31;
-            }
-            __pyx_L30_error: {
-              #ifdef WITH_THREAD
-              __Pyx_FastGIL_Forget();
-              if (_save) {
-                Py_BLOCK_THREADS
-              }
-              #endif
-              goto __pyx_L1_error;
-            }
-            __pyx_L31:;
-          }
-      }
-
-      /* "ateams/arithmetic/Sparse.pyx":285
- * 			# ... and, iterating over the rows *above* row `l`, eliminate the
- * 			# nonzero entries there...
- * 			if self.parallel:             # <<<<<<<<<<<<<<
- * 				for m in prange(l, num_threads=2):
- * 					ratio = self.negation[self.data[m,column]]
- */
-      goto __pyx_L26;
-    }
-
-    /* "ateams/arithmetic/Sparse.pyx":290
- * 					self.AddRows(l, m, ratio);
- * 			else:
- * 				for m in range(l):             # <<<<<<<<<<<<<<
- * 					ratio = self.negation[self.data[m,column]]
- * 					self.AddRows(l, m, ratio);
- */
-    __Pyx_TraceLine(290,1,__PYX_ERR(0, 290, __pyx_L1_error))
-    /*else*/ {
-      __pyx_t_5 = __pyx_v_l;
-      __pyx_t_4 = __pyx_t_5;
-      for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_4; __pyx_t_3+=1) {
-        __pyx_v_m = __pyx_t_3;
-
-        /* "ateams/arithmetic/Sparse.pyx":291
- * 			else:
- * 				for m in range(l):
- * 					ratio = self.negation[self.data[m,column]]             # <<<<<<<<<<<<<<
- * 					self.AddRows(l, m, ratio);
+ * 			for m in range(l):             # <<<<<<<<<<<<<<
+ * 				ratio = self.negation[self.data[m,column]]
  * 
  */
-        __Pyx_TraceLine(291,1,__PYX_ERR(0, 291, __pyx_L1_error))
-        __pyx_t_6 = __pyx_v_m;
-        __pyx_t_7 = __pyx_v_column;
-        __pyx_t_8 = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_6 * __pyx_v_self->data.strides[0]) ) + __pyx_t_7 * __pyx_v_self->data.strides[1]) )));
-        __pyx_v_ratio = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=0 */ (__pyx_v_self->negation.data + __pyx_t_8 * __pyx_v_self->negation.strides[0]) )));
+    __Pyx_TraceLine(314,1,__PYX_ERR(0, 314, __pyx_L1_error))
+    __pyx_t_3 = __pyx_v_l;
+    __pyx_t_4 = __pyx_t_3;
+    for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+      __pyx_v_m = __pyx_t_5;
 
-        /* "ateams/arithmetic/Sparse.pyx":292
- * 				for m in range(l):
- * 					ratio = self.negation[self.data[m,column]]
- * 					self.AddRows(l, m, ratio);             # <<<<<<<<<<<<<<
+      /* "ateams/arithmetic/Sparse.pyx":315
+ * 			# nonzero entries there...
+ * 			for m in range(l):
+ * 				ratio = self.negation[self.data[m,column]]             # <<<<<<<<<<<<<<
+ * 
+ * 				# self.AddRows(l, m, 0, self.shape[1], ratio)
+ */
+      __Pyx_TraceLine(315,1,__PYX_ERR(0, 315, __pyx_L1_error))
+      __pyx_t_6 = __pyx_v_m;
+      __pyx_t_7 = __pyx_v_column;
+      __pyx_t_8 = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_6 * __pyx_v_self->data.strides[0]) ) + __pyx_t_7 * __pyx_v_self->data.strides[1]) )));
+      __pyx_v_ratio = (*((__pyx_t_6ateams_10arithmetic_6common_FFINT *) ( /* dim=0 */ (__pyx_v_self->negation.data + __pyx_t_8 * __pyx_v_self->negation.strides[0]) )));
+
+      /* "ateams/arithmetic/Sparse.pyx":318
+ * 
+ * 				# self.AddRows(l, m, 0, self.shape[1], ratio)
+ * 				if not self.parallel: self.AddRows(l, m, column, self.shape[1], ratio)             # <<<<<<<<<<<<<<
+ * 				else: self.BlockAddRows(l, m, ratio, column, self.shape[1], self.schedule)
+ * 
+ */
+      __Pyx_TraceLine(318,1,__PYX_ERR(0, 318, __pyx_L1_error))
+      __pyx_t_1 = (!(__pyx_v_self->parallel != 0));
+      if (__pyx_t_1) {
+        ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->AddRows(__pyx_v_self, __pyx_v_l, __pyx_v_m, __pyx_v_column, (__pyx_v_self->shape[1]), __pyx_v_ratio);
+        goto __pyx_L17;
+      }
+
+      /* "ateams/arithmetic/Sparse.pyx":319
+ * 				# self.AddRows(l, m, 0, self.shape[1], ratio)
+ * 				if not self.parallel: self.AddRows(l, m, column, self.shape[1], ratio)
+ * 				else: self.BlockAddRows(l, m, ratio, column, self.shape[1], self.schedule)             # <<<<<<<<<<<<<<
  * 
  * 			# ... then decrement the counter.
  */
-        __Pyx_TraceLine(292,1,__PYX_ERR(0, 292, __pyx_L1_error))
-        ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->AddRows(__pyx_v_self, __pyx_v_l, __pyx_v_m, __pyx_v_ratio);
+      __Pyx_TraceLine(319,1,__PYX_ERR(0, 319, __pyx_L1_error))
+      /*else*/ {
+        ((struct __pyx_vtabstruct_6ateams_10arithmetic_6Sparse_Matrix *)__pyx_v_self->__pyx_vtab)->BlockAddRows(__pyx_v_self, __pyx_v_l, __pyx_v_m, __pyx_v_ratio, __pyx_v_column, (__pyx_v_self->shape[1]), __pyx_v_self->schedule);
       }
+      __pyx_L17:;
     }
-    __pyx_L26:;
 
-    /* "ateams/arithmetic/Sparse.pyx":295
+    /* "ateams/arithmetic/Sparse.pyx":322
  * 
  * 			# ... then decrement the counter.
  * 			l -= 1             # <<<<<<<<<<<<<<
  */
-    __Pyx_TraceLine(295,1,__PYX_ERR(0, 295, __pyx_L1_error))
+    __Pyx_TraceLine(322,1,__PYX_ERR(0, 322, __pyx_L1_error))
     __pyx_v_l = (__pyx_v_l - 1);
-    __pyx_L21_continue:;
+    __pyx_L10_continue:;
   }
 
-  /* "ateams/arithmetic/Sparse.pyx":230
+  /* "ateams/arithmetic/Sparse.pyx":261
  * 
  * 
  * 	cdef void RREF(self, int AUGMENT=-1) noexcept nogil:             # <<<<<<<<<<<<<<
@@ -23863,7 +23783,6 @@ static void __pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_RREF(struct __pyx_obj_6
   #endif
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 1);
-  __Pyx_RefNannyFinishContextNogil()
 }
 
 /* "(tree fragment)":1
@@ -24107,9 +24026,10 @@ static PyObject *__pyx_tp_new_6ateams_10arithmetic_6Sparse_Matrix(PyTypeObject *
   #endif
   p = ((struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *)o);
   p->__pyx_vtab = __pyx_vtabptr_6ateams_10arithmetic_6Sparse_Matrix;
-  new((void*)&(p->iterableColumns)) std::unordered_map<int,std::vector<int> > ();
   new((void*)&(p->columns)) std::unordered_map<int,std::unordered_set<int> > ();
   new((void*)&(p->shape)) std::vector<int> ();
+  new((void*)&(p->blockSchema)) std::vector<std::vector<int> > ();
+  p->schedule = ((PyObject*)Py_None); Py_INCREF(Py_None);
   p->addition.data = NULL;
   p->addition.memview = NULL;
   p->negation.data = NULL;
@@ -24136,9 +24056,10 @@ static void __pyx_tp_dealloc_6ateams_10arithmetic_6Sparse_Matrix(PyObject *o) {
     }
   }
   #endif
-  __Pyx_call_destructor(p->iterableColumns);
   __Pyx_call_destructor(p->columns);
   __Pyx_call_destructor(p->shape);
+  __Pyx_call_destructor(p->blockSchema);
+  Py_CLEAR(p->schedule);
   __PYX_XCLEAR_MEMVIEW(&p->addition, 1);
   p->addition.memview = NULL; p->addition.data = NULL;
   __PYX_XCLEAR_MEMVIEW(&p->negation, 1);
@@ -25283,6 +25204,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_kp_s_collections_abc, __pyx_k_collections_abc, sizeof(__pyx_k_collections_abc), 0, 0, 1, 0},
     {&__pyx_kp_s_contiguous_and_direct, __pyx_k_contiguous_and_direct, sizeof(__pyx_k_contiguous_and_direct), 0, 0, 1, 0},
     {&__pyx_kp_s_contiguous_and_indirect, __pyx_k_contiguous_and_indirect, sizeof(__pyx_k_contiguous_and_indirect), 0, 0, 1, 0},
+    {&__pyx_n_s_cores, __pyx_k_cores, sizeof(__pyx_k_cores), 0, 0, 1, 1},
     {&__pyx_n_s_count, __pyx_k_count, sizeof(__pyx_k_count), 0, 0, 1, 1},
     {&__pyx_n_s_dict, __pyx_k_dict, sizeof(__pyx_k_dict), 0, 0, 1, 1},
     {&__pyx_kp_u_disable, __pyx_k_disable, sizeof(__pyx_k_disable), 0, 1, 0, 0},
@@ -25309,8 +25231,10 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
     {&__pyx_kp_s_itemsize_0_for_cython_array, __pyx_k_itemsize_0_for_cython_array, sizeof(__pyx_k_itemsize_0_for_cython_array), 0, 0, 1, 0},
     {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
+    {&__pyx_n_s_maxBlockSize, __pyx_k_maxBlockSize, sizeof(__pyx_k_maxBlockSize), 0, 0, 1, 1},
     {&__pyx_n_s_memview, __pyx_k_memview, sizeof(__pyx_k_memview), 0, 0, 1, 1},
     {&__pyx_n_s_min, __pyx_k_min, sizeof(__pyx_k_min), 0, 0, 1, 1},
+    {&__pyx_n_s_minBlockSize, __pyx_k_minBlockSize, sizeof(__pyx_k_minBlockSize), 0, 0, 1, 1},
     {&__pyx_n_s_mode, __pyx_k_mode, sizeof(__pyx_k_mode), 0, 0, 1, 1},
     {&__pyx_n_s_multiplication, __pyx_k_multiplication, sizeof(__pyx_k_multiplication), 0, 0, 1, 1},
     {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
@@ -25337,6 +25261,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
     {&__pyx_n_s_reduce_ex, __pyx_k_reduce_ex, sizeof(__pyx_k_reduce_ex), 0, 0, 1, 1},
     {&__pyx_n_s_register, __pyx_k_register, sizeof(__pyx_k_register), 0, 0, 1, 1},
+    {&__pyx_n_s_schedule, __pyx_k_schedule, sizeof(__pyx_k_schedule), 0, 0, 1, 1},
     {&__pyx_n_s_self, __pyx_k_self, sizeof(__pyx_k_self), 0, 0, 1, 1},
     {&__pyx_n_s_setstate, __pyx_k_setstate, sizeof(__pyx_k_setstate), 0, 0, 1, 1},
     {&__pyx_n_s_setstate_cython, __pyx_k_setstate_cython, sizeof(__pyx_k_setstate_cython), 0, 0, 1, 1},
@@ -25364,12 +25289,12 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
 }
 /* #### Code section: cached_builtins ### */
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 83, __pyx_L1_error)
-  __pyx_builtin_min = __Pyx_GetBuiltinName(__pyx_n_s_min); if (!__pyx_builtin_min) __PYX_ERR(0, 221, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 94, __pyx_L1_error)
+  __pyx_builtin_min = __Pyx_GetBuiltinName(__pyx_n_s_min); if (!__pyx_builtin_min) __PYX_ERR(0, 227, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
-  __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 68, __pyx_L1_error)
   __pyx_builtin___import__ = __Pyx_GetBuiltinName(__pyx_n_s_import); if (!__pyx_builtin___import__) __PYX_ERR(1, 100, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 141, __pyx_L1_error)
+  __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 156, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(1, 159, __pyx_L1_error)
   __pyx_builtin_AssertionError = __Pyx_GetBuiltinName(__pyx_n_s_AssertionError); if (!__pyx_builtin_AssertionError) __PYX_ERR(1, 373, __pyx_L1_error)
   __pyx_builtin_Ellipsis = __Pyx_GetBuiltinName(__pyx_n_s_Ellipsis); if (!__pyx_builtin_Ellipsis) __PYX_ERR(1, 408, __pyx_L1_error)
@@ -25651,8 +25576,10 @@ static int __Pyx_modinit_type_init_code(void) {
   __pyx_vtable_6ateams_10arithmetic_6Sparse_Matrix._initializeColumns = (void (*)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *))__pyx_f_6ateams_10arithmetic_6Sparse_6Matrix__initializeColumns;
   __pyx_vtable_6ateams_10arithmetic_6Sparse_Matrix.ToArray = (__pyx_t_6ateams_10arithmetic_6common_TABLE (*)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *))__pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_ToArray;
   __pyx_vtable_6ateams_10arithmetic_6Sparse_Matrix.SwapRows = (void (*)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int))__pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_SwapRows;
-  __pyx_vtable_6ateams_10arithmetic_6Sparse_Matrix.AddRows = (void (*)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int, __pyx_t_6ateams_10arithmetic_6common_FFINT))__pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_AddRows;
+  __pyx_vtable_6ateams_10arithmetic_6Sparse_Matrix.AddRows = (void (*)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int, int, int, __pyx_t_6ateams_10arithmetic_6common_FFINT))__pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_AddRows;
+  __pyx_vtable_6ateams_10arithmetic_6Sparse_Matrix.BlockAddRows = (void (*)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int, __pyx_t_6ateams_10arithmetic_6common_FFINT, int, int, PyObject *))__pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_BlockAddRows;
   __pyx_vtable_6ateams_10arithmetic_6Sparse_Matrix.MultiplyRow = (void (*)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, __pyx_t_6ateams_10arithmetic_6common_FFINT))__pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_MultiplyRow;
+  __pyx_vtable_6ateams_10arithmetic_6Sparse_Matrix.RescanColumns = (void (*)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int))__pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_RescanColumns;
   __pyx_vtable_6ateams_10arithmetic_6Sparse_Matrix.PivotRow = (int (*)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, int, int))__pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_PivotRow;
   __pyx_vtable_6ateams_10arithmetic_6Sparse_Matrix.HighestZeroRow = (int (*)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_HighestZeroRow *__pyx_optional_args))__pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_HighestZeroRow;
   __pyx_vtable_6ateams_10arithmetic_6Sparse_Matrix.RREF = (void (*)(struct __pyx_obj_6ateams_10arithmetic_6Sparse_Matrix *, struct __pyx_opt_args_6ateams_10arithmetic_6Sparse_6Matrix_RREF *__pyx_optional_args))__pyx_f_6ateams_10arithmetic_6Sparse_6Matrix_RREF;
@@ -26180,14 +26107,14 @@ if (!__Pyx_RefNanny) {
   #endif
   __Pyx_TraceCall("__Pyx_PyMODINIT_FUNC PyInit_Sparse(void)", __pyx_f[0], 2, 0, __PYX_ERR(0, 2, __pyx_L1_error));
 
-  /* "vector.to_py":66
+  /* "set.to_py":166
  * 
- * @cname("__pyx_convert_vector_to_py_int")
- * cdef object __pyx_convert_vector_to_py_int(const vector[X]& v):             # <<<<<<<<<<<<<<
- *     if v.size() > <size_t> PY_SSIZE_T_MAX:
- *         raise MemoryError()
+ * @cname("__pyx_convert_unordered_set_to_py_int")
+ * cdef object __pyx_convert_unordered_set_to_py_int(const cpp_set[X]& s):             # <<<<<<<<<<<<<<
+ *     return {v for v in s}
+ * 
  */
-  __Pyx_TraceLine(66,0,__PYX_ERR(1, 66, __pyx_L1_error))
+  __Pyx_TraceLine(166,0,__PYX_ERR(1, 166, __pyx_L1_error))
 
 
   /* "View.MemoryView":99
@@ -27514,84 +27441,104 @@ if (!__Pyx_RefNanny) {
   __Pyx_TraceLine(31,0,__PYX_ERR(0, 31, __pyx_L1_error))
 
 
-  /* "ateams/arithmetic/Sparse.pyx":72
+  /* "ateams/arithmetic/Sparse.pyx":110
  * 
  * 
- * 	cdef void _initializeColumns(self) noexcept:             # <<<<<<<<<<<<<<
+ * 	cdef void _initializeColumns(self) :             # <<<<<<<<<<<<<<
  * 		"""
  * 		Initializes the `.rows` and `.columns` data structures.
  */
-  __Pyx_TraceLine(72,0,__PYX_ERR(0, 72, __pyx_L1_error))
+  __Pyx_TraceLine(110,0,__PYX_ERR(0, 110, __pyx_L1_error))
 
 
-  /* "ateams/arithmetic/Sparse.pyx":99
+  /* "ateams/arithmetic/Sparse.pyx":130
  * 
  * 
  * 	cdef void SwapRows(self, int i, int j) noexcept nogil:             # <<<<<<<<<<<<<<
  * 		"""
  * 		Swaps rows `i` and `j`.
  */
-  __Pyx_TraceLine(99,0,__PYX_ERR(0, 99, __pyx_L1_error))
+  __Pyx_TraceLine(130,0,__PYX_ERR(0, 130, __pyx_L1_error))
 
 
-  /* "ateams/arithmetic/Sparse.pyx":132
+  /* "ateams/arithmetic/Sparse.pyx":150
  * 
  * 
- * 	cdef void AddRows(self, int i, int j, FFINT ratio) noexcept nogil:             # <<<<<<<<<<<<<<
+ * 	cdef void AddRows(self, int i, int j, int MINCOL, int MAXCOL, FFINT ratio) noexcept nogil:             # <<<<<<<<<<<<<<
  * 		"""
  * 		Adds rows `i` and `j`.
  */
-  __Pyx_TraceLine(132,0,__PYX_ERR(0, 132, __pyx_L1_error))
+  __Pyx_TraceLine(150,0,__PYX_ERR(0, 150, __pyx_L1_error))
 
 
-  /* "ateams/arithmetic/Sparse.pyx":173
+  /* "ateams/arithmetic/Sparse.pyx":178
+ * 
+ * 
+ * 	cdef void RescanColumns(self, int MINCOL) noexcept nogil:             # <<<<<<<<<<<<<<
+ * 		"""
+ * 		If we aren't doing things in parallel, we need to re-scan the array.
+ */
+  __Pyx_TraceLine(178,0,__PYX_ERR(0, 178, __pyx_L1_error))
+
+
+  /* "ateams/arithmetic/Sparse.pyx":190
  * 
  * 
  * 	cdef void MultiplyRow(self, int i, FFINT q) noexcept nogil:             # <<<<<<<<<<<<<<
  * 		"""
  * 		Multiplies row `i` by `q`.
  */
-  __Pyx_TraceLine(173,0,__PYX_ERR(0, 173, __pyx_L1_error))
+  __Pyx_TraceLine(190,0,__PYX_ERR(0, 190, __pyx_L1_error))
 
 
-  /* "ateams/arithmetic/Sparse.pyx":196
+  /* "ateams/arithmetic/Sparse.pyx":202
  * 
  * 
  * 	cdef int PivotRow(self, int c, int pivots) noexcept nogil:             # <<<<<<<<<<<<<<
  * 		"""
  * 		Report the first nonzero entry in column `c`; if no such entry exists,
  */
-  __Pyx_TraceLine(196,0,__PYX_ERR(0, 196, __pyx_L1_error))
+  __Pyx_TraceLine(202,0,__PYX_ERR(0, 202, __pyx_L1_error))
 
 
-  /* "ateams/arithmetic/Sparse.pyx":209
+  /* "ateams/arithmetic/Sparse.pyx":215
  * 
  * 
- * 	cdef int HighestZeroRow(self, int AUGMENT=-1) noexcept:             # <<<<<<<<<<<<<<
+ * 	cdef int HighestZeroRow(self, int AUGMENT=-1) :             # <<<<<<<<<<<<<<
  * 		"""
  * 		Report the first lowest-indexed zero row; if no such row exists,
  */
-  __Pyx_TraceLine(209,0,__PYX_ERR(0, 209, __pyx_L1_error))
+  __Pyx_TraceLine(215,0,__PYX_ERR(0, 215, __pyx_L1_error))
 
 
-  /* "ateams/arithmetic/Sparse.pyx":227
+  /* "ateams/arithmetic/Sparse.pyx":233
  * 
  * 
- * 	cdef TABLE ToArray(self) noexcept: return self.data             # <<<<<<<<<<<<<<
+ * 	cdef void BlockAddRows(             # <<<<<<<<<<<<<<
+ * 		self,
+ * 		int i,
+ */
+  __Pyx_TraceLine(233,0,__PYX_ERR(0, 233, __pyx_L1_error))
+
+
+  /* "ateams/arithmetic/Sparse.pyx":258
+ * 
+ * 
+ * 	cdef TABLE ToArray(self) : return self.data             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __Pyx_TraceLine(227,0,__PYX_ERR(0, 227, __pyx_L1_error))
+  __Pyx_TraceLine(258,0,__PYX_ERR(0, 258, __pyx_L1_error))
 
 
-  /* "ateams/arithmetic/Sparse.pyx":230
+  /* "ateams/arithmetic/Sparse.pyx":261
  * 
  * 
  * 	cdef void RREF(self, int AUGMENT=-1) noexcept nogil:             # <<<<<<<<<<<<<<
  * 		"""
  * 		Computes the RREF of this matrix.
  */
-  __Pyx_TraceLine(230,0,__PYX_ERR(0, 230, __pyx_L1_error))
+  __Pyx_TraceLine(261,0,__PYX_ERR(0, 261, __pyx_L1_error))
 
 
   /* "(tree fragment)":1
@@ -33848,70 +33795,6 @@ static CYTHON_INLINE void __Pyx_XCLEAR_MEMVIEW(__Pyx_memviewslice *memslice,
     }
 }
 
-/* CIntToPy */
-  static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
-    const int neg_one = (int) -1, const_zero = (int) 0;
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic pop
-#endif
-    const int is_unsigned = neg_one > const_zero;
-    if (is_unsigned) {
-        if (sizeof(int) < sizeof(long)) {
-            return PyInt_FromLong((long) value);
-        } else if (sizeof(int) <= sizeof(unsigned long)) {
-            return PyLong_FromUnsignedLong((unsigned long) value);
-#ifdef HAVE_LONG_LONG
-        } else if (sizeof(int) <= sizeof(unsigned PY_LONG_LONG)) {
-            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
-#endif
-        }
-    } else {
-        if (sizeof(int) <= sizeof(long)) {
-            return PyInt_FromLong((long) value);
-#ifdef HAVE_LONG_LONG
-        } else if (sizeof(int) <= sizeof(PY_LONG_LONG)) {
-            return PyLong_FromLongLong((PY_LONG_LONG) value);
-#endif
-        }
-    }
-    {
-        int one = 1; int little = (int)*(unsigned char *)&one;
-        unsigned char *bytes = (unsigned char *)&value;
-#if !CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX < 0x030d0000
-        return _PyLong_FromByteArray(bytes, sizeof(int),
-                                     little, !is_unsigned);
-#else
-        PyObject *from_bytes, *result = NULL;
-        PyObject *py_bytes = NULL, *arg_tuple = NULL, *kwds = NULL, *order_str = NULL;
-        from_bytes = PyObject_GetAttrString((PyObject*)&PyLong_Type, "from_bytes");
-        if (!from_bytes) return NULL;
-        py_bytes = PyBytes_FromStringAndSize((char*)bytes, sizeof(int));
-        if (!py_bytes) goto limited_bad;
-        order_str = PyUnicode_FromString(little ? "little" : "big");
-        if (!order_str) goto limited_bad;
-        arg_tuple = PyTuple_Pack(2, py_bytes, order_str);
-        if (!arg_tuple) goto limited_bad;
-        if (!is_unsigned) {
-            kwds = PyDict_New();
-            if (!kwds) goto limited_bad;
-            if (PyDict_SetItemString(kwds, "signed", __Pyx_NewRef(Py_True))) goto limited_bad;
-        }
-        result = PyObject_Call(from_bytes, arg_tuple, kwds);
-        limited_bad:
-        Py_XDECREF(kwds);
-        Py_XDECREF(arg_tuple);
-        Py_XDECREF(order_str);
-        Py_XDECREF(py_bytes);
-        Py_XDECREF(from_bytes);
-        return result;
-#endif
-    }
-}
-
 /* CIntFromPy */
   static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *x) {
 #ifdef __Pyx_HAS_GCC_DIAGNOSTIC
@@ -34183,6 +34066,70 @@ raise_neg_overflow:
     PyErr_SetString(PyExc_OverflowError,
         "can't convert negative value to int");
     return (int) -1;
+}
+
+/* CIntToPy */
+  static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+    const int neg_one = (int) -1, const_zero = (int) 0;
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic pop
+#endif
+    const int is_unsigned = neg_one > const_zero;
+    if (is_unsigned) {
+        if (sizeof(int) < sizeof(long)) {
+            return PyInt_FromLong((long) value);
+        } else if (sizeof(int) <= sizeof(unsigned long)) {
+            return PyLong_FromUnsignedLong((unsigned long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(int) <= sizeof(unsigned PY_LONG_LONG)) {
+            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#endif
+        }
+    } else {
+        if (sizeof(int) <= sizeof(long)) {
+            return PyInt_FromLong((long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(int) <= sizeof(PY_LONG_LONG)) {
+            return PyLong_FromLongLong((PY_LONG_LONG) value);
+#endif
+        }
+    }
+    {
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        unsigned char *bytes = (unsigned char *)&value;
+#if !CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX < 0x030d0000
+        return _PyLong_FromByteArray(bytes, sizeof(int),
+                                     little, !is_unsigned);
+#else
+        PyObject *from_bytes, *result = NULL;
+        PyObject *py_bytes = NULL, *arg_tuple = NULL, *kwds = NULL, *order_str = NULL;
+        from_bytes = PyObject_GetAttrString((PyObject*)&PyLong_Type, "from_bytes");
+        if (!from_bytes) return NULL;
+        py_bytes = PyBytes_FromStringAndSize((char*)bytes, sizeof(int));
+        if (!py_bytes) goto limited_bad;
+        order_str = PyUnicode_FromString(little ? "little" : "big");
+        if (!order_str) goto limited_bad;
+        arg_tuple = PyTuple_Pack(2, py_bytes, order_str);
+        if (!arg_tuple) goto limited_bad;
+        if (!is_unsigned) {
+            kwds = PyDict_New();
+            if (!kwds) goto limited_bad;
+            if (PyDict_SetItemString(kwds, "signed", __Pyx_NewRef(Py_True))) goto limited_bad;
+        }
+        result = PyObject_Call(from_bytes, arg_tuple, kwds);
+        limited_bad:
+        Py_XDECREF(kwds);
+        Py_XDECREF(arg_tuple);
+        Py_XDECREF(order_str);
+        Py_XDECREF(py_bytes);
+        Py_XDECREF(from_bytes);
+        return result;
+#endif
+    }
 }
 
 /* CIntFromPy */
