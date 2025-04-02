@@ -1,4 +1,3 @@
-#!/usr/bin/bash
 
 start="${1:-3}"
 stop="${2:-4}"

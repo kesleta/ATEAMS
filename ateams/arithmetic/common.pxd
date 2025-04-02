@@ -8,8 +8,7 @@
 import numpy as np
 cimport numpy as np
 
-ctypedef np.int64_t FFINT
-# ctypedef np.int32_t FFINT
+ctypedef np.int8_t FFINT
 ctypedef FFINT[:] FLAT
 ctypedef FFINT[:,:] TABLE
 ctypedef FFINT[::1] FLATCONTIG

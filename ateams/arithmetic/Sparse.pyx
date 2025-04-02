@@ -5,13 +5,9 @@
 # define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 # distutils: language=c++
 
-import numpy as np
-cimport numpy as np
-
 from .common cimport FFINT, FLAT, TABLE
 
 from cython.parallel cimport prange
-from openmp cimport omp_get_thread_num as Thread
 from libcpp cimport bool
 from libcpp.unordered_set cimport unordered_set as Set
 from libcpp.vector cimport vector as Vector
@@ -87,7 +83,7 @@ cdef class Matrix:
 		self.shape.push_back(A.shape[1]);
 
 		# If we want synchronous matrix operations, set the number of cores,
-		# the minimum block size, the threading schedule, and the block schema.
+		# the minimum block size, and initialize the block schema.
 		self.parallel = parallel;
 		self.cores = cores;
 		self.minBlockSize = minBlockSize;

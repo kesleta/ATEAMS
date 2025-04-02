@@ -1,4 +1,12 @@
 
+
+quick:
+	@python setup.py build_ext --inplace
+
+sparse: quick
+	@cd test && zsh test.arithmetic.matrices.sh
+
+
 build: clean
 	python setup.py build_ext --inplace
 
