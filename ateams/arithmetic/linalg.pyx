@@ -417,12 +417,6 @@ cpdef TABLE SparseKernelBasis(
 		inversion = M.ToArray();
 		reduced = inversion[:,AUGMENT:];
 		superreduced = reduced[minzero:]
-		print()
-		print("###############")
-		print("superreduced")
-		print(np.asarray(superreduced))
-		print("###############")
-		print()
 		G = Matrix(superreduced, addition, negation, multiplication, inverses, parallel, minBlockSize, maxBlockSize, cores)
 		G.RREF()
 		eliminated = G.ToArray()

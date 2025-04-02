@@ -1,7 +1,7 @@
 
 # cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True
-# cython: boundscheck=False, wraparound=False
 # cython: binding=True, linetrace=True
+# cython: boundscheck=False, wraparound=False
 # define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 # distutils: language=c++
 
@@ -94,52 +94,12 @@ cdef class Matrix:
 		self.maxBlockSize = maxBlockSize;
 		self.blockSchema = Vector[Vector[int]]();
 
-		# Initialize the thread cache; this is used to resolve zero rows after
-		# things have been computed.
-		self.positiveThreadCache = Map[int, Map[int, Set[int]]]();
-		self._initializeThreadCaches();
-
 		# Initialize the `.rows` and `.columns` properties.
 		self.columns = Map[int, Set[int]]();
 		self._initializeColumns();
 
 		# Keep track of the lowest zero row.
 		self.zero = -1
-
-
-	cdef void _initializeThreadCaches(self) noexcept:
-		cdef int i, t;
-		cdef Map[int, Set[int]] pthread, nthread;
-		cdef Set[int] prow, nrow;
-
-		for t in range(self.cores):
-			pthread = Map[int, Set[int]]();
-			nthread = Map[int, Set[int]]();
-
-			for i in range(self.shape[0]):
-				pthread[i] = Set[int]();
-				nthread[i] = Set[int]();
-
-			self.positiveThreadCache[t] = pthread;
-			self.negativeThreadCache[t] = nthread;
-
-
-	cdef void _flushThreadCaches(self, int MINROW, int MAXROW) noexcept:
-		cdef int i, j, t;
-		cdef Set[int] prow, nrow, diff;
-
-		for i in range(0, self.shape[0]):
-			prow = Set[int]();
-			nrow = Set[int]();
-			diff = Set[int]();
-			for j in range(self.cores):
-				prow = Union(self.positiveThreadCache[j][i], prow);
-				nrow = Union(self.negativeThreadCache[j][i], nrow)
-				self.positiveThreadCache[j][i].clear();
-				self.negativeThreadCache[j][i].clear()
-
-			self.columns[i] = Union(self.columns[i], prow)
-			self.columns[i] = Difference(self.columns[i], nrow)
 
 
 	cdef Vector[Vector[int]] recomputeBlockSchema(self, int start, int stop) noexcept:
@@ -191,13 +151,18 @@ cdef class Matrix:
 			self.columns[i] = columns;
 	
 	
-	cdef void SwapRows(self, int i, int j) noexcept:
+	cdef void SwapRows(self, int i, int j):
 		"""
 		Swaps rows `i` and `j`.
 		"""
-		# Swap entries in the database.
-		cdef int c;
+		# Swap entries in the database, re-scanning rows first.
+		cdef int b, c;
 		cdef FFINT t;
+		
+		if self.parallel:
+			self.ScanRow(i);
+			self.ScanRow(j);
+		
 		cdef Set[int] COLUMNS = Union(self.columns[i], self.columns[j]);
 
 		for c in COLUMNS:
@@ -228,11 +193,6 @@ cdef class Matrix:
 			p = self.data[i,c]
 			mult = self.multiplication[p, ratio]
 			self.data[j,c] = self.addition[mult,self.data[j,c]]
-
-			# Update columns in a thread-safe manner.
-			t = Thread();
-			if self.data[j,c] > 0: self.positiveThreadCache[t][j].insert(c);
-			else: self.negativeThreadCache[t][j].insert(c);
 	
 
 	cdef void AddRows(self, int i, int j, int start, int stop, FFINT ratio) noexcept:
@@ -268,6 +228,14 @@ cdef class Matrix:
 		for c in self.columns[i]:
 			p = self.data[i,c];
 			self.data[i,c] = self.multiplication[q,p];
+
+	
+	cdef void ScanRow(self, int i):
+		cdef int c;
+		
+		for c in range(self.shape[1]):
+			if self.data[i,c] < 1: self.columns[i].erase(c);
+			else: self.columns[i].insert(c);
 		
 
 	cdef int PivotRow(self, int c, int pivots) noexcept:
@@ -275,12 +243,22 @@ cdef class Matrix:
 		Report the first nonzero entry in column `c`; if no such entry exists,
 		return -1.
 		"""
-		cdef int i;
+		cdef int i, p;
+		p = -1;
 
 		for i in range(self.shape[0]):
-			if self.columns[i].contains(c) and i > pivots-1: return i
+			if self.parallel:
+				if self.data[i,c] > 0:
+					self.columns[i].insert(c);
+					p = i if p < 0 and i > pivots-1 else p
+				else:
+					self.columns[i].erase(c);
+			else:
+				if self.data[i,c] > 0 and i > pivots-1:
+					p = i;
+					break;
 
-		return -1
+		return p
 
 	
 	cdef int HighestZeroRow(self, int AUGMENT=-1) noexcept:
@@ -322,7 +300,7 @@ cdef class Matrix:
 			pivot = self.PivotRow(i, pivots)
 			if pivot < 0: continue
 
-			# Store the column and swap row entries; re-scan over the rows beforehand.
+			# Store the column and swap the rows.
 			PIVOTS[pivots] = i
 			self.SwapRows(pivots, pivot);
 
@@ -330,15 +308,6 @@ cdef class Matrix:
 			q = self.inverses[self.data[pivots,i]]
 			self.MultiplyRow(pivots, q);
 			pivots += 1;
-
-			print("############################")
-			print()
-			print(np.asarray(self.ToArray()))
-			print()
-			print("columns", self.columns)
-			print("pthread", self.positiveThreadCache)
-			print("nthread", self.negativeThreadCache)
-			print()
 
 			if not self.parallel:
 				for k in range(pivots, M):
@@ -357,20 +326,7 @@ cdef class Matrix:
 						ratio = negations[t];
 						self.ParallelAddRows(pivots-1, t, start, stop, ratio);
 						t = t+1
-				
-				print("####")
-				print()
-				print(np.asarray(self.ToArray()))
-				print("columns", self.columns)
-				print("pthread", self.positiveThreadCache)
-				print("nthread", self.negativeThreadCache)
-				print()
-				print("flushing")
-				self._flushThreadCaches(pivots, M);
-				print("columns", self.columns)
-				print("pthread", self.positiveThreadCache)
-				print("nthread", self.negativeThreadCache)
-				print("############################")
+
 		# Compute RREF.
 		cdef int l, m, r, column;
 		l = pivots-1;
@@ -393,6 +349,7 @@ cdef class Matrix:
 					self.AddRows(l, m, column, N, ratio)
 				
 			else:
+				self.ScanRow(l);
 				self.recomputeBlockSchema(column, N);
 				for _t in range(l): negations[_t] = self.negation[self.data[_t, column]]
 
@@ -406,17 +363,8 @@ cdef class Matrix:
 						self.ParallelAddRows(l, m, start, stop, ratio)
 						m = m+1
 
-				print("########################")
-				print(self.positiveThreadCache)
-				self._flushThreadCaches(0, l);
-				print(self.columns)
-				print(self.positiveThreadCache)
-				print("########################")
-
 			# ... then decrement the counter.
 			l -= 1
 
 		# Set the highest zero row.
 		self.zero = pivots
-
-		print(np.asarray(self.ToArray()))
