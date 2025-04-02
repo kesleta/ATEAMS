@@ -19,7 +19,13 @@ output/profiles/*
 sync.sh
 
 # Ignore *most* testing stuff.
-test/*
+test/sync.profiles.sh
+test/*.txt
+test/*.prof
+test/.hopper*
+test/.pangolin*
+test/profiles/*
+!test/profiles/**/*.gitkeep
 
 # Ignore annotated compilation summaries from Cython.
 ateams/arithmetic/*.html

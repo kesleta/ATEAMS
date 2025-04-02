@@ -29,6 +29,24 @@ cdef void addRows(
 		TABLE addition,
 		TABLE multiplication,
 		FFINT r
+	) noexcept:
+	cdef int k;
+	cdef FFINT mult;
+
+	for k in range(start, stop):
+		mult = multiplication[A[i,k],r]
+		A[j,k] = addition[mult,A[j,k]]
+
+
+cdef void ParallelAddRows(
+		TABLE A,
+		int i,
+		int j,
+		int start,
+		int stop,
+		TABLE addition,
+		TABLE multiplication,
+		FFINT r
 	) noexcept nogil:
 	cdef int k;
 	cdef FFINT mult;
@@ -187,7 +205,7 @@ cdef TABLE RREF(
 
 				while t < M:
 					ratio = negations[t];
-					addRows(A, pivots-1, t, start, stop, addition, multiplication, ratio)
+					ParallelAddRows(A, pivots-1, t, start, stop, addition, multiplication, ratio)
 					t = t+1
 			
 		
@@ -225,7 +243,7 @@ cdef TABLE RREF(
 
 				while m < l:
 					ratio = negations[m]
-					addRows(A, l, m, start, stop, addition, multiplication, ratio)
+					ParallelAddRows(A, l, m, start, stop, addition, multiplication, ratio)
 					m = m+1
 
 		# ... decrement the counter.
