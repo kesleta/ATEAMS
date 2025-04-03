@@ -1,16 +1,18 @@
 
+build: clean
+	python setup.py build_ext --inplace
+
 test: FORCE
 	@cd test && zsh test.arithmetic.matrices.sh
+
+profile: FORCE
+	@cd test && zsh profile.models.IC.sh 4 5 32 64 2
 
 quick:
 	@python setup.py build_ext --inplace
 
 sparse: quick
 	@cd test && zsh test.arithmetic.matrices.sh
-
-
-build: clean
-	python setup.py build_ext --inplace
 
 docs:
 	sh docs.sh

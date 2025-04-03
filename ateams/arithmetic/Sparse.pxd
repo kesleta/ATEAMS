@@ -5,7 +5,7 @@
 # define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 # distutils: language=c++
 
-from .common cimport FFINT, FLAT, TABLE
+from .common cimport FFINT, FLAT, TABLE, INDEXTABLE, INDEXFLAT
 
 from libcpp cimport bool
 from libcpp.vector cimport vector as Vector
@@ -25,7 +25,9 @@ cdef class Matrix:
 	cdef int minBlockSize
 	cdef int maxBlockSize
 	cdef int blockSize
-
+	
+	cdef Map[int, Vector[int]] nonzeroColumns
+	cdef Vector[int] nonzeroColumnCounts
 	cdef Map[int, Set[int]] columns
 	cdef Vector[int] shape
 	cdef Vector[Vector[int]] blockSchema
@@ -34,11 +36,13 @@ cdef class Matrix:
 	cdef TABLE ToArray(self) noexcept
 
 	cdef void SwapRows(self, int i, int j)
-	cdef void AddRows(self, int i, int j, int MINCOL, int MAXCOL, FFINT ratio) noexcept
+	cdef void AddRows(self, int i, int j, FFINT ratio) noexcept
 	cdef void ParallelAddRows(self, int i, int j, int start, int stop, FFINT ratio) noexcept nogil
 	cdef void MultiplyRow(self, int i, FFINT q) noexcept
-	cdef void ScanRow(self, int i)
-	cdef Vector[Vector[int]] recomputeBlockSchema(self, int start, int stop) noexcept
+	cdef void ScanRow(self, int i) noexcept
+	cdef void ScanRowFromColumn(self, int i, int MINCOL) noexcept
+	cdef Vector[Vector[int]] recomputeBlockSchemaFromRow(self, int row) noexcept
+	cdef int ThreadsRequired(self, int row) noexcept
 	cdef int PivotRow(self, int c, int pivots) noexcept
 	cdef int HighestZeroRow(self, int AUGMENT=*) noexcept
 

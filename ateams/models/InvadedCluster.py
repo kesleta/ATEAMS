@@ -88,7 +88,7 @@ class InvadedCluster(Model):
 			zeros = np.zeros((2, t[:,1].max()//8), dtype=FINT)
 
 			# Set multiplicative inverses for the field we're working with.
-			fieldInverses = np.array([0] + list(self.lattice.field.Range(1, p)**(-1))).astype(FINT)
+			fieldInverses = np.array([0] + list(self.lattice.field.Range(1, p)**(-1)), dtype=FINT)
 
 			# Create some pre-fab data structures to provide as fixed arguments to
 			# the proposal method.
@@ -117,7 +117,7 @@ class InvadedCluster(Model):
 				times,
 				premarked,
 				dimensions,
-				t,
+				t.astype(FINT),
 				fieldInverses,
 				p,
 				self.homology+1,
@@ -315,7 +315,7 @@ class CInvadedCluster(Model):
 		zeros = np.zeros((2, t[:,1].max()//8), dtype=FINT)
 
 		# Set multiplicative inverses for the field we're working with.
-		fieldInverses = np.array([0] + list(self.lattice.field.Range(1, p)**(-1))).astype(FINT)
+		fieldInverses = np.array([0] + list(self.lattice.field.Range(1, p)**(-1)), dtype=FINT)
 
 		# Create some pre-fab data structures to provide as fixed arguments to
 		# the proposal method.
@@ -334,7 +334,7 @@ class CInvadedCluster(Model):
 		for j in range(p): subtraction[:,j] = (np.arange(p, dtype=FINT)-j)%p
 
 		negation = np.array([-q%p for q in range(0, p)], dtype=FINT)
-		inverses = np.array([0] + list(self.lattice.field.Range(1, p)**(-1))).astype(FINT)
+		inverses = np.array([0] + list(self.lattice.field.Range(1, p)**(-1)), dtype=FINT)
 
 		multiplication = np.zeros((p,p), dtype=FINT)
 		for j in range(p): multiplication[:,j] = (np.arange(p, dtype=FINT)*j)%p
@@ -356,7 +356,7 @@ class CInvadedCluster(Model):
 				times,
 				premarked,
 				dimensions,
-				t,
+				t.astype(FINT),
 				fieldInverses,
 				p,
 				self.homology+1,

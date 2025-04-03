@@ -5,9 +5,11 @@ import numpy as np
 import sys
 
 N = 20
-p = 5
+p = 3
 F = GF(p)
 shapes = [(50,60), (60,50), (50,50)]
+# shapes = [(3,5), (5,3), (3,3)]
+# shapes = [(9,12), (12,9), (12,12)]
 
 # Test over a series of random(ized) matrices of shape `shape`.
 for shape in shapes:
@@ -18,6 +20,18 @@ for shape in shapes:
 		B = np.concatenate([A.T, I], axis=1, dtype=FINT)
 
 		AUGMENT = shape[0]
+
+		print()
+		print()
+		print("#################################")
+		print("#################################")
+		print()
+		print(A)
+		print()
+		print(A.T)
+		print()
+		print("######## BEGIN REDUCTION")
+		print()
 
 		# Create arithmetic lookup tables.
 		addition = np.zeros((p,p), dtype=FINT)
@@ -42,29 +56,48 @@ for shape in shapes:
 			
 		K = A.null_space()
 
+		print("######## END REDUCTION")
+
 		if K.shape[0] < 1 or K.shape[1] < 1:
+			flag = False;
 			try:
 				assert K.shape[0] == C.shape[0]
-			except:
-				print("###############################")
 				print()
 				print(C)
 				print()
 				print(K)
 				print()
-				print("###############################")
-				sys.exit(1)
+				print("#################################")
+				print("#################################")
+			except AssertionError:
+				print()
+				print(C)
+				print()
+				print(K)
+				print()
+				print("BAD")
+				print("#################################")
+				print("#################################")
+				exit(1)
 		else:
 			try:
 				assert np.array_equal(K, C)
-			except:
-				print("###############################")
 				print()
 				print(C)
 				print()
 				print(K)
 				print()
-				print("###############################")
-				sys.exit(1)
+				print("#################################")
+				print("#################################")
+			except AssertionError:
+				print()
+				print(C)
+				print()
+				print(K)
+				print()
+				print("BAD")
+				print("#################################")
+				print("#################################")
+				exit(1)
 
-sys.exit(0)
+exit(0)

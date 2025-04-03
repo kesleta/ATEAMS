@@ -1,12 +1,17 @@
 
+# cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True
+# cython: binding=True, linetrace=True
+# cython: boundscheck=False, wraparound=False
+# define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+# distutils: language=c
+
+
 import cython
 import numpy as np
 from itertools import combinations as combs, product
 from math import comb
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-@cython.ccall
+
 def flatten(Complex, D):
 	"""
 	Flattens the given Complex for a PHAT-style specification.
@@ -42,9 +47,7 @@ def flatten(Complex, D):
 
 	return reindexer, reindexed, flattened
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-@cython.ccall
+
 def boundaryMatrix(Complex, D, F):
 	"""
 	Construct the boundary (operator) matrix given the boundary specification
@@ -75,9 +78,7 @@ def boundaryMatrix(Complex, D, F):
 	
 	return B
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-@cython.ccall
+
 def hammingCube(D, cutoff):
 	"""
 	Constructs a Hamming cube of dimension D.
@@ -135,9 +136,7 @@ def hammingCube(D, cutoff):
 	return Complex
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-@cython.ccall
+
 def cubicalComplex(corners, D, F, periodic=True):
 	"""
 	Constructs a cubical complex completely specified by a boundary matrix and

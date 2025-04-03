@@ -8,9 +8,8 @@
 import numpy as np
 cimport numpy as np
 
-from .common cimport TABLE, TABLECONTIG, FLAT, FLATCONTIG, FFINT
-
-FINT = np.int64
+from .common cimport TABLE, FLAT, FFINT
+from .common import FINT
 
 
 cdef FFINT Max(FLAT A) noexcept nogil:

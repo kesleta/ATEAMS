@@ -1,7 +1,7 @@
 
 import numpy as np
+from .common import FINT
 
-DTYPE = int
 
 def reindexSparseBoundaryMatrix(
 		upperBoundary,
@@ -13,7 +13,7 @@ def reindexSparseBoundaryMatrix(
 		zeroedTargetIndices,
 		cycles
 	):
-	filtration = np.arange(tranches[homology+1][1], dtype=DTYPE)
+	filtration = np.arange(tranches[homology+1][1], dtype=FINT)
 
 	# Evaluate the cochain on the complex to determine the (un)satisfied
 	# plaquettes.
@@ -24,7 +24,7 @@ def reindexSparseBoundaryMatrix(
 	low, high = tranches[homology]
 	m = satisfiedIndices.shape[0]
 
-	shuffledIndices = np.random.permutation(satisfiedIndices).astype(DTYPE)
+	shuffledIndices = np.random.permutation(satisfiedIndices).astype(FINT)
 	satisfiedCells = targetIndices[shuffledIndices]
 	unsatisfiedCells = targetIndices[unsatisfiedIndices]
 	filtration[low:low+m] = satisfiedCells
