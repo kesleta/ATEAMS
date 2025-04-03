@@ -5,20 +5,9 @@ import numpy as np
 import sys
 
 N = 20
-p = 3
+p = 5
 F = GF(p)
-shapes = [(50,60), (60, 50), (50, 50)]
-
-# Run a testing gamut: assert that our computations are correct on all possible
-# 3x3 matrices over F_3.
-
-# A = np.array([
-# 	[0, 1, 1, 0, 1],
-# 	[1, 2, 0, 1, 0],
-# 	[0, 0, 0, 1, 2]
-# ])
-# A = F(A)
-# shape = A.shape
+shapes = [(50,60), (60,50), (50,50)]
 
 # Test over a series of random(ized) matrices of shape `shape`.
 for shape in shapes:

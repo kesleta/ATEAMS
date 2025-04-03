@@ -1,4 +1,6 @@
 
+test: FORCE
+	@cd test && zsh test.arithmetic.matrices.sh
 
 quick:
 	@python setup.py build_ext --inplace
@@ -24,13 +26,5 @@ clean:
 	@rm -f ateams/arithmetic/*.so
 	@rm -rf ./build
 
-
-fp = ./test/output/profiles/metadata/.profiles/profile.json
-
-test: FORCE
-	# screen -dm vprof -r
-	python test/matrices.py
-	# vprof -c mh test/matrices.py --output-file $fp
-	# vprof --input-file $fp
 
 FORCE:

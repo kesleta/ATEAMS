@@ -37,26 +37,6 @@ cdef Set[int] Union(Set[int] P, Set[int] Q) noexcept:
 	return S;
 
 
-cdef Set[int] Intersection(Set[int] P, Set[int] Q) noexcept:
-	cdef Set[int] C, T, S;
-	cdef int s;
-
-	_intersect.clear();
-
-	# Only iterate over the smaller set.
-	if P.size() < Q.size():
-		T = P;
-		S = Q;
-	else:
-		T = Q;
-		S = P;
-
-	for s in T:
-		if S.contains(s): _intersect.insert(s)
-
-	return _intersect
-
-
 cdef class Matrix:
 	def __cinit__(
 			self,
@@ -155,9 +135,9 @@ cdef class Matrix:
 		cdef int b, c;
 		cdef FFINT t;
 		
-		if self.parallel:
-			self.ScanRow(i);
-			self.ScanRow(j);
+		# if self.parallel:
+		self.ScanRow(i);
+		self.ScanRow(j);
 		
 		cdef Set[int] COLUMNS = Union(self.columns[i], self.columns[j]);
 
@@ -209,9 +189,9 @@ cdef class Matrix:
 			mult = self.multiplication[p, ratio]
 			self.data[j,c] = self.addition[mult,self.data[j,c]]
 
-			# Update columns.
-			if self.data[j,c] < 1: self.columns[j].erase(c)
-			else: self.columns[j].insert(c)
+			# # Update columns.
+			# if self.data[j,c] < 1: self.columns[j].erase(c)
+			# else: self.columns[j].insert(c)
 
 
 	cdef void MultiplyRow(self, int i, FFINT q) noexcept:
@@ -245,10 +225,10 @@ cdef class Matrix:
 		for i in range(self.shape[0]):
 			if self.parallel:
 				if self.data[i,c] > 0:
-					self.columns[i].insert(c);
+					# self.columns[i].insert(c);
 					p = i if p < 0 and i > pivots-1 else p
-				else:
-					self.columns[i].erase(c);
+				# else:
+					# self.columns[i].erase(c);
 			else:
 				if self.data[i,c] > 0 and i > pivots-1:
 					p = i;
@@ -336,6 +316,7 @@ cdef class Matrix:
 
 			# ... then find the column containing the pivot element...
 			column = PIVOTS[l];
+			self.ScanRow(l);
 
 			# ... and, iterating over the rows *above* row `l`, eliminate the
 			# nonzero entries there...
@@ -345,7 +326,6 @@ cdef class Matrix:
 					self.AddRows(l, m, column, N, ratio)
 				
 			else:
-				self.ScanRow(l);
 				self.recomputeBlockSchema(column, N);
 				for _t in range(l): negations[_t] = self.negation[self.data[_t, column]]
 
