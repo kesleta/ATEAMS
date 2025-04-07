@@ -2,6 +2,7 @@
 from ateams.structures import Lattice
 from ateams.models import CInvadedCluster, InvadedCluster
 from ateams import Chain
+import json
 
 
 def construct(L, sparse, parallel, minBlockSize, maxBlockSize, cores):
@@ -12,7 +13,7 @@ def construct(L, sparse, parallel, minBlockSize, maxBlockSize, cores):
 	# Set up Model and Chain.
 	homology = 2
 	SW = CInvadedCluster(L, homology=homology, sparse=sparse, parallel=parallel, minBlockSize=minBlockSize, maxBlockSize=maxBlockSize, cores=cores)
-	N = 3
+	N = 20
 	M = Chain(SW, steps=N)
 
 	return M
@@ -22,5 +23,6 @@ def chain(M):
 		pass
 
 if __name__ == "__main__":
-	chain()
+	M = construct(3, False, False, 32, 64, 4)
+	chain(M)
 
