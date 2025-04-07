@@ -367,7 +367,8 @@ class CInvadedCluster(Model):
 				addition.astype(FINT),
 				subtraction.astype(FINT),
 				multiplication.astype(FINT),
-				powers.astype(FINT)
+				powers.astype(FINT),
+				np.zeros(len(self.lattice.flattened), dtype=FINT)
 			)
 		else:
 			def phattified(phatBoundary, dimensions, times, filtration, flattened, zeros):
@@ -451,8 +452,7 @@ class CInvadedCluster(Model):
 		# Find essential cycles.
 		essential = self.computeGiantCyclePairs(
 			filtration,
-			flattened,
-			np.zeros(filtration.shape[0], dtype=FINT)
+			flattened
 		)
 	
 		# Now, make sure we know when *all* the essential cycles are born.
