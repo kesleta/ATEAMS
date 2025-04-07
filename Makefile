@@ -1,15 +1,17 @@
 
+quick:
+	@python setup.py build_ext --inplace
+
 build: clean
 	python setup.py build_ext --inplace
 
 test: FORCE
 	@cd test && zsh test.arithmetic.matrices.sh
+	# @cd test && zsh test.arithmetic.persistence.sh
 
 profile: FORCE
-	@cd test && zsh profile.models.IC.sh 4 5 32 64 2
-
-quick:
-	@python setup.py build_ext --inplace
+	# @cd test && zsh profile.models.IC.sh 5 6 32 64 2
+	@cd test && zsh profile.arithmetic.persistence.sh 3 4 6 32 64 2
 
 sparse: quick
 	@cd test && zsh test.arithmetic.matrices.sh

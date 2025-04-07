@@ -39,7 +39,7 @@ extensions = [
 		["ateams/**/*.pyx"],
 		include_dirs=[numpy.get_include(), "ateams/arithmetic"],
 		extra_compile_args=["-std=c++20", "-O4", "-fopenmp"],
-        extra_link_args=["-fopenmp"],
+        extra_link_args=["-fopenmp"]
 	)
 ]
 
