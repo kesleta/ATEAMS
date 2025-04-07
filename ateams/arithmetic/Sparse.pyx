@@ -369,10 +369,9 @@ cdef class Matrix:
 
 
 
-cdef class ReducedMatrix:
+cdef class MatrixReduction:
 	def __cinit__(
 			self,
-			TABLE A,
 			int characteristic,
 			bool parallel,
 			int minBlockSize,
@@ -382,12 +381,6 @@ cdef class ReducedMatrix:
 		# Initialize addition and multiplication tables.
 		self.characteristic = characteristic;
 		self.__arithmetic();
-		self.data = A;
-
-		# Initialize the `.shape` property.
-		self.shape = Vector[int]();
-		self.shape.push_back(A.shape[0]);
-		self.shape.push_back(A.shape[1]);
 
 		# If we want synchronous matrix operations, set the number of cores,
 		# the minimum block size, and initialize the block schema.
@@ -396,12 +389,6 @@ cdef class ReducedMatrix:
 		self.minBlockSize = minBlockSize;
 		self.maxBlockSize = maxBlockSize;
 		self.blockSchema = Vector[Vector[int]]();
-
-		# Initialize the `.rows` and `.columns` properties.
-		self.columns = Map[int, Set[int]]();
-		self.nonzeroColumns = Map[int, Vector[int]]();
-		self.nonzeroColumnCounts = Vector[int](self.shape[0]);
-		self._initializeColumns();
 
 		# Keep track of the lowest zero row.
 		self.zero = -1
@@ -483,12 +470,22 @@ cdef class ReducedMatrix:
 		return self.blockSchema;
 	
 
-	cdef void _initializeColumns(self) noexcept:
+	cdef void _initializeColumns(self, TABLE A) noexcept:
 		"""
 		Initializes the `.rows` and `.columns` data structures.
 		"""
 		cdef int i, j, M, N, t;
 		cdef Vector[int] nonzero;
+
+		# Initialize the `.shape` property.
+		self.data = A;
+		self.shape = Vector[int]();
+		self.shape.push_back(A.shape[0]);
+		self.shape.push_back(A.shape[1]);
+
+		self.columns = Map[int, Set[int]]();
+		self.nonzeroColumns = Map[int, Vector[int]]();
+		self.nonzeroColumnCounts = Vector[int](self.shape[0]);
 
 		M = self.shape[0];
 		N = self.shape[1];
@@ -650,10 +647,13 @@ cdef class ReducedMatrix:
 	cdef TABLE ToArray(self) noexcept: return self.data
 	
 
-	cdef void RREF(self, int AUGMENT=-1) noexcept:
+	cpdef TABLE RREF(self, TABLE A, int AUGMENT=-1) noexcept:
 		"""
 		Computes the RREF of this matrix.
 		"""
+		# Initialize the `.rows` and `.columns` properties.
+		self._initializeColumns(A);
+
 		# Catch for optional arguments.
 		if AUGMENT < 0: AUGMENT = self.shape[1]
 
@@ -747,3 +747,5 @@ cdef class ReducedMatrix:
 
 		# Set the highest zero row.
 		self.zero = pivots
+
+		return self.data;

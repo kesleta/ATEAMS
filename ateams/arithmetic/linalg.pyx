@@ -8,7 +8,8 @@
 import numpy as np
 cimport numpy as np
 from .common cimport FFINT, FLAT, TABLE
-from .Sparse cimport Matrix, ReducedMatrix
+from .common import FINT
+from .Sparse cimport Matrix, MatrixReduction
 
 
 from cython.parallel cimport prange
@@ -256,6 +257,31 @@ cdef int Random(int MAX) except -1:
 	return (rand() % MAX);
 
 
+cdef FLAT LinearCombinationReduced(
+		MatrixReduction MATRIX,
+		TABLE basis
+	) noexcept:
+	cdef int i, j, N, M;
+	cdef FLAT result, store;
+
+	M = basis.shape[0];
+	N = basis.shape[1];
+
+	result = np.zeros_like(basis[0]);
+	store = np.zeros(M, dtype=FINT);
+
+	# Pick (uniform random) coefficients in the field.
+	for i in range(M):
+		store[i] = MATRIX.negation[Random(MATRIX.characteristic)]
+
+	for j in range(N):
+		for i in range(M):
+			mult = MATRIX.multiplication[store[i], basis[i,j]]
+			result[j] = MATRIX.addition[result[j], mult]
+
+	return result
+
+
 cdef FLAT LinearCombination(
 		TABLE basis,
 		FLAT coefficients,
@@ -444,19 +470,12 @@ cpdef TABLE SparseKernelBasis(
 
 cpdef TABLE SparseKernelBasisReduced(
 		TABLE empty,
-		int characteristic,
-		bool parallel,
-		int minBlockSize,
-		int maxBlockSize,
-		int cores,
-		TABLE coboundary,
+		MatrixReduction M,
 		int AUGMENT,
 	):
 	cdef TABLE inversion, reduced, superreduced;
-	cdef ReducedMatrix G, M = ReducedMatrix(coboundary, characteristic, parallel, minBlockSize, maxBlockSize, cores);
 	cdef int minzero;
 
-	M.RREF(AUGMENT);
 	minzero = M.HighestZeroRow(AUGMENT);
 
 	if minzero < 0:
@@ -465,11 +484,39 @@ cpdef TABLE SparseKernelBasisReduced(
 		inversion = M.ToArray();
 		reduced = inversion[:,AUGMENT:];
 		superreduced = reduced[minzero:]
-		G = ReducedMatrix(superreduced, characteristic, parallel, minBlockSize, maxBlockSize, cores)
-		G.RREF()
-		eliminated = G.ToArray()
+		M.RREF(superreduced)
+		eliminated = M.ToArray()
 
 	return eliminated
+
+
+cdef TABLE _SparseKernelBasisReduced(
+		TABLE empty,
+		MatrixReduction M,
+		int AUGMENT,
+	):
+	cdef TABLE inversion, reduced, superreduced;
+	cdef int minzero;
+
+	minzero = M.HighestZeroRow(AUGMENT);
+
+	if minzero < 0:
+		eliminated = empty;
+	else:
+		inversion = M.ToArray();
+		reduced = inversion[:,AUGMENT:];
+		superreduced = reduced[minzero:]
+		eliminated = superreduced
+
+	return eliminated
+
+
+cpdef np.ndarray[FFINT, ndim=1, negative_indices=False, mode="c"] SparseSampleFromKernelReduced(
+		MatrixReduction M, int AUGMENT
+	):
+	cdef TABLE empty = np.empty((2,0), dtype=FINT);
+	cdef TABLE basis = _SparseKernelBasisReduced(empty, M, AUGMENT);
+	return np.asarray(LinearCombinationReduced(M, basis));
 
 
 cpdef np.ndarray[FFINT, ndim=1, negative_indices=False, mode="c"] SparseSampleFromKernel(

@@ -85,7 +85,7 @@ def constructDefaults(LATTICE):
 		multiplication.astype(FINT),
 		powers.astype(FINT),
 		np.zeros(dimensions.shape[0], dtype=FINT)
-	), Persistence(homology, p, t, dimensions.astype(np.int64))
+	), Persistence(homology, p, LATTICE.flattened)
 
 # Defaults.
 try:
@@ -100,7 +100,7 @@ flagged = True
 
 # Construct the necessary lattice, then get the default method for computing
 # pairs.
-LATTICE = Lattice().fromCorners([3]*4, 3, 3, True)
+LATTICE = Lattice().fromCorners([3]*4, field=3, dimension=3)
 GROUND, PERSISTENCE = constructDefaults(LATTICE)
 
 # Import test dataset.
@@ -121,7 +121,7 @@ for i, TEST in enumerate(TESTSET):
 	print("      ##")
 	print("############## TEST")
 	print()
-	essential = PERSISTENCE.ComputePercolationEvents(filtration.astype(np.int64), flattened);
+	essential = PERSISTENCE.ComputePercolationEvents(filtration.astype(np.int64));
 	print("##############")
 	print()
 	print("############## CHECK")
@@ -138,18 +138,18 @@ for i, TEST in enumerate(TESTSET):
 	except: passed = False
 
 	print("## EVENTS")
-	print("##\t truth \t test")
-	print(f"##\t {len(truth)} \t {len(essential)}")
+	print("##\t truth \ttest")
+	print(f"##\t {len(truth)} \t\t{len(essential)}")
 	if not passed: break
 
 	print()
 	print("## EVENTS EQUAL")
-	print("##\t truth \t test")
+	print("##\t truth \ttest")
 
 	try:
 		for lpair, rpair in zip(truth, essential):
 			assert lpair == rpair
-			print(f"##\t {lpair} \t{rpair}")
+			print(f"##\t {lpair} \t\t{rpair}")
 	except:
 		print("## FAIL")
 		print(truth)

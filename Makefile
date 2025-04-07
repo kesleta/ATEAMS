@@ -6,8 +6,8 @@ build: clean
 	python setup.py build_ext --inplace
 
 test: FORCE
-	@cd test && zsh test.arithmetic.matrices.sh
-	# @cd test && zsh test.arithmetic.persistence.sh
+	# @cd test && zsh test.arithmetic.matrices.sh
+	@cd test && zsh test.arithmetic.persistence.sh
 
 profile: FORCE
 	@cd test && zsh profile.models.IC.sh 4 5 32 64 2

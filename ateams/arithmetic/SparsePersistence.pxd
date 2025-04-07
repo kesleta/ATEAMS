@@ -33,6 +33,7 @@ cdef class Persistence:
 	cdef int homology
 	cdef int cellCount
 	cdef int vertexCount
+	cdef int higherCellCount
 	cdef int defaultRowSize
 	cdef int tagged
 	cdef int low
@@ -47,15 +48,20 @@ cdef class Persistence:
 	cdef Vector[Vector[int]] columnEntriesIterable
 	cdef Vector[Map[int,FFINT]] columnEntriesCoefficients
 
-	cdef Vector[Vector[int]] boundary;
-	cdef Vector[int] markedIterable;
-	cdef Set[int] marked;
-	cdef Vector[int] premarked;
+	cdef Vector[Vector[int]] boundary
+	cdef Vector[Vector[int]] _boundary
+	cdef Vector[int] _dimensions
+	cdef Vector[Vector[int]] _tranches
 
+	cdef Vector[int] markedIterable
+	cdef Set[int] marked
+	cdef Vector[int] premarked
+
+	cpdef Vector[Vector[int]] ReindexBoundary(self, INDEXFLAT filtration) noexcept
 	cdef Vector[Vector[int]] Vectorize(self, list[list[int]] flattened) noexcept
 
 	cdef OrderedSet[int] RemoveUnmarkedCells(self, int cell, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept
 	cdef OrderedSet[int] Eliminate(self, int youngest, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept
 	cdef OrderedSet[int] ReducePivotRow(self, int cell, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept
-	cpdef OrderedSet[int] ComputePercolationEvents(self, INDEXFLAT filtration, list[list[int]] flattened) noexcept
+	cpdef OrderedSet[int] ComputePercolationEvents(self, INDEXFLAT filtration) noexcept
 

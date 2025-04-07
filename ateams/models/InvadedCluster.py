@@ -6,6 +6,7 @@ from math import comb
 
 from ..arithmetic import (
 	SparseSampleFromKernel,
+	SparseSampleFromKernelReduced,
 	SampleFromKernel,
 	sampleFromKernel,
 	boundaryMatrix,
@@ -14,7 +15,8 @@ from ..arithmetic import (
 	reindexSparseBoundaryMatrix,
 	FINT,
 	SFINT,
-	Persistence
+	Persistence,
+	MatrixReduction
 )
 from .Model import Model
 
@@ -534,23 +536,23 @@ class CPInvadedCluster(Model):
 		self.maxBlockSize = maxBlockSize
 		self.cores = cores
 
+		# Use the `Persistence` and `MatrixReduction` objects to speed up computations.
+		self.MatrixReduction = MatrixReduction(self.lattice.field.characteristic, self.parallel, self.minBlockSize, self.maxBlockSize, self.cores)
+		self.Persistence = Persistence(self.homology, self.lattice.field.characteristic, self.lattice.flattened)
+
 		# Set an initial spin configuration. After we assign this, we use PHAT
 		# if we're working over Z/2Z coefficients, or the Zomorodian/Edelsbrunner
 		# algorithm otherwise.
 		self.spins = self.initial()
-		self._initializeProposal()
 		self.coboundary = boundaryMatrix(L.boundary, self.homology, L.field).T
+		self._initializeProposal()
 
 		# Pre-load arguments for re-indexing the boundary matrix.
 		self.reindexSparseBoundaryMatrix = partial(
 			reindexSparseBoundaryMatrix,
-			self.lattice.boundary[homology+1].astype(FINT),
-			self.lattice.flattened,
-			int(self.homology),
-			self.lattice.tranches.astype(FINT),
-			self.lattice.reindexed[homology].astype(FINT),
-			self.targetIndices.astype(FINT),
-			self.zeroedTargetIndices.astype(FINT)
+			self.homology,
+			self.lattice.tranches,
+			self.targetIndices
 		)
 
 	
@@ -558,90 +560,28 @@ class CPInvadedCluster(Model):
 		t = self.lattice.tranches
 		p = self.lattice.field.characteristic
 
-		# Premake the "occupied cells" array; change the dimension of the lattice
-		# to correspond to the provided dimension.
-		self.rank = comb(len(self.lattice.corners), self.homology)
-		self.nullity = len(self.lattice.boundary[self.homology])
-
-		# Construct a "filtration template" of all the indices. At each step, we
-		# determine which of the target indices correspond to satisfied `homology`
-		# -dimensional cells, then shuffle the order of those indices.
-		self.targetIndices = np.arange(*t[self.homology], dtype=FINT)
-		self.zeroedTargetIndices = np.arange(len(self.lattice.boundary[self.homology]), dtype=FINT)
-
 		# Indices of each cell and dimensions.
 		dimensions = np.array(sum([
 			[d]*(t[d,1]-t[d,0]) for d in range(len(t)) if d < self.homology+2
 		],[]), dtype=FINT)
 
 		times = np.array(range(t[1][0], len(dimensions))).astype(FINT)
-
-		# Find the max over the dimensions and specify a "blank" array the max
-		# width.
-		zeros = np.zeros((2, t[:,1].max()//8), dtype=FINT)
-
-		# Set multiplicative inverses for the field we're working with.
-		fieldInverses = np.array([0] + list(self.lattice.field.Range(1, p)**(-1)), dtype=FINT)
-
-		# Create some pre-fab data structures to provide as fixed arguments to
-		# the proposal method.
-		low = t[0][1]
-		premarked = np.array(list(range(low)), dtype=FINT)
-
-		self.lattice.dimension = self.homology
-		self.coboundary = boundaryMatrix(self.lattice.boundary, self.homology, self.lattice.field).T
+		self.targetIndices = np.arange(*t[self.homology], dtype=FINT)
 		self.identity = np.identity(self.coboundary.shape[1], dtype=FINT)
 
-		# Create arithmetic lookup tables.
-		addition = np.zeros((p,p), dtype=FINT)
-		for j in range(p): addition[:,j] = (np.arange(p, dtype=FINT)+j)%p
-
-		subtraction = np.zeros((p,p), dtype=FINT)
-		for j in range(p): subtraction[:,j] = (np.arange(p, dtype=FINT)-j)%p
-
-		negation = np.array([-q%p for q in range(0, p)], dtype=FINT)
-		inverses = np.array([0] + list(self.lattice.field.Range(1, p)**(-1)), dtype=FINT)
-
-		multiplication = np.zeros((p,p), dtype=FINT)
-		for j in range(p): multiplication[:,j] = (np.arange(p, dtype=FINT)*j)%p
-
-		powers = np.full(zeros.shape[1], -1, dtype=FINT)
-		powers[1::2] = -powers[1::2]
-		powers = powers%p
-
-		pivots = np.zeros(self.coboundary.shape[1], dtype=FINT)
-		result = np.zeros(self.coboundary.shape[1], dtype=FINT)
-		store = np.zeros(self.coboundary.shape[1], dtype=FINT)
-		empty = np.empty(shape=(0,0), dtype=FINT)
+		# Premake the "occupied cells" array; change the dimension of the lattice
+		# to correspond to the provided dimension.
+		self.rank = comb(len(self.lattice.corners), self.homology)
+		self.nullity = len(self.lattice.boundary[self.homology])
 
 		# If p > 2, we use the simplified Edelsbrunner/Zomorodian persistence
 		# algorithm; otherwise, we use PHAT (Bauer et al.).
 		if p > 2:
-			if not self.sparse:
-				self.computeGiantCyclePairs = partial(
-					computeGiantCyclePairs,
-					times,
-					premarked,
-					dimensions,
-					t.astype(FINT),
-					fieldInverses,
-					p,
-					self.homology+1,
-					t[self.homology+1][1],
-					np.empty((2,0), dtype=FINT),
-					zeros,
-					np.empty(zeros.shape[1], dtype=FINT),
-					addition.astype(FINT),
-					subtraction.astype(FINT),
-					multiplication.astype(FINT),
-					powers.astype(FINT),
-					np.zeros(len(self.lattice.flattened), dtype=FINT)
-				)
-			else:
-				P = Persistence(self.homology, p, t, dimensions.astype(np.int64))
-				self.computeGiantCyclePairs = P.ComputePercolationEvents
+			self.computeGiantCyclePairs = self.Persistence.ComputePercolationEvents
 		else:
-			def phattified(phatBoundary, dimensions, times, filtration, flattened, zeros):
+			def phattified(phatBoundary, dimensions, times, filtration):
+				flattened = self.Persistence.ReindexBoundary(filtration)
+				
 				dimensionalFlattened = [
 					(d, sorted(f)) if d > 0 else (d, [])
 					for d, f in zip(dimensions, flattened)
@@ -663,26 +603,6 @@ class CPInvadedCluster(Model):
 				dimensions,
 				set(times)
 			)
-
-		reductionScheme = SparseSampleFromKernel if self.sparse else SampleFromKernel
-
-		self.SampleFromKernel = partial(
-			reductionScheme,
-			p,
-			pivots,
-			empty,
-			store,
-			result,
-			addition,
-			subtraction,
-			negation,
-			multiplication,
-			inverses,
-			self.parallel,
-			self.minBlockSize,
-			self.maxBlockSize,
-			self.cores
-		)
 	
 	
 	def initial(self):
@@ -717,19 +637,17 @@ class CPInvadedCluster(Model):
 		# Determine the satisfied plaquettes and re-index the sparse boundary
 		# matrix.
 		cycles = evaluateCochain(boundary[homology], cochain).astype(FINT)
-		low, filtration, flattened, shuffledIndices, satisfiedIndices = self.reindexSparseBoundaryMatrix(cycles)
+		filtration, shuffledIndices, satisfiedIndices = self.reindexSparseBoundaryMatrix(cycles)
 
 		# Find essential cycles.
-		essential = self.computeGiantCyclePairs(
-			filtration.astype(np.int64),
-			flattened
-		)
+		essential = self.computeGiantCyclePairs(filtration)
 	
 		# Now, make sure we know when *all* the essential cycles are born.
 		j = 0
 		stop = self.stop()
 		occupied = np.zeros((self.rank, self.nullity))
 		satisfied = np.zeros(self.nullity)
+		low, high = self.lattice.tranches[homology]
 
 		# For each essential cycle born...
 		for t in sorted(essential):
@@ -746,7 +664,8 @@ class CPInvadedCluster(Model):
 					self.coboundary.take(occupiedIndices, axis=0).T,
 					self.identity
 				], axis=1, dtype=FINT)
-				spins = self.SampleFromKernel(subbasis, len(occupiedIndices))
+				self.MatrixReduction.RREF(subbasis, len(occupiedIndices))
+				spins = SparseSampleFromKernelReduced(self.MatrixReduction, len(occupiedIndices))
 				spins = self.lattice.field(spins)
 
 			j += 1

@@ -49,7 +49,7 @@ cdef class Matrix:
 	cdef void RREF(self, int AUGMENT=*) noexcept
 
 
-cdef class ReducedMatrix:
+cdef class MatrixReduction:
 	cdef TABLE addition
 	cdef FLAT negation
 	cdef TABLE multiplication
@@ -71,7 +71,7 @@ cdef class ReducedMatrix:
 	cdef Vector[int] shape
 	cdef Vector[Vector[int]] blockSchema
 
-	cdef void _initializeColumns(self) noexcept
+	cdef void _initializeColumns(self, TABLE A) noexcept
 	cdef TABLE ToArray(self) noexcept
 
 	cdef void SwapRows(self, int i, int j)
@@ -85,4 +85,4 @@ cdef class ReducedMatrix:
 	cdef int PivotRow(self, int c, int pivots) noexcept
 	cdef int HighestZeroRow(self, int AUGMENT=*) noexcept
 
-	cdef void RREF(self, int AUGMENT=*) noexcept
+	cpdef TABLE RREF(self, TABLE A, int AUGMENT=*) noexcept

@@ -20,32 +20,32 @@ from libc.math cimport pow
 
 
 cdef class Persistence:
-	def __cinit__(
+	def __init__(
 			self,
 			int homology,
 			FFINT characteristic,
-			INDEXTABLE tranches,
-			INDEXFLAT dimensions
+			list[list[int]] flattened,
 		):
 		"""
 		Args:
 			homology (int): Degree of homology observed for homological percolation events.
 			characteristic (int): Characteristic of the finite field over which
 				we do computations.
-			premarked (np.ndarray): Set of pre-marked cells; these aren't
-				taken into consideration when marking new cells.
+			flattened (list): List-of-lists representing the *original* flattened
+				boundary matrix for the complex.
 			tranches (np.ndarray): `tranches` property of the `Lattice` object.
 			dimensions (np.ndarray): The dimension of each cell.
 			
 		"""
 		self.homology = homology;
-		self.tranches = tranches;
 		self.characteristic = characteristic;
-		self.dimensions = dimensions;
-		self.cellCount = self.dimensions.shape[0];
-		self.vertexCount = self.tranches[0,1];
-		self.low = self.tranches[homology,0];
-		self.high = self.tranches[homology,1];
+		self.boundary = self.Vectorize(flattened);
+
+		self.cellCount = self._boundary.size();
+		self.vertexCount = self._tranches[0][1];
+		self.higherCellCount = self._tranches[self.homology+1][1];
+		self.low = self._tranches[self.homology][0];
+		self.high = self._tranches[self.homology][1];
 
 		# Construct arithmetic operations.
 		self.__arithmetic();
@@ -107,13 +107,46 @@ cdef class Persistence:
 
 		self.marked = Set[int]();
 		self.marked.insert(self.premarked.begin(), self.premarked.end());
-
 		self.markedIterable = Vector[int](self.cellCount);
 
-		cdef int i, N = self.premarked.size();
-		for i in range(N): self.markedIterable[i] = self.premarked[i];
 
+	cpdef Vector[Vector[int]] ReindexBoundary(self, INDEXFLAT filtration) noexcept:
+		"""
+		Re-indexes the boundary matrix according to the given filtration.
+		"""
+		cdef int t, i, j, filtered, unfiltered, face, N, M, dimension, start, stop, please;
+		cdef Vector[int] faces, indices, temp;
 
+		N = self._boundary.size();
+		indices = Vector[int](N);
+
+		# Maps the elements of the filtration to their new indices.
+		for t in range(N):
+			filtered = filtration[t];
+			indices[filtered] = t;
+
+		start = self._tranches[self.homology][0];
+		stop = self._tranches[self.homology][1];
+		please = self._tranches[self.homology+1][1];
+
+		# Swaps elements when necessary, relabels elements when necessary.
+		for i in range(N):
+			# We're swapping elements of dimension `self.homology`:
+			if i >= start and i < stop:
+				filtered = filtration[i];
+				self.boundary[i] = self._boundary[filtered];
+			# Otherwise, we're relabeling indices.
+			elif i >= stop and i < please:
+				faces = self._boundary[i];
+				M = faces.size();
+
+				for j in range(M):
+					unfiltered = faces[j];
+					filtered = indices[unfiltered];
+					self.boundary[i][j] = filtered;
+		
+		return self.boundary
+		
 
 	cdef Vector[Vector[int]] Vectorize(self, list[list[int]] flattened) noexcept:
 		"""
@@ -126,31 +159,56 @@ cdef class Persistence:
 			`std::vector` representing the same data.
 		"""
 		cdef Vector[Vector[int]] outer;
-		cdef Vector[int] inner;
-		cdef int i, j, lower, M, N;
+		cdef Vector[int] inner, dimensions;
+		cdef int i, j, lower, M, N, dimension;
 
 		# We only want to get boundary matrices for indices of dimension 1 or
 		# greater; i.e. we're excluding vertices.
-		M = self.cellCount;
+		M = len(flattened);
 		outer = Vector[Vector[int]](M);
-		lower = self.tranches[0,1];
+		dimensions = Vector[int](M);
 
 		for i in range(M):
-			# If we're dealing with a vertex, insert a length-0 vector.
-			if i < lower:
-				inner = Vector[int](0);
-			# Otherwise, copy over the indices of the cells in the boundary.
-			else:
+			# If we're dealing with a non-vertex, we just copy the original
+			# boundary matrix over; otherwise, we're dealing with a vertex, which
+			# has no boundary.
+			try:
 				N = len(flattened[i]);
 				inner = Vector[int](N);
-
 				for j in range(N): inner[j] = flattened[i][j];
 
+				dimension = <int>(N/2);
+			except:
+				inner = Vector[int](0);
+				dimension = 0;
+			
+			dimensions[i] = dimension;
 			outer[i] = inner;
 
 		# Set this as the current boundary matrix, but also return it (for
 		# completion's sake).
-		self.boundary = outer;
+		self._boundary = outer;
+		self._dimensions = dimensions;
+
+		# Scan over the array of dimensions, checking how many cells of each
+		# dimension exist (and where their indices stop/start).
+		cdef Vector[Vector[int]] tranches = Vector[Vector[int]]();
+		cdef Vector[int] tranche;
+		cdef int t, _tranche = 0;
+
+		N = dimensions.size();
+
+		for t in range(1, N):
+			if dimensions[t] > dimensions[t-1] or t == N-1:
+				tranche = Vector[int](2);
+				tranche[0] = _tranche;
+				tranche[1] = t if t < N-1 else N;
+				tranches.push_back(tranche);
+
+				_tranche = t;
+
+		self._tranches = tranches;
+		
 		return outer;
 
 
@@ -205,7 +263,7 @@ cdef class Persistence:
 			An `OrderedSet` of `int`s corresponding to (indices of!) pivot
 			entries in the boundary of cell `cell`.
 		"""
-		cdef int i, face, parity, one = 1;
+		cdef int i, face, parity;
 
 		for i in range(self.boundary[cell].size()):
 			face = self.boundary[cell][i];
@@ -252,7 +310,7 @@ cdef class Persistence:
 		return faces;
 			
 
-	cpdef OrderedSet[int] ComputePercolationEvents(self, INDEXFLAT filtration, list[list[int]] flattened) noexcept:
+	cpdef OrderedSet[int] ComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
 		"""
 		Computes the times of homological percolation events given a filtration
 		and a boundary matrix.
@@ -270,7 +328,7 @@ cdef class Persistence:
 
 		# Construct the boundary matrix for this filtration; variables for
 		# objects.
-		cdef Vector[Vector[int]] boundary = self.Vectorize(flattened);
+		cdef Vector[Vector[int]] boundary = self.ReindexBoundary(filtration);
 		cdef Vector[int] facesIterable, degree = Vector[int](self.cellCount);
 		cdef OrderedSet[int] faces;
 		cdef Map[int,FFINT] faceCoefficients;
@@ -279,8 +337,11 @@ cdef class Persistence:
 		# TODO: shouldn't have to iterate over vertices
 		tagged = 0;
 
-		for t in range(self.vertexCount, filtration.shape[0]):
-			cell = filtration[t];
+		for t in range(self.vertexCount, self.higherCellCount):
+			# Since our filtrations are discrete (i.e. we add exactly one simplex
+			# at each time-step), the "degree" of the cell is the same as the time
+			# at which it was added.
+			cell = t;
 
 			# Create buckets for indices and coefficients; these are created and
 			# stored ONCE, but accessed many times.
@@ -292,10 +353,14 @@ cdef class Persistence:
 			
 			# If we end up with no faces, we've found a pivot row.
 			if faces.empty():
+				# Mark the face, but only add it to the marked iterable if it's
+				# of the right dimension.
 				self.marked.insert(cell);
-				self.markedIterable[tagged] = cell;
 				degree[cell] = t;
-				tagged = tagged + 1;
+				
+				if self._dimensions[cell] == self.homology:
+					self.markedIterable[tagged] = cell;
+					tagged = tagged + 1;
 
 			# Otherwise, store the row in the appropriate locations.
 			else:
@@ -313,8 +378,6 @@ cdef class Persistence:
 
 		for j in range(tagged):
 			cell = self.markedIterable[j];
-
-			if cell < self.low or cell > self.high: continue;
 
 			unmarked = self.columnEntries[cell];
 			if unmarked.empty(): events.insert(degree[cell]);
