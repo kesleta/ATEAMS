@@ -8,7 +8,7 @@
 import numpy as np
 cimport numpy as np
 from .common cimport FFINT, FLAT, TABLE
-from .Sparse cimport Matrix
+from .Sparse cimport Matrix, ReducedMatrix
 
 
 from cython.parallel cimport prange
@@ -442,6 +442,36 @@ cpdef TABLE SparseKernelBasis(
 	return eliminated
 
 
+cpdef TABLE SparseKernelBasisReduced(
+		TABLE empty,
+		int characteristic,
+		bool parallel,
+		int minBlockSize,
+		int maxBlockSize,
+		int cores,
+		TABLE coboundary,
+		int AUGMENT,
+	):
+	cdef TABLE inversion, reduced, superreduced;
+	cdef ReducedMatrix G, M = ReducedMatrix(coboundary, characteristic, parallel, minBlockSize, maxBlockSize, cores);
+	cdef int minzero;
+
+	M.RREF(AUGMENT);
+	minzero = M.HighestZeroRow(AUGMENT);
+
+	if minzero < 0:
+		eliminated = empty;
+	else:
+		inversion = M.ToArray();
+		reduced = inversion[:,AUGMENT:];
+		superreduced = reduced[minzero:]
+		G = ReducedMatrix(superreduced, characteristic, parallel, minBlockSize, maxBlockSize, cores)
+		G.RREF()
+		eliminated = G.ToArray()
+
+	return eliminated
+
+
 cpdef np.ndarray[FFINT, ndim=1, negative_indices=False, mode="c"] SparseSampleFromKernel(
 		int FIELD,
 		FLAT PIVOTS,
@@ -462,5 +492,4 @@ cpdef np.ndarray[FFINT, ndim=1, negative_indices=False, mode="c"] SparseSampleFr
 	):
 	cdef TABLE basis = _SparseKernelBasis(PIVOTS, empty, addition, subtraction, negation, multiplication, inverses, coboundary, AUGMENT, parallel, minBlockSize, maxBlockSize, cores);
 	return np.asarray(LinearCombination(basis, negation, store, addition, multiplication, FIELD, result, parallel))
-
 

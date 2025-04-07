@@ -16,6 +16,7 @@ from libcpp.unordered_set cimport unordered_set as Set
 from libcpp.set cimport set as OrderedSet
 from libcpp.unordered_map cimport unordered_map as Map
 from libcpp cimport bool
+from libc.math cimport pow
 
 
 cdef class Persistence:
@@ -23,7 +24,6 @@ cdef class Persistence:
 			self,
 			int homology,
 			FFINT characteristic,
-			INDEXFLAT premarked,
 			INDEXTABLE tranches,
 			INDEXFLAT dimensions
 		):
@@ -43,6 +43,7 @@ cdef class Persistence:
 		self.characteristic = characteristic;
 		self.dimensions = dimensions;
 		self.cellCount = self.dimensions.shape[0];
+		self.vertexCount = self.tranches[0,1];
 		self.low = self.tranches[homology,0];
 		self.high = self.tranches[homology,1];
 
@@ -50,22 +51,20 @@ cdef class Persistence:
 		self.__arithmetic();
 
 		# Load premarked indices into a `Vector` so we can refresh quickly.
-		cdef int i, N;
-		N = premarked.shape[0];
+		cdef int i;
 
-		self.premarked = Vector[int](N);
-		for i in range(premarked.shape[0]): self.premarked[i] = premarked[i];
+		self.premarked = Vector[int](self.vertexCount);
+		for i in range(self.vertexCount): self.premarked[i] = i;
 
 		# Data structures for storing column information.
 		self.columnEntries = Vector[OrderedSet[int]](self.cellCount);
 		self.columnEntriesIterable = Vector[Vector[int]](self.cellCount);
 		self.columnEntriesCoefficients = Vector[Map[int,FFINT]](self.cellCount);
 
-		self.marked = Set[int]();
-		self.markedIterable = Vector[int](self.cellCount);
+		self.__flushDataStructures();
 
 
-	cdef void __arithmetic(self):
+	cdef void __arithmetic(self) noexcept:
 		# Given a field characteristic, construct addition and multiplication
 		# tables.
 		cdef int p = self.characteristic;
@@ -100,16 +99,23 @@ cdef class Persistence:
 		self.inverse = inverse;
 
 	
-	cdef void __flushDataStructures(self):
+	cdef void __flushDataStructures(self) noexcept:
 		# Data structures for storing column information.
 		self.columnEntries = Vector[OrderedSet[int]](self.cellCount);
 		self.columnEntriesIterable = Vector[Vector[int]](self.cellCount);
 		self.columnEntriesCoefficients = Vector[Map[int,FFINT]](self.cellCount);
+
 		self.marked = Set[int]();
+		self.marked.insert(self.premarked.begin(), self.premarked.end());
+
 		self.markedIterable = Vector[int](self.cellCount);
 
+		cdef int i, N = self.premarked.size();
+		for i in range(N): self.markedIterable[i] = self.premarked[i];
 
-	cdef Vector[Vector[int]] Vectorize(self, list[list[int]] flattened):
+
+
+	cdef Vector[Vector[int]] Vectorize(self, list[list[int]] flattened) noexcept:
 		"""
 		Convert a list of lists into C++ vectors.
 
@@ -148,7 +154,7 @@ cdef class Persistence:
 		return outer;
 
 
-	cdef OrderedSet[int] Eliminate(self, int youngest, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients):
+	cdef OrderedSet[int] Eliminate(self, int youngest, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept:
 		cdef Vector[int] entriesIterable;
 		cdef int i, entry, N;
 		cdef FFINT _q, inverse, q, entryCoefficient, faceCoefficient, mul, add;
@@ -187,7 +193,7 @@ cdef class Persistence:
 		return faces
 
 
-	cdef OrderedSet[int] RemoveUnmarkedCells(self, int cell, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients):
+	cdef OrderedSet[int] RemoveUnmarkedCells(self, int cell, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept:
 		"""
 		Given the latest cell added to the filtration, remove unmarked
 		(nonpivot) entries from its boundary.
@@ -214,7 +220,7 @@ cdef class Persistence:
 		return faces;
 
 	
-	cdef OrderedSet[int] ReducePivotRow(self, int cell, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients):
+	cdef OrderedSet[int] ReducePivotRow(self, int cell, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept:
 		"""
 		Reduces the pivot row corresponding to cell `cell`.
 
@@ -246,7 +252,7 @@ cdef class Persistence:
 		return faces;
 			
 
-	cpdef OrderedSet[int] ComputePercolationEvents(self, INDEXFLAT filtration, list[list[int]] flattened):
+	cpdef OrderedSet[int] ComputePercolationEvents(self, INDEXFLAT filtration, list[list[int]] flattened) noexcept:
 		"""
 		Computes the times of homological percolation events given a filtration
 		and a boundary matrix.
@@ -273,7 +279,7 @@ cdef class Persistence:
 		# TODO: shouldn't have to iterate over vertices
 		tagged = 0;
 
-		for t in range(filtration.shape[0]):
+		for t in range(self.vertexCount, filtration.shape[0]):
 			cell = filtration[t];
 
 			# Create buckets for indices and coefficients; these are created and

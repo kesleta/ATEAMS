@@ -83,8 +83,9 @@ def constructDefaults(LATTICE):
 		addition.astype(FINT),
 		subtraction.astype(FINT),
 		multiplication.astype(FINT),
-		powers.astype(FINT)
-	), Persistence(homology, p, premarked.astype(np.int64), t, dimensions.astype(np.int64))
+		powers.astype(FINT),
+		np.zeros(dimensions.shape[0], dtype=FINT)
+	), Persistence(homology, p, t, dimensions.astype(np.int64))
 
 # Defaults.
 try:
@@ -108,12 +109,12 @@ with open(".testset.json") as r: TESTSET = json.load(r)
 # Test bank.
 for i, TEST in enumerate(TESTSET):
 	flattened = TEST["flattened"]
-	filtration = np.array(TEST["filtration"], dtype=FINT)
+	filtration = np.array(TEST["filtration"])
 
 	print(f"################################ {i}")
 	print("############## GROUND")
 	print()
-	truth = GROUND(filtration, flattened, np.zeros(filtration.shape[0], dtype=FINT))
+	truth = GROUND(filtration, flattened)
 	print()
 	print("##############")
 	print("      ##")

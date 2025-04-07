@@ -1,8 +1,8 @@
 
 from .common import FINT, SFINT
 from .SparsePersistence import Persistence
-from .Sparse import Matrix
-from .linalg import KernelBasis, SampleFromKernel, SparseKernelBasis, SparseSampleFromKernel
+from .Sparse import Matrix, ReducedMatrix
+from .linalg import KernelBasis, SampleFromKernel, SparseKernelBasis, SparseSampleFromKernel, SparseKernelBasisReduced
 from .cubicalComplex import cubicalComplex, boundaryMatrix, flatten
 from .fastiteration import energy
 from .reindexing import reindexSparseBoundaryMatrix

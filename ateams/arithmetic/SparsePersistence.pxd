@@ -25,17 +25,23 @@ cdef class Persistence:
 	cdef FLAT negation
 	cdef FFINT characteristic
 
-	cdef void __arithmetic(self)
-	cdef void __flushDataStructures(self)
+	cdef void __arithmetic(self) noexcept
+	cdef void __flushDataStructures(self) noexcept
 
 	cdef INDEXTABLE tranches
 	cdef INDEXFLAT dimensions
 	cdef int homology
 	cdef int cellCount
+	cdef int vertexCount
 	cdef int defaultRowSize
 	cdef int tagged
 	cdef int low
 	cdef int high
+
+	cdef int cores
+	cdef int minBlockSize
+	cdef int maxBlockSize
+	cdef bool parallel
 
 	cdef Vector[OrderedSet[int]] columnEntries
 	cdef Vector[Vector[int]] columnEntriesIterable
@@ -46,10 +52,10 @@ cdef class Persistence:
 	cdef Set[int] marked;
 	cdef Vector[int] premarked;
 
-	cdef Vector[Vector[int]] Vectorize(self, list[list[int]] flattened)
+	cdef Vector[Vector[int]] Vectorize(self, list[list[int]] flattened) noexcept
 
-	cdef OrderedSet[int] RemoveUnmarkedCells(self, int cell, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients)
-	cdef OrderedSet[int] Eliminate(self, int youngest, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients)
-	cdef OrderedSet[int] ReducePivotRow(self, int cell, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients)
-	cpdef OrderedSet[int] ComputePercolationEvents(self, INDEXFLAT filtration, list[list[int]] flattened)
+	cdef OrderedSet[int] RemoveUnmarkedCells(self, int cell, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept
+	cdef OrderedSet[int] Eliminate(self, int youngest, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept
+	cdef OrderedSet[int] ReducePivotRow(self, int cell, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept
+	cpdef OrderedSet[int] ComputePercolationEvents(self, INDEXFLAT filtration, list[list[int]] flattened) noexcept
 

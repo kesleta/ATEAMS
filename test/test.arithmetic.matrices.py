@@ -1,5 +1,5 @@
 
-from ateams.arithmetic import SparseKernelBasis, KernelBasis, FINT
+from ateams.arithmetic import SparseKernelBasisReduced, SparseKernelBasis, KernelBasis, FINT
 from galois import GF
 import numpy as np
 import sys
@@ -51,8 +51,8 @@ for shape in shapes:
 		parallel = bool(int(sys.argv[-1]))
 		empty = np.empty(shape=(0,0), dtype=FINT)
 		
-		if sparse: C = np.asarray(SparseKernelBasis(pivots, empty, addition, subtraction, negation, multiplication, inverses, B, AUGMENT, parallel, 16, 32, 2))
-		else: C = np.asarray(KernelBasis(pivots, empty, addition, subtraction, negation, multiplication, inverses, B, AUGMENT, parallel, 16, 32, 2))
+		if sparse: C = np.asarray(SparseKernelBasisReduced(empty, p, parallel, 16, 32, 2, B, AUGMENT))
+		else: C = np.asarray(SparseKernelBasis(pivots, empty, addition, subtraction, negation, multiplication, inverses, B, AUGMENT, parallel, 16, 32, 2))
 			
 		K = A.null_space()
 

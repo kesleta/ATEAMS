@@ -10,8 +10,8 @@ test: FORCE
 	# @cd test && zsh test.arithmetic.persistence.sh
 
 profile: FORCE
-	# @cd test && zsh profile.models.IC.sh 5 6 32 64 2
-	@cd test && zsh profile.arithmetic.persistence.sh 3 4 6 32 64 2
+	@cd test && zsh profile.models.IC.sh 4 5 32 64 2
+	# @cd test && zsh profile.arithmetic.persistence.sh 5 6 6 32 64 2
 
 sparse: quick
 	@cd test && zsh test.arithmetic.matrices.sh
