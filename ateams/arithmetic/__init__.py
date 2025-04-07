@@ -1,5 +1,6 @@
 
 from .common import FINT, SFINT
+from .SparsePersistence import Persistence
 from .Sparse import Matrix
 from .linalg import KernelBasis, SampleFromKernel, SparseKernelBasis, SparseSampleFromKernel
 from .cubicalComplex import cubicalComplex, boundaryMatrix, flatten

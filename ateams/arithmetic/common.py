@@ -1,6 +1,5 @@
 
 import numpy as np
 
-SFINT = np.int32
-FINT = np.int32
-
+SFINT = np.int16
+FINT = np.int16

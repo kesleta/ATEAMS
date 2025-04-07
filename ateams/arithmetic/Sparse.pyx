@@ -63,23 +63,6 @@ cdef class Matrix:
 		"""
 		return self.cores;
 
-		cdef int _threads, block, threads, columns;
-
-		columns = self.nonzeroColumnCounts[row];
-
-		# If we have at most as many columns as threads, we just use the number
-		# of columns; if the number of columns is below the minimum block size,
-		# we use just one thread to compute.
-		if columns <= self.cores:
-			if columns <= self.minBlockSize: threads = 1;
-			else: threads = columns;
-		
-		# If we have more columns than threads, we split the columns up among
-		# the threads as evenly as possible.
-		else: threads = self.cores;
-
-		return threads;
-
 
 	cdef Vector[Vector[int]] recomputeBlockSchemaFromRow(self, int row) noexcept:
 		cdef int threads, columns, blockWidth, nextIndex, blocks, t;

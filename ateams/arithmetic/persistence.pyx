@@ -1,6 +1,6 @@
 
 # cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True, wraparound=False, boundscheck=False
-# cython: linetrace=True
+# cython: linetrace=True, binding=True
 # define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 # distutils: define_macros=CYTHON_TRACE_NOGIL=1
 # distutils: language=c
@@ -8,11 +8,11 @@
 import numpy as np
 cimport numpy as np
 
-from .common cimport TABLE, FLAT, FFINT
+from .common cimport TABLE, FLAT, FFINT, INDEXFLAT
 from .common import FINT
 
 
-cdef FFINT Max(FLAT A) noexcept nogil:
+cdef FFINT Max(FLAT A) noexcept:
 	"""
 	Substitution for Python's `max` function.
 
@@ -33,7 +33,7 @@ cdef FFINT Max(FLAT A) noexcept nogil:
 	return l
 
 
-cdef FFINT MaxNonzero(TABLE A) noexcept nogil:
+cdef FFINT MaxNonzero(TABLE A) noexcept:
 	"""
 	Finds and returns the largest value in the second row of an array given
 	the value in the row above it is nonzero.
@@ -137,7 +137,7 @@ cdef TABLE SliceMatrix(TABLE A, FLAT indices) noexcept:
 	return resized[:,:N]
 
 
-cdef int CountNonzero(TABLE A) noexcept nogil:
+cdef int CountNonzero(TABLE A) noexcept:
 	"""
 	Counts the columns of `A` with nonzero first entry.
 
@@ -171,7 +171,7 @@ cdef int CountNonzero(TABLE A) noexcept nogil:
 	return l
 
 
-cdef void Tare(TABLE A) noexcept nogil:
+cdef void Tare(TABLE A) noexcept:
 	"""
 	Tares (zeroes out) the array.
 
@@ -386,9 +386,9 @@ cpdef set[int] computeGiantCyclePairs(
 		TABLE subtraction,
 		TABLE multiplication,
 		FLAT powers,
-		FLAT filtration,
-		list[int] boundary,
 		FLAT degree,
+		INDEXFLAT filtration,
+		list[int] boundary
 	):
 	# Buckets for marked indices, dynamic coefficients (for storing 2d arrays
 	# corresponding to chains), and indices (mapping cell degrees to indices in

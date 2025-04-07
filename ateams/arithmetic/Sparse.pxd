@@ -5,7 +5,7 @@
 # define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 # distutils: language=c++
 
-from .common cimport FFINT, FLAT, TABLE, INDEXTABLE, INDEXFLAT
+from .common cimport FFINT, FLAT, TABLE
 
 from libcpp cimport bool
 from libcpp.vector cimport vector as Vector
