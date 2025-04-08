@@ -1,5 +1,5 @@
 
-# cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True
+# cython: initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True
 # cython: binding=True, linetrace=True
 # cython: boundscheck=False, wraparound=False
 # define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -12,6 +12,7 @@ import numpy as np
 cimport numpy as np
 
 from cython.operator cimport dereference
+from cython.parallel cimport prange
 from libcpp.unordered_set cimport unordered_set as Set
 from libcpp.set cimport set as OrderedSet
 from libcpp.unordered_map cimport unordered_map as Map

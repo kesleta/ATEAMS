@@ -7,7 +7,7 @@ maxBlockSize="${4:-64}"
 cores="${5:-2}"
 
 for ((L=$start; L<$stop; L++)); do
-	for ((sparse=0; sparse<2; sparse++)); do
+	for ((sparse=1; sparse<2; sparse++)); do
 		for ((parallel=0; parallel<2; parallel++)); do
 			echo
 			echo
