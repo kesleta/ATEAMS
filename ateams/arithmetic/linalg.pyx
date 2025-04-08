@@ -1,13 +1,9 @@
 
-# cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True
-# cython: boundscheck=False, wraparound=False
-# cython: binding=True, linetrace=True
-# define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 # distutils: language=c++
 
 import numpy as np
 cimport numpy as np
-from .common cimport FFINT, FLAT, TABLE
+from .common cimport FFINT, FLAT, TABLE, FLATCONTIG, TABLECONTIG
 from .common import FINT
 from .Sparse cimport Matrix, MatrixReduction
 
@@ -257,12 +253,12 @@ cdef int Random(int MAX) except -1:
 	return (rand() % MAX);
 
 
-cdef FLAT LinearCombinationReduced(
+cdef FLATCONTIG LinearCombinationReduced(
 		MatrixReduction MATRIX,
-		TABLE basis
+		TABLECONTIG basis
 	) noexcept:
 	cdef int i, j, N, M;
-	cdef FLAT result, store;
+	cdef FLATCONTIG result, store;
 
 	M = basis.shape[0];
 	N = basis.shape[1];
@@ -468,15 +464,17 @@ cpdef TABLE SparseKernelBasis(
 	return eliminated
 
 
-cpdef TABLE SparseKernelBasisReduced(
-		TABLE empty,
+cpdef TABLECONTIG SparseKernelBasisReduced(
+		TABLECONTIG empty,
 		MatrixReduction M,
 		int AUGMENT,
 	):
-	cdef TABLE inversion, reduced, superreduced;
+	cdef TABLECONTIG inversion, reduced, superreduced;
 	cdef int minzero;
 
 	minzero = M.HighestZeroRow(AUGMENT);
+
+	print(minzero)
 
 	if minzero < 0:
 		eliminated = empty;
@@ -490,12 +488,12 @@ cpdef TABLE SparseKernelBasisReduced(
 	return eliminated
 
 
-cdef TABLE _SparseKernelBasisReduced(
-		TABLE empty,
+cdef TABLECONTIG _SparseKernelBasisReduced(
+		TABLECONTIG empty,
 		MatrixReduction M,
 		int AUGMENT,
 	):
-	cdef TABLE inversion, reduced, superreduced;
+	cdef TABLECONTIG inversion, reduced, superreduced;
 	cdef int minzero;
 
 	minzero = M.HighestZeroRow(AUGMENT);
@@ -514,8 +512,8 @@ cdef TABLE _SparseKernelBasisReduced(
 cpdef np.ndarray[FFINT, ndim=1, negative_indices=False, mode="c"] SparseSampleFromKernelReduced(
 		MatrixReduction M, int AUGMENT
 	):
-	cdef TABLE empty = np.empty((2,0), dtype=FINT);
-	cdef TABLE basis = _SparseKernelBasisReduced(empty, M, AUGMENT);
+	cdef TABLECONTIG empty = np.empty((2,0), dtype=FINT);
+	cdef TABLECONTIG basis = _SparseKernelBasisReduced(empty, M, AUGMENT);
 	return np.asarray(LinearCombinationReduced(M, basis));
 
 

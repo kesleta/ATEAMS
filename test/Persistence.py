@@ -1,5 +1,5 @@
 
-from ateams.arithmetic import computeGiantCyclePairs, FINT, boundaryMatrix, Persistence
+from ateams.arithmetic import computeGiantCyclePairs, FINT, MINT, boundaryMatrix, Persistence
 from ateams.structures import Lattice
 from math import comb
 from functools import partial
@@ -70,7 +70,7 @@ def constructDefaults(L, sparse, parallel, minBlockSize, maxBlockSize, cores):
 	store = np.zeros(coboundary.shape[1], dtype=FINT)
 	empty = np.empty(shape=(0,0), dtype=FINT)
 
-	P = Persistence(homology, p, t, dimensions.astype(np.int64))
+	P = Persistence(homology, p, t, dimensions.astype(MINT))
 	
 	return partial(
 		computeGiantCyclePairs,
@@ -95,9 +95,9 @@ def constructDefaults(L, sparse, parallel, minBlockSize, maxBlockSize, cores):
 
 def test(PERSISTENCE, TESTSET):
 	# Test bank.
-	with tqdm(total=len(TESTSET)) as bar:
+	with tqdm(total=len(TESTSET), dynamic_ncols=True, position=40) as bar:
 		for i, TEST in enumerate(TESTSET):
 			flattened = TEST["flattened"]
 			filtration = np.array(TEST["filtration"], dtype=FINT)
-			essential = PERSISTENCE(filtration.astype(np.int64), flattened);
+			essential = PERSISTENCE(filtration.astype(MINT), flattened);
 			bar.update()

@@ -61,7 +61,7 @@ class Chain:
         raise StopIteration
     
     
-    def progress(self):
+    def progress(self, dynamic_ncols=True, desc=""):
         """
         Progress bar.
 
@@ -69,4 +69,4 @@ class Chain:
             `tqdm` iterable.
         """
         from tqdm.auto import tqdm
-        return tqdm(self, total=self.steps)
+        return tqdm(self, total=self.steps, dynamic_ncols=dynamic_ncols, desc=desc)

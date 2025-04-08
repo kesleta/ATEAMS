@@ -2,6 +2,7 @@
 from setuptools import setup, Extension
 from Cython.Build import cythonize
 from Cython.Compiler.Options import get_directive_defaults as GDD
+from Cython.Compiler import Options
 import os
 import numpy
 
@@ -29,6 +30,9 @@ except:
 	os.environ["CC"] = "gcc-12"
 	os.environ["CXX"] = "g++-12"
 
+os.environ["CC"] = "gcc"
+os.environ["CXX"] = "g++"
+
 DD = GDD()
 DD["linetrace"] = True
 DD["binding"] = True
@@ -38,11 +42,27 @@ extensions = [
 		"*",
 		["ateams/**/*.pyx"],
 		include_dirs=[numpy.get_include(), "ateams/arithmetic"],
-		extra_compile_args=["-std=c++20", "-O4", "-fopenmp"],
-        extra_link_args=["-fopenmp"]
+		extra_compile_args=["-std=c++20", "-O4", "-fopenmp", "-ffast-math", "-funroll-loops", "-flto"],
+        extra_link_args=["-fopenmp", "-flto"],
+		define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
 	)
 ]
 
 setup(
-    ext_modules=cythonize(extensions, annotate=True, language_level="3")
+    ext_modules=cythonize(
+		extensions,
+		annotate=True,
+		language_level="3",
+		compiler_directives=dict(
+			initializedcheck=False,
+			c_api_binop_methods=True,
+			nonecheck=False,
+			profile=True,
+			cdivision=True,
+			binding=True,
+			linetrace=True,
+			boundscheck=False,
+			wraparound=False
+		)
+	)
 )

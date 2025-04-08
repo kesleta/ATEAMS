@@ -18,8 +18,8 @@ def construct(L, sparse, parallel, minBlockSize, maxBlockSize, cores):
 
 	return M
 
-def chain(M):
-	for (spins, essentials, satisfied) in M.progress():
+def chain(M, DESC=""):
+	for (spins, essentials, satisfied) in M.progress(dynamic_ncols=True, desc=DESC):
 		pass
 
 if __name__ == "__main__":

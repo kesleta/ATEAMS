@@ -1,5 +1,5 @@
 
-from .common import FINT, SFINT
+from .common import FINT, SFINT, MINT
 from .SparsePersistence import Persistence
 from .Sparse import Matrix, MatrixReduction
 from .linalg import KernelBasis, SampleFromKernel, SparseKernelBasis, SparseSampleFromKernel, SparseKernelBasisReduced, SparseSampleFromKernelReduced

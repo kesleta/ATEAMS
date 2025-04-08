@@ -1,18 +1,14 @@
 
-# cython: initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True
-# cython: binding=True, linetrace=True
-# cython: boundscheck=False, wraparound=False
-# define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 # distutils: language=c++
 
-from .common cimport TABLE, FLAT, FFINT
+from .common cimport TABLE, FLAT, FFINT, TABLECONTIG, FLATCONTIG
 from .common import FINT
 
 import numpy as np
 cimport numpy as np
 
 from cython.operator cimport dereference
-from cython.parallel cimport prange
+# from cython.parallel cimport prange
 from libcpp.unordered_set cimport unordered_set as Set
 from libcpp.set cimport set as OrderedSet
 from libcpp.unordered_map cimport unordered_map as Map
@@ -69,8 +65,8 @@ cdef class Persistence:
 		# Given a field characteristic, construct addition and multiplication
 		# tables.
 		cdef int p = self.characteristic;
-		cdef TABLE addition, multiplication;
-		cdef FLAT negation, inverse;
+		cdef TABLECONTIG addition, multiplication;
+		cdef FLATCONTIG negation, inverse;
 		cdef int i, j;
 
 		addition = np.zeros((p,p), dtype=FINT);
@@ -264,9 +260,10 @@ cdef class Persistence:
 			An `OrderedSet` of `int`s corresponding to (indices of!) pivot
 			entries in the boundary of cell `cell`.
 		"""
-		cdef int i, face, parity;
+		cdef int i, face, parity, N;
+		N = self.boundary[cell].size();
 
-		for i in range(self.boundary[cell].size()):
+		for i in range(N):
 			face = self.boundary[cell][i];
 
 			# If the face is unmarked, throw it out.

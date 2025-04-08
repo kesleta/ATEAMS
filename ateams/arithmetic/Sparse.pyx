@@ -1,11 +1,7 @@
 
-# cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True
-# cython: binding=True, linetrace=True
-# cython: boundscheck=False, wraparound=False
-# define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 # distutils: language=c++
 
-from .common cimport FFINT, FLAT, TABLE
+from .common cimport FFINT, FLAT, TABLE, FLATCONTIG, TABLECONTIG
 from .common import FINT
 
 import numpy as np
@@ -398,8 +394,8 @@ cdef class MatrixReduction:
 		# Given a field characteristic, construct addition and multiplication
 		# tables.
 		cdef int p = self.characteristic;
-		cdef TABLE addition, multiplication;
-		cdef FLAT negation, inverse;
+		cdef TABLECONTIG addition, multiplication;
+		cdef FLATCONTIG negation, inverse;
 		cdef int i, j;
 
 		addition = np.zeros((p,p), dtype=FINT);
@@ -470,7 +466,7 @@ cdef class MatrixReduction:
 		return self.blockSchema;
 	
 
-	cdef void _initializeColumns(self, TABLE A) noexcept:
+	cdef void _initializeColumns(self, TABLECONTIG A) noexcept:
 		"""
 		Initializes the `.rows` and `.columns` data structures.
 		"""
@@ -644,10 +640,10 @@ cdef class MatrixReduction:
 		return self.zero if self.zero <= AUGMENT else -1
 	
 
-	cdef TABLE ToArray(self) noexcept: return self.data
+	cdef TABLECONTIG ToArray(self) noexcept: return self.data
 	
 
-	cpdef TABLE RREF(self, TABLE A, int AUGMENT=-1) noexcept:
+	cpdef TABLECONTIG RREF(self, TABLECONTIG A, int AUGMENT=-1) noexcept:
 		"""
 		Computes the RREF of this matrix.
 		"""

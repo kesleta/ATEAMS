@@ -1,11 +1,5 @@
 
-# cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True
-# cython: boundscheck=False, wraparound=False
-# cython: binding=True, linetrace=True
-# define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-# distutils: language=c++
-
-from .common cimport FFINT, FLAT, TABLE, INDEXTABLE, INDEXFLAT
+from .common cimport FFINT, FLATCONTIG, TABLECONTIG, INDEXTABLE, INDEXFLAT
 
 import numpy as np
 cimport numpy as np
@@ -18,11 +12,11 @@ from libcpp.unordered_map cimport unordered_map as Map
 
 
 cdef class Persistence:
-	cdef TABLE addition
-	cdef TABLE subtraction
-	cdef TABLE multiplication
-	cdef FLAT inverse
-	cdef FLAT negation
+	cdef TABLECONTIG addition
+	cdef TABLECONTIG subtraction
+	cdef TABLECONTIG multiplication
+	cdef FLATCONTIG inverse
+	cdef FLATCONTIG negation
 	cdef FFINT characteristic
 
 	cdef void __arithmetic(self) noexcept

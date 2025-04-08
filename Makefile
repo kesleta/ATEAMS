@@ -3,11 +3,13 @@ quick:
 	@python setup.py build_ext --inplace
 
 build: clean
-	python setup.py build_ext --inplace
+	python setup.py build_ext --inplace > build.log 2>&1 
 
 test: FORCE
-	# @cd test && zsh test.arithmetic.matrices.sh
-	@cd test && zsh test.arithmetic.persistence.sh
+	@cd test && ./test.arithmetic.matrices.sh
+	@echo
+	@echo
+	@cd test && ./test.arithmetic.persistence.sh
 
 profile: FORCE
 	@cd test && ./profile.models.IC.sh 3 7 32 64 18
@@ -18,7 +20,6 @@ sparse: quick
 
 docs:
 	sh docs.sh
-
 
 clean:
 	@rm -f ateams/*.c*

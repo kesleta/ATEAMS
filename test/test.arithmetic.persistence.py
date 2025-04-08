@@ -1,11 +1,12 @@
 
-from ateams.arithmetic import computeGiantCyclePairs, FINT, boundaryMatrix, Persistence
+from ateams.arithmetic import computeGiantCyclePairs, FINT, MINT, boundaryMatrix, Persistence
 from ateams.structures import Lattice
 from math import comb
 from functools import partial
 import json
 import numpy as np
 import sys
+from tqdm import tqdm
 
 
 def constructDefaults(LATTICE):
@@ -106,61 +107,68 @@ GROUND, PERSISTENCE = constructDefaults(LATTICE)
 # Import test dataset.
 with open(".testset.json") as r: TESTSET = json.load(r)
 
+sp = "SPARSE" if sparse else "DENSE"
+par = "PARALLEL" if parallel else "SERIAL"
+DESC = (f"          {sp}, {par}").ljust(30)
+
 # Test bank.
-for i, TEST in enumerate(TESTSET):
-	flattened = TEST["flattened"]
-	filtration = np.array(TEST["filtration"])
+with tqdm(total=len(TESTSET), dynamic_ncols=True, desc=DESC) as bar:
+	for i, TEST in enumerate(TESTSET):
+		flattened = TEST["flattened"]
+		filtration = np.array(TEST["filtration"])
 
-	print(f"################################ {i}")
-	print("############## GROUND")
-	print()
-	truth = GROUND(filtration, flattened)
-	print()
-	print("##############")
-	print("      ##")
-	print("      ##")
-	print("############## TEST")
-	print()
-	essential = PERSISTENCE.ComputePercolationEvents(filtration.astype(np.int64));
-	print("##############")
-	print()
-	print("############## CHECK")
-	print()
+		print(f"################################ {i}")
+		print("############## GROUND")
+		print()
+		truth = GROUND(filtration, flattened)
+		print()
+		print("##############")
+		print("      ##")
+		print("      ##")
+		print("############## TEST")
+		print()
+		essential = PERSISTENCE.ComputePercolationEvents(filtration.astype(MINT));
+		print("##############")
+		print()
+		print("############## CHECK")
+		print()
 
-	print(truth)
-	print(essential)
-
-	truth = list(sorted(list(truth)))
-	essential = list(sorted(list(essential)))
-	
-	# Check that they have the same number of events.
-	try: assert len(truth) == len(essential)
-	except: passed = False
-
-	print("## EVENTS")
-	print("##\t truth \ttest")
-	print(f"##\t {len(truth)} \t\t{len(essential)}")
-	if not passed: break
-
-	print()
-	print("## EVENTS EQUAL")
-	print("##\t truth \ttest")
-
-	try:
-		for lpair, rpair in zip(truth, essential):
-			assert lpair == rpair
-			print(f"##\t {lpair} \t\t{rpair}")
-	except:
-		print("## FAIL")
 		print(truth)
 		print(essential)
-		passed = False
 
-	if not passed: break
+		truth = list(sorted(list(truth)))
+		essential = list(sorted(list(essential)))
+		
+		# Check that they have the same number of events.
+		try: assert len(truth) == len(essential)
+		except: passed = False
 
-	print(f"################################ {i}")
-	print()
-	print()
+		print("## EVENTS")
+		print("##\t truth \ttest")
+		print(f"##\t {len(truth)} \t\t{len(essential)}")
+		if not passed: break
+
+		print()
+		print("## EVENTS EQUAL")
+		print("##\t truth \ttest")
+
+		try:
+			for lpair, rpair in zip(truth, essential):
+				assert lpair == rpair
+				print(f"##\t {lpair} \t\t{rpair}")
+		except:
+			print("## FAIL")
+			print(truth)
+			print(essential)
+			passed = False
+
+		if not passed: break
+
+		print(f"################################ {i}")
+		print()
+		print()
+	
+		bar.update()
 
 if passed: exit(0)
 else: exit(1)

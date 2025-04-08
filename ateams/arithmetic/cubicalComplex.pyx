@@ -1,12 +1,6 @@
 
-# cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True
-# cython: binding=True, linetrace=True
-# cython: boundscheck=False, wraparound=False
-# define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 # distutils: language=c
 
-
-import cython
 import numpy as np
 from itertools import combinations as combs, product
 from math import comb

@@ -1,8 +1,4 @@
 
-# cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True, wraparound=False, boundscheck=False
-# cython: linetrace=True, binding=True
-# define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-# distutils: define_macros=CYTHON_TRACE_NOGIL=1
 # distutils: language=c
 
 import numpy as np
@@ -422,7 +418,8 @@ cpdef set[int] computeGiantCyclePairs(
 
 	for _t in range(N):
 		t = times[_t]
-		cell = filtration[t]
+		cell = t;
+		# cell = filtration[t]
 		
 		chain = ReducePivotRow(
 			chain,

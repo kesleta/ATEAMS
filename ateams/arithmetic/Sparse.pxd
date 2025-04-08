@@ -1,11 +1,5 @@
 
-# cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True
-# cython: boundscheck=False, wraparound=False
-# cython: binding=True, linetrace=True
-# define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-# distutils: language=c++
-
-from .common cimport FFINT, FLAT, TABLE
+from .common cimport FFINT, FLAT, TABLE, FLATCONTIG, TABLECONTIG
 
 from libcpp cimport bool
 from libcpp.vector cimport vector as Vector
@@ -50,11 +44,11 @@ cdef class Matrix:
 
 
 cdef class MatrixReduction:
-	cdef TABLE addition
-	cdef FLAT negation
-	cdef TABLE multiplication
-	cdef FLAT inverse
-	cdef TABLE data
+	cdef TABLECONTIG addition
+	cdef FLATCONTIG negation
+	cdef TABLECONTIG multiplication
+	cdef FLATCONTIG inverse
+	cdef TABLECONTIG data
 	cdef bool parallel
 	cdef int characteristic
 	cdef int zero
@@ -71,8 +65,8 @@ cdef class MatrixReduction:
 	cdef Vector[int] shape
 	cdef Vector[Vector[int]] blockSchema
 
-	cdef void _initializeColumns(self, TABLE A) noexcept
-	cdef TABLE ToArray(self) noexcept
+	cdef void _initializeColumns(self, TABLECONTIG A) noexcept
+	cdef TABLECONTIG ToArray(self) noexcept
 
 	cdef void SwapRows(self, int i, int j)
 	cdef void AddRows(self, int i, int j, FFINT ratio) noexcept
@@ -85,4 +79,4 @@ cdef class MatrixReduction:
 	cdef int PivotRow(self, int c, int pivots) noexcept
 	cdef int HighestZeroRow(self, int AUGMENT=*) noexcept
 
-	cpdef TABLE RREF(self, TABLE A, int AUGMENT=*) noexcept
+	cpdef TABLECONTIG RREF(self, TABLECONTIG A, int AUGMENT=*) noexcept
