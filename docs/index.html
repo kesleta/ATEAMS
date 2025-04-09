@@ -30,6 +30,7 @@ hljs.highlightAll();
 <h2 id="ateams">ATEAMS</h2>
 <p>The <strong>A</strong>lgebraic <strong>t</strong>opology-<strong>e</strong>nabled <strong>a</strong>lgorith<strong>m</strong>s for <strong>s</strong>pin systems(<strong>ATEAMS</strong>) library is a high-performance software suite for conducting experiments on lattice spin models. The main attractions are the <em>plaquette <a href="http://arxiv.org/abs/cond-mat/9605103">invaded-cluster</a></em> and <em>plaquette <a href="https://link.aps.org/doi/10.1103/PhysRevLett.58.86">Swendsen-Wang</a></em> algorithms for simulating Markov chains on cubical lattices of any dimension.</p>
 <p><a href="https://doi.org/10.5281/zenodo.14284172"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.14284172.svg"></a></p>
+<p>ATEAMS is designed for high-performance simulation of the <em>Potts</em> and <em>random-cluster</em> models in cubical complexes of arbitrary dimension and scale. The linear algebra subroutines supporting these programs are tailored to this application — matrix reduction over finite fields — are implemented in C/C++ using cached 16-bit integer arithmetic. The option to perform these operations in parallel, making computations on large systems manageable with high-performance computers with extremely low memory overhead.</p>
 <h2 id="installation">Installation</h2>
 <p>Clone this repository by <code>git clone https://github.com/apizzimenti/ateams.git</code>, navigate into the project's root, and run <code>make install</code> in your favorite terminal. This installs the <code><a title="ateams" href="#ateams">ateams</a></code> package (and its dependencies) globally in development mode, so any changes you make to the source are reflected system-wide.</p>
 <h3 id="notes">Notes:</h3>
@@ -38,17 +39,23 @@ hljs.highlightAll();
 <li><strong>Ensure you have a C/C++ compiler that supports the <code>-fopenmp</code> compilation and linking flags.</strong></li>
 </ul>
 <h2 id="example-use">Example Use</h2>
-<p>This sample code runs the plaquette invaded-cluster algorithm on a 64x64 cubical $2$-torus with coefficients in the finite field $\mathbb F_3$.</p>
+<p>Simulating the $1$-dimensional plaquette random cluster model on a $ 10 \times 10 \times 10 $ cubical $3$-torus with coefficients in the finite field $\mathbb F_3$ looks like:</p>
 <pre><code class="language-python">from ateams.structures import Lattice
 from ateams.models import InvadedCluster
 from ateams import Chain
 
-L = Lattice().fromCorners([64,64], field=3)
+L = Lattice().fromCorners([10,10,10], field=3)
 HP = InvadedCluster(L, homology=1)
 
-for state in Chain(HP, steps=10):
+for (spins, occupied, satisfied) in Chain(HP, steps=10):
     &lt;do whatever&gt;
 </code></pre>
+<p>You can turn on a progress bar for your simulation using the</p>
+<pre><code class="language-python">...
+for (spins, occupied, satisfied) in Chain(HP, steps=10).progress():
+    &lt;do whatever&gt;
+</code></pre>
+<p>pattern.</p>
 <h2 id="citing">Citing</h2>
 <h3 id="bibtex">BibTeX</h3>
 <pre><code class="language-bibtex">@software{ateams,
