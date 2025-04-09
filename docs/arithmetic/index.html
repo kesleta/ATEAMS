@@ -31,11 +31,19 @@ hljs.highlightAll();
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt><code class="name"><a title="ateams.arithmetic.fastiteration" href="fastiteration.html">ateams.arithmetic.fastiteration</a></code></dt>
+<dt><code class="name"><a title="ateams.arithmetic.Sparse" href="Sparse.html">ateams.arithmetic.Sparse</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt><code class="name"><a title="ateams.arithmetic.homology" href="homology.html">ateams.arithmetic.homology</a></code></dt>
+<dt><code class="name"><a title="ateams.arithmetic.SparsePersistence" href="SparsePersistence.html">ateams.arithmetic.SparsePersistence</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="ateams.arithmetic.common" href="common.html">ateams.arithmetic.common</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="ateams.arithmetic.linalg" href="linalg.html">ateams.arithmetic.linalg</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -46,192 +54,197 @@ hljs.highlightAll();
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="ateams.arithmetic.autocorrelation"><code class="name flex">
-<span>def <span class="ident">autocorrelation</span></span>(<span>data)</span>
+<dt id="ateams.arithmetic.Kernel"><code class="name flex">
+<span>def <span class="ident">Kernel</span></span>(<span>M, A)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Computes the autocorrelation of a given observable.</p>
+<div class="desc"><p>Returns a basis for the kernel of A.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>data</code></strong> :&ensp;<code>Iterable</code></dt>
-<dd>An iterable, indexed by sample times, containing data
-from a given observable.</dd>
+<dt><strong><code>M</code></strong> :&ensp;<code><a title="ateams.arithmetic.MatrixReduction" href="#ateams.arithmetic.MatrixReduction">MatrixReduction</a></code></dt>
+<dd>A <code><a title="ateams.arithmetic.MatrixReduction" href="#ateams.arithmetic.MatrixReduction">MatrixReduction</a></code> object.</dd>
+<dt><strong><code>A</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>A 2D <code>NumPy</code> array to be reduced.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>An <code>np.ndarray</code> of autocorrelation data.</p></div>
+<p>A 2D <code>NumPy</code> array representing the reduced basis of <span><span class="MathJax_Preview">\mathrm{ker}(A)</span><script type="math/tex">\mathrm{ker}(A)</script></span>.</p></div>
 </dd>
-<dt id="ateams.arithmetic.boundaryMatrix"><code class="name flex">
-<span>def <span class="ident">boundaryMatrix</span></span>(<span>Complex, D, F)</span>
+<dt id="ateams.arithmetic.KernelSample"><code class="name flex">
+<span>def <span class="ident">KernelSample</span></span>(<span>M, A)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Construct the boundary (operator) matrix given the boundary specification
-and finite field.</p>
+<div class="desc"><p>Draws a uniform random sample from the kernel of the matrix stored in <code>M</code>.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>Complex</code></strong> :&ensp;<code>dict</code></dt>
-<dd>Dictionary sending dimensions (keys) to boundary matrices
-(values).</dd>
-<dt><strong><code>D</code></strong> :&ensp;<code>int</code></dt>
-<dd>Top-level dimension of the complex.</dd>
-<dt><strong><code>F</code></strong> :&ensp;<code>galois.GF</code></dt>
-<dd>Finite field representation.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>Galois <code>Array</code> representing the signed boundary matrix for the <code>Complex</code>.</p></div>
-</dd>
-<dt id="ateams.arithmetic.cubicalComplex"><code class="name flex">
-<span>def <span class="ident">cubicalComplex</span></span>(<span>corners, D, F, periodic=True)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Constructs a cubical complex completely specified by a boundary matrix and
-a vertex map.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>corners</code></strong> :&ensp;<code>iterable</code></dt>
-<dd>An iterable specifying the extent of the lattice. If
-<code>periodic</code> is truthy, antipodal vertices are identified; for example,
-if <code>corners = [3,3]</code>, then the vertices at indices (0,0), (0,3), (3,0),
-and (3,3) are identified.</dd>
-<dt><strong><code>D</code></strong> :&ensp;<code>int</code></dt>
-<dd>Top-level dimension.</dd>
-<dt><strong><code>F</code></strong> :&ensp;<code>galois.GF</code></dt>
-<dd>Finite field representation.</dd>
-<dt><strong><code>periodic</code></strong> :&ensp;<code>bool=True</code></dt>
-<dd>If truthy, we construct a <span><span class="MathJax_Preview">d</span><script type="math/tex">d</script></span>-fold torus, where <span><span class="MathJax_Preview">d</span><script type="math/tex">d</script></span>
-is the topmost dimension of the lattice (as determined by the number
-of corners specified). For example, if <code>periodic</code> is falsy, then
-<code>corners = [3,3]</code> hands back a 4x4 grid (zero-indexed).</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A triplet containing</p>
-<ol>
-<li>
-<p>a <code>dict</code> mapping vertex indices to integer coordinates</p>
-</li>
-<li>
-<p>a <code>dict</code> mapping dimensions to boundary matrices</p>
-</li>
-<li>
-<p>a <code>galois.FieldArray</code> representing the signed boundary matrix for the complex.</p>
-</li>
-</ol></div>
-</dd>
-<dt id="ateams.arithmetic.essentialCyclesBorn"><code class="name flex">
-<span>def <span class="ident">essentialCyclesBorn</span></span>(<span>phatBoundary,<br>coboundary,<br>boundary,<br>reindexed,<br>tranches,<br>homology,<br>F,<br>spins,<br>times,<br>indices,<br>lower,<br>highest,<br>stop)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Computes the persistent homology of the given complex, identifying when the
-first nontrivial element of the parent space (generally a torus) is born.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>phatBoundary</code></strong> :&ensp;<code>phat.boundary_matrix</code></dt>
-<dd>An initialized PHAT boundary matrix
-with un-set columns.</dd>
-<dt><strong><code>coboundary</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
-<dd>Coboundary matrix for the complex.</dd>
-<dt><strong><code>boundary</code></strong> :&ensp;<code>dict</code></dt>
-<dd>Indexed boundary matrices associated with a <code>Lattice</code>
-object.</dd>
-<dt><strong><code>reindexed</code></strong> :&ensp;<code>dict</code></dt>
-<dd>Reindexed version of <code>boundary</code>.</dd>
-<dt><strong><code>tranches</code></strong> :&ensp;<code>dict</code></dt>
-<dd>Dictionary specifying the indices at which cubes of
-each dimension appear in the flattened boundary matrix (i.e. the
-columns of <code>phatBoundary</code>).</dd>
-<dt><strong><code>homology</code></strong> :&ensp;<code>int</code></dt>
-<dd>Homology group <span><span class="MathJax_Preview">k</span><script type="math/tex">k</script></span>.</dd>
-<dt><strong><code>F</code></strong> :&ensp;<code>galois.GF</code></dt>
-<dd>Finite field representation.</dd>
-<dt><strong><code>spins</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
-<dd>Cochain on the <span><span class="MathJax_Preview">(k-1)</span><script type="math/tex">(k-1)</script></span>-skeleton.</dd>
-<dt><strong><code>times</code></strong> :&ensp;<code>np.ndarray</code></dt>
-<dd>Index for the filtration.</dd>
-<dt><strong><code>indices</code></strong> :&ensp;<code>np.ndarray</code></dt>
-<dd>Indices for plaquettes.</dd>
-<dt><strong><code>lower</code></strong> :&ensp;<code>list</code></dt>
-<dd>List of (dimension, boundary) pairs for all cubes of
-dimension less than <span><span class="MathJax_Preview">k</span><script type="math/tex">k</script></span>.</dd>
-<dt><strong><code>highest</code></strong> :&ensp;<code>list</code></dt>
-<dd>List of (dimension, boundary) pairs for all cubes of
-dimension greater than <span><span class="MathJax_Preview">k+1</span><script type="math/tex">k+1</script></span>.</dd>
-<dt><strong><code>stop</code></strong> :&ensp;<code>int</code></dt>
-<dd>How many essential cycles are identified before we we-sample
-a cochain.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>A triplet</code></dt>
-<dd>a <span><span class="MathJax_Preview">(k-1)</span><script type="math/tex">(k-1)</script></span>-cochain as a <code>galois.FieldArray</code>; a binary</dd>
-</dl>
-<p><span><span class="MathJax_Preview">\beta \times n</span><script type="math/tex">\beta \times n</script></span> <code>numpy.ndarray</code>, where each row has a <span><span class="MathJax_Preview">1</span><script type="math/tex">1</script></span> at the
-indices of occupied plaquettes when homological percolation occurred,
-<span><span class="MathJax_Preview">\beta</span><script type="math/tex">\beta</script></span> is the rank of the <span><span class="MathJax_Preview">k</span><script type="math/tex">k</script></span>th homology group, and <span><span class="MathJax_Preview">n</span><script type="math/tex">n</script></span> is the
-number of plaquettes; a length-(n) binary <code>numpy.ndarray</code> with ones
-at the indices of satisfied plaquettes.</p></div>
-</dd>
-<dt id="ateams.arithmetic.evaluateCochain"><code class="name flex">
-<span>def <span class="ident">evaluateCochain</span></span>(<span>boundary, spins)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Evaluates the coboundary of a cochain on the <span><span class="MathJax_Preview">k</span><script type="math/tex">k</script></span>-skeleton.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>boundary</code></strong> :&ensp;<code>np.ndarray</code></dt>
-<dd>Boundary of the <span><span class="MathJax_Preview">k</span><script type="math/tex">k</script></span>-skeleton.</dd>
-<dt><strong><code>spins</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
-<dd>Cochain (spins) on the <span><span class="MathJax_Preview">(k-1)</span><script type="math/tex">(k-1)</script></span>-skeleton.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A <code>galois.FieldArray</code> of coefficients on the <span><span class="MathJax_Preview">k</span><script type="math/tex">k</script></span>-skeleton.</p></div>
-</dd>
-<dt id="ateams.arithmetic.isNullHomologous"><code class="name flex">
-<span>def <span class="ident">isNullHomologous</span></span>(<span>A, x, I, includes=[])</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Checks whether the provided sequence of faces is a boundary of some chain of
-plaquettes.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>A</code></strong> :&ensp;<code>galois.Array</code></dt>
-<dd>Complete boundary matrix.</dd>
-<dt><strong><code>x</code></strong> :&ensp;<code>galois.Array</code></dt>
-<dd>Chain of faces.</dd>
-<dt><strong><code>I</code></strong> :&ensp;<code>galois.Array</code></dt>
-<dd>Identity matrix of dimension <span><span class="MathJax_Preview">(n+1) \times (n+1)</span><script type="math/tex">(n+1) \times (n+1)</script></span>,
-where <span><span class="MathJax_Preview">n</span><script type="math/tex">n</script></span> is the number of columns of <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>.</dd>
-<dt><strong><code>includes</code></strong> :&ensp;<code>iterable=[]</code></dt>
-<dd>Column indices to <em>include</em>.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A boolean which is truthy when <span><span class="MathJax_Preview">x</span><script type="math/tex">x</script></span> is nullhomologous and falsy otherwise.</p></div>
-</dd>
-<dt id="ateams.arithmetic.sampleFromKernel"><code class="name flex">
-<span>def <span class="ident">sampleFromKernel</span></span>(<span>A, F, includes=[], relativeCells=[], relativeFaces=[])</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Uniformly randomly samples a cochain given the coboundary matrix A.</p>
-<h2 id="args">Args</h2>
-<dl>
+<dt><strong><code>M</code></strong> :&ensp;<code><a title="ateams.arithmetic.MatrixReduction" href="#ateams.arithmetic.MatrixReduction">MatrixReduction</a></code></dt>
+<dd>Contains the RREF form of a matrix.</dd>
 <dt><strong><code>A</code></strong> :&ensp;<code>np.ndarray</code></dt>
-<dd>Complete coboundary matrix.</dd>
-<dt><strong><code>F</code></strong> :&ensp;<code>galois.GF</code></dt>
-<dd>Finite field representation.</dd>
-<dt><strong><code>includes</code></strong> :&ensp;<code>iterable=[]</code></dt>
-<dd>Column indices to <em>include</em>.</dd>
-<dt><strong><code>relativeCells</code></strong> :&ensp;<code>iterable=None</code></dt>
-<dd>Column indices to <em>include</em>. (Possible
-duplicate of the above?)</dd>
-<dt><strong><code>relativeFaces</code></strong> :&ensp;<code>iterable=None</code></dt>
-<dd>Row indices to <em>include</em>.</dd>
+<dd>2D <code>NumPy</code> array whose kernel is computed and sampled
+from.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>A cochain on the <span><span class="MathJax_Preview">(k-1)</span><script type="math/tex">(k-1)</script></span>-skeleton of the complex that is a cocycle on
-whatever subcomplex is specified by <code>includes</code>, <code>relativeCells</code>, and
-<code>relativeFaces</code>, represented as a <code>galois.FieldArray</code>.</p></div>
+<p>A vector sampled at uniform random from the kernel of the matrix stored in
+<code>M</code>.</p></div>
 </dd>
 </dl>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="ateams.arithmetic.MatrixReduction"><code class="flex name class">
+<span>class <span class="ident">MatrixReduction</span></span>
+<span>(</span><span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class for putting matrices over finite fields into reduced row echelon form
+(RREF); works faster than comparable method in the <code>galois</code> library, accelerated
+by sparse matrix methods and cached finite field arithmetic.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>characteristic</code></strong> :&ensp;<code>int</code></dt>
+<dd>Characteristic of the finite field.</dd>
+<dt><strong><code>parallel</code></strong> :&ensp;<code>bool=False</code></dt>
+<dd>Should computations be done in parallel?
+Defaults to <code>False</code>.</dd>
+<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
+<dd>Smallest number of columns reduced by a
+single thread at one time.</dd>
+<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
+<dd>Largest number of columns reduced by a
+single thread at one time.</dd>
+<dt><strong><code>cores</code></strong> :&ensp;<code>int=2</code></dt>
+<dd>Number of cores/threads available for use at run-time.</dd>
+</dl>
+<p>Suppose we need to compute a basis for the kernel of an <span><span class="MathJax_Preview">m \times n</span><script type="math/tex">m \times n</script></span> matrix <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>
+with entries in the finite field <span><span class="MathJax_Preview">\mathbb F_3</span><script type="math/tex">\mathbb F_3</script></span>. The standard algorithm
+for kernel computation is as follows:</p>
+<ol>
+<li>create an augmented matrix <span><span class="MathJax_Preview">C</span><script type="math/tex">C</script></span> by adjoining the identity matrix <span><span class="MathJax_Preview">I_n</span><script type="math/tex">I_n</script></span> on the right of <span><span class="MathJax_Preview">A^\top</span><script type="math/tex">A^\top</script></span>, so <span><span class="MathJax_Preview">C= \left[ A^\top \mid I_n \right]</span><script type="math/tex">C= \left[ A^\top \mid I_n \right]</script></span>;</li>
+<li>put <span><span class="MathJax_Preview">C</span><script type="math/tex">C</script></span> in RREF, so <span><span class="MathJax_Preview">C = \left[ P \mid K \right]</span><script type="math/tex">C = \left[ P \mid K \right]</script></span>;</li>
+<li>the rows of <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span> corresponding to zero rows of <span><span class="MathJax_Preview">P</span><script type="math/tex">P</script></span> form a basis for the kernel of <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>.</li>
+</ol>
+<p>The below example does this computation.</p>
+<pre><code>    import numpy as np
+    from ateams.arithmetic import MatrixReduction, FINT, SparseKernelBasisReduced
+
+    # Construct a matrix A with random entries over F_3.
+    F = 3
+    m, n = 50, 60
+    A = np.random.randint(0, F, size=(m,n))
+    I = np.identity(n)
+    C = np.concatenate([A.T, I], axis=1, dtype=FINT)
+
+    # Initialize the MatrixReduction object with the order of the field,
+    # then reduce.
+    M = MatrixReduction(F)
+    M.RREF(C, m)
+
+    # Find the highest zero row, then slice the matrix to get the rows
+    # of the augmented matrix corresponding to the basis.
+    high = M.HighestZeroRow(m)
+    reduced = M.ToArray()[:,:m]
+    basis = reduced[high:]
+
+    # The above is implemented as a convenience method:
+    basis = Kernel(M, A)
+</code></pre></div>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.arithmetic.MatrixReduction.HighestZeroRow"><code class="name flex">
+<span>def <span class="ident">HighestZeroRow</span></span>(<span>self, AUGMENT=-1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Report the first lowest-indexed zero row; if no such row exists,
+report -1. If nonnegative AUGMENT is passed, we check for the first row
+with AUGMENT leading zeros.</p></div>
+</dd>
+<dt id="ateams.arithmetic.MatrixReduction.RREF"><code class="name flex">
+<span>def <span class="ident">RREF</span></span>(<span>self, A, AUGMENT=-1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the RREF of the matrix <code>A</code>, assuming all pivots are in columns
+of index less than <code>AUGMENT</code>; if <code>AUGMENT</code> is not provided, all columns
+may contain pivots.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>A</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>A 2D <code>NumPy</code> array.</dd>
+<dt><strong><code>AUGMENT</code></strong> :&ensp;<code>int=-1</code></dt>
+<dd>All pivot columns are to the left of this column;
+if <code>-1</code>, all columns are processed.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A typed <code>MemoryView</code> containing the RREF of <code>A</code>.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="ateams.arithmetic.Persistence"><code class="flex name class">
+<span>class <span class="ident">Persistence</span></span>
+<span>(</span><span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the persistent homology of a complex with coefficients
+in an arbitrary finite field.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>homology</code></strong> :&ensp;<code>int</code></dt>
+<dd>Degree of homology observed for homological percolation events.</dd>
+<dt><strong><code>characteristic</code></strong> :&ensp;<code>int</code></dt>
+<dd>Characteristic of the finite field over which
+we do computations.</dd>
+<dt><strong><code>flattened</code></strong> :&ensp;<code>list</code></dt>
+<dd>List-of-lists representing the <em>original</em> flattened
+boundary matrix for the complex.</dd>
+</dl>
+<p>The code below computes the birth times of giant cycles (in this case,
+elements of the first homology group) on the default
+<span><span class="MathJax_Preview">3 \times 3</span><script type="math/tex">3 \times 3</script></span> cubical torus: the filtration stored in <code>filtration</code>
+adds each cube to the cubical complex in order of construction. At
+completion, <code>events</code> contains the times <code>{17, 21}</code> which correspond to
+crossings of the meridian and equator of the torus, respectively.</p>
+<pre><code>    from ateams.arithmetic import Persistence
+    from ateams.structures import Lattice
+    ...
+    L = Lattice().fromCorners([3,3], field=3)
+    P = Persistence(1, L.field.characteristic, L.flattened)
+    ...
+    filtration = np.arange(len(L.flattened))
+    events = P.ComputePercolationEvents(filtration)
+</code></pre></div>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.arithmetic.Persistence.ComputePercolationEvents"><code class="name flex">
+<span>def <span class="ident">ComputePercolationEvents</span></span>(<span>self, filtration)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the times of homological percolation events given a filtration
+and a boundary matrix.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filtration</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>Order in which cells are added.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A <code>set</code> of times at which homological percolation occurs.</p></div>
+</dd>
+<dt id="ateams.arithmetic.Persistence.ReindexBoundary"><code class="name flex">
+<span>def <span class="ident">ReindexBoundary</span></span>(<span>self, filtration)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Re-indexes the boundary matrix according to the given filtration.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filtration</code></strong> :&ensp;<code>np.array</code></dt>
+<dd><code>NumPy</code> array specifying the order in which
+cells from the complex are added.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A C++ <code>std::vector</code> (cast as a <code>NumPy</code> array) containing the reindexed
+boundary matrix.</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -294,19 +307,34 @@ column-count: 1 !important;
 </li>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li><code><a title="ateams.arithmetic.fastiteration" href="fastiteration.html">ateams.arithmetic.fastiteration</a></code></li>
-<li><code><a title="ateams.arithmetic.homology" href="homology.html">ateams.arithmetic.homology</a></code></li>
+<li><code><a title="ateams.arithmetic.Sparse" href="Sparse.html">ateams.arithmetic.Sparse</a></code></li>
+<li><code><a title="ateams.arithmetic.SparsePersistence" href="SparsePersistence.html">ateams.arithmetic.SparsePersistence</a></code></li>
+<li><code><a title="ateams.arithmetic.common" href="common.html">ateams.arithmetic.common</a></code></li>
+<li><code><a title="ateams.arithmetic.linalg" href="linalg.html">ateams.arithmetic.linalg</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="two-column">
-<li><code><a title="ateams.arithmetic.autocorrelation" href="#ateams.arithmetic.autocorrelation">autocorrelation</a></code></li>
-<li><code><a title="ateams.arithmetic.boundaryMatrix" href="#ateams.arithmetic.boundaryMatrix">boundaryMatrix</a></code></li>
-<li><code><a title="ateams.arithmetic.cubicalComplex" href="#ateams.arithmetic.cubicalComplex">cubicalComplex</a></code></li>
-<li><code><a title="ateams.arithmetic.essentialCyclesBorn" href="#ateams.arithmetic.essentialCyclesBorn">essentialCyclesBorn</a></code></li>
-<li><code><a title="ateams.arithmetic.evaluateCochain" href="#ateams.arithmetic.evaluateCochain">evaluateCochain</a></code></li>
-<li><code><a title="ateams.arithmetic.isNullHomologous" href="#ateams.arithmetic.isNullHomologous">isNullHomologous</a></code></li>
-<li><code><a title="ateams.arithmetic.sampleFromKernel" href="#ateams.arithmetic.sampleFromKernel">sampleFromKernel</a></code></li>
+<ul class="">
+<li><code><a title="ateams.arithmetic.Kernel" href="#ateams.arithmetic.Kernel">Kernel</a></code></li>
+<li><code><a title="ateams.arithmetic.KernelSample" href="#ateams.arithmetic.KernelSample">KernelSample</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="ateams.arithmetic.MatrixReduction" href="#ateams.arithmetic.MatrixReduction">MatrixReduction</a></code></h4>
+<ul class="">
+<li><code><a title="ateams.arithmetic.MatrixReduction.HighestZeroRow" href="#ateams.arithmetic.MatrixReduction.HighestZeroRow">HighestZeroRow</a></code></li>
+<li><code><a title="ateams.arithmetic.MatrixReduction.RREF" href="#ateams.arithmetic.MatrixReduction.RREF">RREF</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ateams.arithmetic.Persistence" href="#ateams.arithmetic.Persistence">Persistence</a></code></h4>
+<ul class="">
+<li><code><a title="ateams.arithmetic.Persistence.ComputePercolationEvents" href="#ateams.arithmetic.Persistence.ComputePercolationEvents">ComputePercolationEvents</a></code></li>
+<li><code><a title="ateams.arithmetic.Persistence.ReindexBoundary" href="#ateams.arithmetic.Persistence.ReindexBoundary">ReindexBoundary</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

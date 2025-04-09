@@ -1,5 +1,5 @@
 
-from ateams.arithmetic import SparseKernelBasisReduced, SparseKernelBasis, KernelBasis, FINT, MatrixReduction
+from ateams.arithmetic import Kernel, FINT, MatrixReduction
 from galois import GF
 import numpy as np
 import sys
@@ -12,8 +12,12 @@ shapes = [(50,60), (60,50), (50,50)]
 # shapes = [(3,5), (5,3), (3,3)]
 # shapes = [(9,12), (12,9), (12,12)]
 
-sparse = bool(int(sys.argv[-2]))
-parallel = bool(int(sys.argv[-1]))
+try:
+	sparse = bool(int(sys.argv[-2]))
+	parallel = bool(int(sys.argv[-1]))
+except:
+	sparse = True
+	parallel = True
 
 sp = "SPARSE" if sparse else "DENSE"
 par = "PARALLEL" if parallel else "SERIAL"
@@ -59,12 +63,13 @@ with tqdm(total=len(shapes)*N, dynamic_ncols=True, desc=DESC) as bar:
 			empty = np.empty(shape=(0,0), dtype=FINT)
 
 			M = MatrixReduction(p, parallel, 16, 32, 2)
-			M.RREF(B, AUGMENT)
 			
-			if sparse: C = np.asarray(SparseKernelBasisReduced(empty, M, AUGMENT))
-			else: C = np.asarray(SparseKernelBasis(pivots, empty, addition, subtraction, negation, multiplication, inverses, B, AUGMENT, parallel, 16, 32, 2))
+			# if sparse: C = np.asarray(SparseKernelBasisReduced(empty, M, AUGMENT))
+			# else: C = np.asarray(SparseKernelBasis(pivots, empty, addition, subtraction, negation, multiplication, inverses, B, AUGMENT, parallel, 16, 32, 2))
+			A = np.random.randint(0, p, size=shape, dtype=FINT)
+			C = Kernel(M, A)
 				
-			K = A.null_space()
+			K = F(A).null_space()
 
 			print("######## END REDUCTION")
 

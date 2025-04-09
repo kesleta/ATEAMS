@@ -201,7 +201,7 @@ and returns the corresponding cocycle.</p>
 </dd>
 <dt id="ateams.models.InvadedCluster"><code class="flex name class">
 <span>class <span class="ident">InvadedCluster</span></span>
-<span>(</span><span>L, homology=1, stop=&lt;function InvadedCluster.&lt;lambda&gt;&gt;)</span>
+<span>(</span><span>L,<br>homology=1,<br>stop=&lt;function InvadedCluster.&lt;lambda&gt;&gt;,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes the plaquette invaded-cluster algorithm on the provided
@@ -217,114 +217,207 @@ complex.</dd>
 <dt><strong><code>stop</code></strong> :&ensp;<code>function</code></dt>
 <dd>A function that returns the number of essential cycles
 found before sampling the next configuration.</dd>
+<dt><strong><code>sparse</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrices be formatted sparsely? (Uses C/C++).</dd>
+<dt><strong><code>parallel</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
+<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the smallest
+number of columns processed in parallel.</dd>
+<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the largest
+number of columns processed in parallel.</dd>
+<dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
+<dd>Number of available CPUs/cores/threads on the machine.</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class InvadedCluster(Model):
-    name = &#34;InvadedCluster&#34;
-    
-    def __init__(self, L, homology=1, stop=lambda: 0):
-        &#34;&#34;&#34;
-        Initializes the plaquette invaded-cluster algorithm on the provided
-        integer lattice, detecting percolation in the `homology`-th homology
-        group.
-
-        Args:
-            L (Lattice): The `Lattice` object on which we&#39;ll be running experiments.
-            homology (int=1): Computing the `homology`th homology group of the
-                complex.
-            stop (function): A function that returns the number of essential cycles
-                found before sampling the next configuration.
-        &#34;&#34;&#34;
-        self.lattice = L
-        self.homology = homology
-        self.stop = stop
-
-        # Change the Lattice&#39;s dimension and construct an initial spin configuration.
-        # We have to change the lattice&#39;s dimension and reconstruct the boundary
-        # matrix, though.
-        self.spins = self.initial()
-        self.lattice.dimension = homology
-
-        self.coboundary = boundaryMatrix(L.boundary, self.homology, L.field).T
-
-        # Pre-construct the boundary matrix.
-        self.phatBoundary = phat.boundary_matrix()
-        self.times = set(range(len(self.lattice.flattened)))
-        self.indices = np.arange(*self.lattice.tranches[homology])
-        self.dimension = max(self.lattice.reindexed.keys())
-
-        # Precompute some other stuff in the interest of speed.
-        self.lower = sum([
-            list(product([d], np.sort(self.lattice.reindexed[d]).tolist()))
-            if d &gt; 0 else [(0, [])]*len(self.lattice.reindexed[d])
-            for d in range(homology)
-        ], [])
-
-        self.highest = sum([
-            list(product([d], np.sort(self.lattice.reindexed[d]).tolist()))
-            for d in range(homology+2, self.dimension+1)
-        ], [])
-    
-    
-    def initial(self):
-        &#34;&#34;&#34;
-        Computes a uniform random initial spin configuration.
-
-        Returns:
-            A Galois `Array` of independent uniform random draws from the field
-            of coefficients.
-        &#34;&#34;&#34;
-        return self.lattice.field.Random(len(self.lattice.boundary[self.homology-1]))
-    
-
-    def proposal(self, time):
-        &#34;&#34;&#34;
-        Proposal scheme for plaquette invaded-cluster. Each &#34;step&#34; in the chain
-        is the set of spins from which a giant cycle first emerges (i.e. the
-        &#34;homological percolation&#34; event).
-
-        Args:
-            time (int): Step in the chain; not used.
-
-        Returns:
-            A `(galois.FieldArray, numpy.ndarray, numpy.ndarray)` triplet representing
-            the proposed spin configuration, the occupied plaquettes at each
-            occurrence of homological percolation, and the satisfied plaquettes.
-        &#34;&#34;&#34;
-        # print(self.stop())
-        spins, occupied, satisfied = essentialCyclesBorn(
-            self.phatBoundary,
-            self.coboundary,
-            self.lattice.boundary,
-            self.lattice.reindexed,
-            self.lattice.tranches,
-            self.homology,
-            self.lattice.field,
-            self.spins,
-            self.times,
-            self.indices,
-            self.lower,
-            self.highest,
-            self.stop()
-        )
-
-        return spins, occupied, satisfied
-    
-
-    def assign(self, cocycle):
-        &#34;&#34;&#34;
-        Updates mappings from faces to spins and cubes to occupations.
-
-        Args:
-            cocycle (galois.FieldArray): Cocycle on the sublattice.
+        name = &#34;InvadedCluster&#34;
         
-        Returns:
-            Nothing.
-        &#34;&#34;&#34;
-        self.spins = cocycle</code></pre>
+        def __init__(self, L, homology=1, stop=lambda: 1, sparse=True, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4):
+                &#34;&#34;&#34;
+                Initializes the plaquette invaded-cluster algorithm on the provided
+                integer lattice, detecting percolation in the `homology`-th homology
+                group.
+
+                Args:
+                        L (Lattice): The `Lattice` object on which we&#39;ll be running experiments.
+                        homology (int=1): Computing the `homology`th homology group of the
+                                complex.
+                        stop (function): A function that returns the number of essential cycles
+                                found before sampling the next configuration.
+                        sparse (boolean): Should matrices be formatted sparsely? (Uses C/C++).
+                        parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
+                        minBlockSize (int=32): If `parallel` is truthy, this is the smallest
+                                number of columns processed in parallel.
+                        maxBlockSize (int=64): If `parallel` is truthy, this is the largest
+                                number of columns processed in parallel.
+                        cores (int=4): Number of available CPUs/cores/threads on the machine.
+                &#34;&#34;&#34;
+                self.lattice = L
+                self.homology = homology
+                self.stop = stop
+                self.sparse = sparse
+
+                self.parallel = parallel
+                self.minBlockSize = minBlockSize
+                self.maxBlockSize = maxBlockSize
+                self.cores = cores
+
+                # Use the `Persistence` and `MatrixReduction` objects to speed up computations.
+                self.MatrixReduction = MatrixReduction(self.lattice.field.characteristic, self.parallel, self.minBlockSize, self.maxBlockSize, self.cores)
+                self.Persistence = Persistence(self.homology, self.lattice.field.characteristic, self.lattice.flattened)
+
+                # Set an initial spin configuration. After we assign this, we use PHAT
+                # if we&#39;re working over Z/2Z coefficients, or the Zomorodian/Edelsbrunner
+                # algorithm otherwise.
+                self.spins = self.initial()
+                self.coboundary = boundaryMatrix(L.boundary, self.homology, L.field).astype(FINT).T
+                self._initializeProposal()
+
+                # Pre-load arguments for re-indexing the boundary matrix.
+                self.reindexSparseBoundaryMatrix = partial(
+                        reindexSparseBoundaryMatrix,
+                        self.homology,
+                        self.lattice.tranches,
+                        self.targetIndices
+                )
+
+        
+        def _initializeProposal(self):
+                t = self.lattice.tranches
+                p = self.lattice.field.characteristic
+
+                # Indices of each cell and dimensions.
+                dimensions = np.array(sum([
+                        [d]*(t[d,1]-t[d,0]) for d in range(len(t)) if d &lt; self.homology+2
+                ],[]), dtype=FINT)
+
+                times = np.array(range(t[1][0], len(dimensions))).astype(FINT)
+                self.targetIndices = np.arange(*t[self.homology], dtype=FINT)
+                self.identity = np.identity(self.coboundary.shape[1], dtype=FINT)
+
+                # Premake the &#34;occupied cells&#34; array; change the dimension of the lattice
+                # to correspond to the provided dimension.
+                self.rank = comb(len(self.lattice.corners), self.homology)
+                self.nullity = len(self.lattice.boundary[self.homology])
+
+                # If p &gt; 2, we use the simplified Edelsbrunner/Zomorodian persistence
+                # algorithm; otherwise, we use PHAT (Bauer et al.).
+                if p &gt; 2:
+                        self.computeGiantCyclePairs = self.Persistence.ComputePercolationEvents
+                else:
+                        def phattified(phatBoundary, dimensions, times, filtration):
+                                flattened = self.Persistence.ReindexBoundary(filtration)
+                                
+                                dimensionalFlattened = [
+                                        (d, sorted(f)) if d &gt; 0 else (d, [])
+                                        for d, f in zip(dimensions, flattened)
+                                ]
+
+                                phatBoundary.columns = dimensionalFlattened
+                                _births, _deaths = zip(*phatBoundary.compute_persistence_pairs())
+                                births = set(_births)
+                                deaths = set(_deaths)
+
+                                return set(
+                                        e for e in times-(births|deaths)
+                                        if t[self.homology][0] &lt;= e &lt; t[self.homology][1]
+                                )
+
+                        self.computeGiantCyclePairs = partial(
+                                phattified,
+                                phat.boundary_matrix(),
+                                dimensions,
+                                set(times)
+                        )
+        
+        
+        def initial(self):
+                &#34;&#34;&#34;
+                Computes a uniform random initial spin configuration.
+
+                Returns:
+                        A Galois `Array` of independent uniform random draws from the field
+                        of coefficients.
+                &#34;&#34;&#34;
+                return self.lattice.field.Random(len(self.lattice.boundary[self.homology-1]))
+        
+
+        def proposal(self, time):
+                &#34;&#34;&#34;
+                Proposal scheme for plaquette invaded-cluster. Each &#34;step&#34; in the chain
+                is the set of spins from which a giant cycle first emerges (i.e. the
+                &#34;homological percolation&#34; event).
+
+                Args:
+                        time (int): Step in the chain; not used.
+
+                Returns:
+                        A `(galois.FieldArray, numpy.ndarray, numpy.ndarray)` triplet representing
+                        the proposed spin configuration, the occupied plaquettes at each
+                        occurrence of homological percolation, and the satisfied plaquettes.
+                &#34;&#34;&#34;
+                boundary = self.lattice.boundary
+                homology = self.homology
+                cochain = self.spins
+
+                # Determine the satisfied plaquettes and re-index the sparse boundary
+                # matrix.
+                cycles = evaluateCochain(boundary[homology], cochain).astype(FINT)
+                filtration, shuffledIndices, satisfiedIndices = self.reindexSparseBoundaryMatrix(cycles)
+
+                # Find essential cycles.
+                essential = self.computeGiantCyclePairs(filtration)
+        
+                # Now, make sure we know when *all* the essential cycles are born.
+                j = 0
+                stop = self.stop()
+                occupied = np.zeros((self.rank, self.nullity))
+                satisfied = np.zeros(self.nullity)
+                low, high = self.lattice.tranches[homology]
+
+                # For each essential cycle born...
+                for t in sorted(essential):
+                        # Determine which cells were included at the time the cycle was born, and
+                        # construct three assignments: the *occupied* cells, the *satisfied* cells,
+                        # and a new spin assignment on the *faces* of the cells.
+                        occupiedIndices = shuffledIndices[:t-low]
+                        occupied[j][occupiedIndices] = 1
+
+                        # Only sample the next cocycle from the time we homologically percolate,
+                        # not after.
+                        if (j+1) == stop:
+                                # subbasis = np.concatenate([
+                                #       self.coboundary.take(occupiedIndices, axis=0).T,
+                                #       self.identity
+                                # ], axis=1, dtype=FINT)
+                                spins = KernelSample(self.MatrixReduction, self.coboundary.take(occupiedIndices, axis=0))
+                                # self.MatrixReduction.RREF(subbasis, len(occupiedIndices))
+                                # spins = SparseSampleFromKernelReduced(self.MatrixReduction, len(occupiedIndices))
+                                spins = self.lattice.field(spins)
+
+                        j += 1
+                
+                satisfied[satisfiedIndices] = 1
+
+                return spins, occupied, satisfied
+        
+
+        def assign(self, cocycle):
+                &#34;&#34;&#34;
+                Updates mappings from faces to spins and cubes to occupations.
+
+                Args:
+                        cocycle (galois.FieldArray): Cocycle on the sublattice.
+                
+                Returns:
+                        Nothing.
+                &#34;&#34;&#34;
+                self.spins = cocycle</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -380,60 +473,9 @@ occurrence of homological percolation, and the satisfied plaquettes.</p></div>
 </dd>
 </dl>
 </dd>
-<dt id="ateams.models.Model"><code class="flex name class">
-<span>class <span class="ident">Model</span></span>
-</code></dt>
-<dd>
-<div class="desc"><p><code><a title="ateams.models.Model" href="#ateams.models.Model">Model</a></code> class template from which all other <code><a title="ateams.models.Model" href="#ateams.models.Model">Model</a></code>s inherit: they must
-have each of the <code>proposal()</code> and <code>initial()</code> methods.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Model:
-    name = &#34;&#34;
-    def __init__(self):
-        &#34;&#34;&#34;
-        `Model` class template from which all other `Model`s inherit: they must
-        have each of the `proposal()` and `initial()` methods.
-        &#34;&#34;&#34;
-        pass
-    def proposal(self): pass
-    def initial(self): pass
-    # def energy(self): pass</code></pre>
-</details>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li>ateams.models.Glauber.Glauber</li>
-<li>ateams.models.InvadedCluster.InvadedCluster</li>
-<li>ateams.models.SwendsenWang.SwendsenWang</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="ateams.models.Model.name"><code class="name">var <span class="ident">name</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="ateams.models.Model.initial"><code class="name flex">
-<span>def <span class="ident">initial</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ateams.models.Model.proposal"><code class="name flex">
-<span>def <span class="ident">proposal</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
 <dt id="ateams.models.SwendsenWang"><code class="flex name class">
 <span>class <span class="ident">SwendsenWang</span></span>
-<span>(</span><span>L, temperatureFunction=&lt;function constant.&lt;locals&gt;._&gt;, initial=None)</span>
+<span>(</span><span>L,<br>temperatureFunction=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes Swendsen-Wang evolution on the Potts model.</p>
@@ -453,80 +495,99 @@ scheduled temperature at time <code>t</code>.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class SwendsenWang(Model):
-    name = &#34;SwendsenWang&#34;
-    
-    def __init__(self, L, temperatureFunction=constant(-0.6), initial=None):
-        &#34;&#34;&#34;
-        Initializes Swendsen-Wang evolution on the Potts model.
-
-        Args:
-            L: The `Lattice` object on which we&#39;ll be running experiments.
-            temperatureFunction (Callable): A temperature schedule function which
-                takes a single positive integer argument `t`, and returns the
-                scheduled temperature at time `t`.
-            initial (galois.FieldArray): A vector of spin assignments to components.
-        &#34;&#34;&#34;
-        self.lattice = L
-        self.temperatureFunction = temperatureFunction
-        self.faceCells = len(self.lattice.boundary[self.lattice.dimension-1])
-        self.cubeCells = len(self.lattice.boundary[self.lattice.dimension])
-
-        # SW defaults.
-        self.spins = initial if initial else self.initial()
-
-
-    def initial(self):
-        &#34;&#34;&#34;
-        Computes an initial state for the model&#39;s Lattice.
-
-        Returns:
-            A Galois `Array` representing a vector of spin assignments.
-        &#34;&#34;&#34;
-        return self.lattice.field.Random(self.faceCells)
-    
-
-    def proposal(self, time):
-        &#34;&#34;&#34;
-        Proposal scheme for generalized Swendsen-Wang evolution on the Potts model.
-
-        Args:
-            time (int): Step in the chain.
-
-        Returns:
-            A Galois `Array` representing a vector of spin assignments.
-        &#34;&#34;&#34;
-        # Compute the probability of choosing any individual cube in the complex.
-        self.temperature = self.temperatureFunction(time)
-        p = 1-np.exp(self.temperature)
-        assert 0 &lt;= p &lt;= 1
-
-        # Choose cubes to include; in effect, this just does a boatload of indexing.
-        uniforms = np.random.uniform(size=self.cubeCells)
-        include = (uniforms &lt; p).nonzero()[0]
-        boundary = self.lattice.boundary[self.lattice.dimension][include]
-        boundaryValues = evaluateCochain(boundary, self.spins)
-        zeros = (boundaryValues == 0).nonzero()[0]
-
-        satisfied = np.zeros(len(self.lattice.boundary[self.lattice.dimension])).astype(int)
-        satisfied[zeros] = 1
-
-        # Uniformly randomly sample a cocycle on the sublattice admitted by the
-        # chosen edges; reconstruct the labeling on the entire lattice by
-        # subbing in the values of c which differ from existing ones.
-        return sampleFromKernel(self.lattice.matrices.coboundary, self.lattice.field, includes=zeros), satisfied
-    
-
-    def assign(self, cocycle):
-        &#34;&#34;&#34;
-        Updates mappings from faces to spins and cubes to occupations.
-
-        Args:
-            cocycle (galois.FieldArray): Cocycle on the sublattice.
+        name = &#34;SwendsenWang&#34;
         
-        Returns:
-            None.
-        &#34;&#34;&#34;
-        self.spins = cocycle</code></pre>
+        def __init__(self, L, temperatureFunction=constant(-0.6), initial=None, sparse=True, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4):
+                &#34;&#34;&#34;
+                Initializes Swendsen-Wang evolution on the Potts model.
+
+                Args:
+                        L: The `Lattice` object on which we&#39;ll be running experiments.
+                        temperatureFunction (Callable): A temperature schedule function which
+                                takes a single positive integer argument `t`, and returns the
+                                scheduled temperature at time `t`.
+                        initial (galois.FieldArray): A vector of spin assignments to components.
+                &#34;&#34;&#34;
+                self.lattice = L
+                self.temperatureFunction = temperatureFunction
+                self.faceCells = len(self.lattice.boundary[self.lattice.dimension-1])
+                self.cubeCells = len(self.lattice.boundary[self.lattice.dimension])
+
+                self.sparse = sparse
+                self.parallel = parallel
+                self.minBlockSize = minBlockSize
+                self.maxBlockSize = maxBlockSize
+                self.cores = cores
+
+                self.coboundary = self.lattice.matrices.coboundary.astype(FINT)
+                self.Reducer = MatrixReduction(self.lattice.field.characteristic, parallel, minBlockSize, maxBlockSize, cores)
+                self.identity = np.identity(self.coboundary.shape[1], dtype=FINT)
+                self.SampleFromKernel = KernelSample
+
+                # SW defaults.
+                self.spins = initial if initial else self.initial()
+
+
+        def initial(self):
+                &#34;&#34;&#34;
+                Computes an initial state for the model&#39;s Lattice.
+
+                Returns:
+                        A Galois `Array` representing a vector of spin assignments.
+                &#34;&#34;&#34;
+                return self.lattice.field.Random(self.faceCells)
+        
+
+        def proposal(self, time):
+                &#34;&#34;&#34;
+                Proposal scheme for generalized Swendsen-Wang evolution on the Potts model.
+
+                Args:
+                        time (int): Step in the chain.
+
+                Returns:
+                        A Galois `Array` representing a vector of spin assignments.
+                &#34;&#34;&#34;
+                # Compute the probability of choosing any individual cube in the complex.
+                self.temperature = self.temperatureFunction(time)
+                p = 1-np.exp(self.temperature)
+                assert 0 &lt;= p &lt;= 1
+
+                # Choose cubes to include; in effect, this just does a boatload of indexing.
+                uniforms = np.random.uniform(size=self.cubeCells)
+                include = (uniforms &lt; p).nonzero()[0]
+                boundary = self.lattice.boundary[self.lattice.dimension][include]
+                boundaryValues = evaluateCochain(boundary, self.spins)
+                zeros = (boundaryValues == 0).nonzero()[0]
+
+                satisfied = np.zeros(len(self.lattice.boundary[self.lattice.dimension])).astype(int)
+                satisfied[zeros] = 1
+
+                # subbasis = np.concatenate([
+                #       self.coboundary.take(zeros, axis=0).T,
+                #       self.identity
+                # ], axis=1, dtype=FINT)
+                # self.Reducer.RREF(subbasis, len(zeros))
+                spins = self.SampleFromKernel(self.Reducer, self.coboundary.take(zeros, axis=0))
+                spins = self.lattice.field(spins)
+
+                # Uniformly randomly sample a cocycle on the sublattice admitted by the
+                # chosen edges; reconstruct the labeling on the entire lattice by
+                # subbing in the values of c which differ from existing ones.
+                return spins, satisfied
+        
+
+        def assign(self, cocycle):
+                &#34;&#34;&#34;
+                Updates mappings from faces to spins and cubes to occupations.
+
+                Args:
+                        cocycle (galois.FieldArray): Cocycle on the sublattice.
+                
+                Returns:
+                        None.
+                &#34;&#34;&#34;
+                self.spins = cocycle</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -656,14 +717,6 @@ column-count: 1 !important;
 <li><code><a title="ateams.models.InvadedCluster.initial" href="#ateams.models.InvadedCluster.initial">initial</a></code></li>
 <li><code><a title="ateams.models.InvadedCluster.name" href="#ateams.models.InvadedCluster.name">name</a></code></li>
 <li><code><a title="ateams.models.InvadedCluster.proposal" href="#ateams.models.InvadedCluster.proposal">proposal</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="ateams.models.Model" href="#ateams.models.Model">Model</a></code></h4>
-<ul class="">
-<li><code><a title="ateams.models.Model.initial" href="#ateams.models.Model.initial">initial</a></code></li>
-<li><code><a title="ateams.models.Model.name" href="#ateams.models.Model.name">name</a></code></li>
-<li><code><a title="ateams.models.Model.proposal" href="#ateams.models.Model.proposal">proposal</a></code></li>
 </ul>
 </li>
 <li>

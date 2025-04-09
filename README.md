@@ -3,11 +3,15 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14284172.svg)](https://doi.org/10.5281/zenodo.14284172)
 
 ## Installation
-Clone this repository by `git clone https://github.com/apizzimenti/ateams.git`, navigate into the project's root, and run `sh setup.sh` in your favorite terminal. This installs the `ateams` package (and its dependencies) globally in development mode, so any changes you make to the source are reflected system-wide. **Please read the installation note in `setup.sh` to ensure PHAT is correctly installed on your system.**
+Clone this repository by `git clone https://github.com/apizzimenti/ateams.git`, navigate into the project's root, and run `make install` in your favorite terminal. This installs the `ateams` package (and its dependencies) globally in development mode, so any changes you make to the source are reflected system-wide.
+
+### Notes:
+* **Read the installation note in `setup.py` to ensure PHAT is correctly installed on your system.**
+* **Ensure you have a C/C++ compiler that supports the `-fopenmp` compilation and linking flags.**
 
 ## Example Use
 
-This sample code runs the plaquette invaded-cluster algorithm on a 64x64 cubical 2-torus.
+This sample code runs the plaquette invaded-cluster algorithm on a 64x64 cubical $2$-torus with coefficients in the finite field $\mathbb F_3$.
 
 ```python
 from ateams.structures import Lattice

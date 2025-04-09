@@ -31,9 +31,14 @@ hljs.highlightAll();
 <p>The <strong>A</strong>lgebraic <strong>t</strong>opology-<strong>e</strong>nabled <strong>a</strong>lgorith<strong>m</strong>s for <strong>s</strong>pin systems(<strong>ATEAMS</strong>) library is a high-performance software suite for conducting experiments on lattice spin models. The main attractions are the <em>plaquette <a href="http://arxiv.org/abs/cond-mat/9605103">invaded-cluster</a></em> and <em>plaquette <a href="https://link.aps.org/doi/10.1103/PhysRevLett.58.86">Swendsen-Wang</a></em> algorithms for simulating Markov chains on cubical lattices of any dimension.</p>
 <p><a href="https://doi.org/10.5281/zenodo.14284172"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.14284172.svg"></a></p>
 <h2 id="installation">Installation</h2>
-<p>Clone this repository by <code>git clone https://github.com/apizzimenti/ateams.git</code>, navigate into the project's root, and run <code>sh setup.sh</code> in your favorite terminal. This installs the <code><a title="ateams" href="#ateams">ateams</a></code> package (and its dependencies) globally in development mode, so any changes you make to the source are reflected system-wide. <strong>Please read the installation note in <code>setup.sh</code> to ensure PHAT is correctly installed on your system.</strong></p>
+<p>Clone this repository by <code>git clone https://github.com/apizzimenti/ateams.git</code>, navigate into the project's root, and run <code>make install</code> in your favorite terminal. This installs the <code><a title="ateams" href="#ateams">ateams</a></code> package (and its dependencies) globally in development mode, so any changes you make to the source are reflected system-wide.</p>
+<h3 id="notes">Notes:</h3>
+<ul>
+<li><strong>Read the installation note in <code>setup.py</code> to ensure PHAT is correctly installed on your system.</strong></li>
+<li><strong>Ensure you have a C/C++ compiler that supports the <code>-fopenmp</code> compilation and linking flags.</strong></li>
+</ul>
 <h2 id="example-use">Example Use</h2>
-<p>This sample code runs the plaquette invaded-cluster algorithm on a 64x64 cubical 2-torus.</p>
+<p>This sample code runs the plaquette invaded-cluster algorithm on a 64x64 cubical $2$-torus with coefficients in the finite field $\mathbb F_3$.</p>
 <pre><code class="language-python">from ateams.structures import Lattice
 from ateams.models import InvadedCluster
 from ateams import Chain
@@ -139,7 +144,10 @@ column-count: 1 !important;
 <div class="toc">
 <ul>
 <li><a href="#ateams">ATEAMS</a></li>
-<li><a href="#installation">Installation</a></li>
+<li><a href="#installation">Installation</a><ul>
+<li><a href="#notes">Notes:</a></li>
+</ul>
+</li>
 <li><a href="#example-use">Example Use</a></li>
 <li><a href="#citing">Citing</a><ul>
 <li><a href="#bibtex">BibTeX</a></li>

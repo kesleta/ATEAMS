@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.3">
-<title>ateam.arithmetic.cubicalComplex API documentation</title>
+<title>ateams.arithmetic.cubicalComplex API documentation</title>
 <meta name="description" content="">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
@@ -24,7 +24,7 @@ hljs.highlightAll();
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>ateam.arithmetic.cubicalComplex</code></h1>
+<h1 class="title">Module <code>ateams.arithmetic.cubicalComplex</code></h1>
 </header>
 <section id="section-intro">
 </section>
@@ -35,7 +35,7 @@ hljs.highlightAll();
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="ateam.arithmetic.cubicalComplex.boundaryMatrix"><code class="name flex">
+<dt id="ateams.arithmetic.cubicalComplex.boundaryMatrix"><code class="name flex">
 <span>def <span class="ident">boundaryMatrix</span></span>(<span>Complex, D, F)</span>
 </code></dt>
 <dd>
@@ -54,7 +54,7 @@ and finite field.</p>
 <h2 id="returns">Returns</h2>
 <p>Galois <code>Array</code> representing the signed boundary matrix for the <code>Complex</code>.</p></div>
 </dd>
-<dt id="ateam.arithmetic.cubicalComplex.cubicalComplex"><code class="name flex">
+<dt id="ateams.arithmetic.cubicalComplex.cubicalComplex"><code class="name flex">
 <span>def <span class="ident">cubicalComplex</span></span>(<span>corners, D, F, periodic=True)</span>
 </code></dt>
 <dd>
@@ -78,14 +78,20 @@ of corners specified). For example, if <code>periodic</code> is falsy, then
 <code>corners = [3,3]</code> hands back a 4x4 grid (zero-indexed).</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><code>A triplet</code></dt>
-<dd>a <code>dict</code> mapping vertex indices to integer coordinates; a</dd>
-</dl>
-<p><code>dict</code> mapping dimensions to boundary matrices; a <code>galois.FieldArray</code>
-representing the signed boundary matrix for the complex.</p></div>
+<p>A triplet containing</p>
+<ol>
+<li>
+<p>a <code>dict</code> mapping vertex indices to integer coordinates</p>
+</li>
+<li>
+<p>a <code>dict</code> mapping dimensions to boundary matrices</p>
+</li>
+<li>
+<p>a <code>galois.FieldArray</code> representing the signed boundary matrix for the complex.</p>
+</li>
+</ol></div>
 </dd>
-<dt id="ateam.arithmetic.cubicalComplex.flatten"><code class="name flex">
+<dt id="ateams.arithmetic.cubicalComplex.flatten"><code class="name flex">
 <span>def <span class="ident">flatten</span></span>(<span>Complex, D)</span>
 </code></dt>
 <dd>
@@ -107,14 +113,16 @@ representing the signed boundary matrix for the complex.</p></div>
 <code>Complex</code> object; the third is a flattened, reindexed <code>Complex</code> object
 (for use with PHAT).</p></div>
 </dd>
-<dt id="ateam.arithmetic.cubicalComplex.hammingCube"><code class="name flex">
-<span>def <span class="ident">hammingCube</span></span>(<span>D)</span>
+<dt id="ateams.arithmetic.cubicalComplex.hammingCube"><code class="name flex">
+<span>def <span class="ident">hammingCube</span></span>(<span>D, cutoff)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Constructs a Hamming cube of dimension D.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>D</code></strong> :&ensp;<code>int</code></dt>
+<dd>Overall dimension.</dd>
+<dt><strong><code>cutoff</code></strong> :&ensp;<code>int</code></dt>
 <dd>Top dimension.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -143,12 +151,12 @@ proof.appendChild(square);
 }
 </script>
 <header>
-<a class="homelink" rel="home" title="potts" href="https://github.com/apizzimenti/potts">
+<a class="homelink" rel="home" title="ATEAM" href="https://github.com/apizzimenti/ateam">
 <style>
 header > h1 { display: none; }
 img.resize {
-max-width: 80%;
-max-height: 80%;
+max-width: 90%;
+max-height: 90%;
 display: block;
 margin: 0 auto;
 }
@@ -162,8 +170,17 @@ margin: 1em auto;
 margin-top: -2em;
 float: right;
 }
+#section-intro {
+text-align: justify;
+}
+#sidebar {
+width: 20%;
+}
+#index .two-column {
+column-count: 1 !important;
+}
 </style>
-<img class="resize" src="https://github.com/apizzimenti/potts/blob/main/docs/lattice.gif?raw=true" alt="iteration on the Potts model">
+<img class="resize" src="https://github.com/apizzimenti/ateam/blob/main/docs/lattice-55.jpeg?raw=true" alt="Homological percolation on the torus.">
 </a>
 </header>
 <div class="toc">
@@ -172,15 +189,15 @@ float: right;
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="ateam.arithmetic" href="index.html">ateam.arithmetic</a></code></li>
+<li><code><a title="ateams.arithmetic" href="index.html">ateams.arithmetic</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="ateam.arithmetic.cubicalComplex.boundaryMatrix" href="#ateam.arithmetic.cubicalComplex.boundaryMatrix">boundaryMatrix</a></code></li>
-<li><code><a title="ateam.arithmetic.cubicalComplex.cubicalComplex" href="#ateam.arithmetic.cubicalComplex.cubicalComplex">cubicalComplex</a></code></li>
-<li><code><a title="ateam.arithmetic.cubicalComplex.flatten" href="#ateam.arithmetic.cubicalComplex.flatten">flatten</a></code></li>
-<li><code><a title="ateam.arithmetic.cubicalComplex.hammingCube" href="#ateam.arithmetic.cubicalComplex.hammingCube">hammingCube</a></code></li>
+<li><code><a title="ateams.arithmetic.cubicalComplex.boundaryMatrix" href="#ateams.arithmetic.cubicalComplex.boundaryMatrix">boundaryMatrix</a></code></li>
+<li><code><a title="ateams.arithmetic.cubicalComplex.cubicalComplex" href="#ateams.arithmetic.cubicalComplex.cubicalComplex">cubicalComplex</a></code></li>
+<li><code><a title="ateams.arithmetic.cubicalComplex.flatten" href="#ateams.arithmetic.cubicalComplex.flatten">flatten</a></code></li>
+<li><code><a title="ateams.arithmetic.cubicalComplex.hammingCube" href="#ateams.arithmetic.cubicalComplex.hammingCube">hammingCube</a></code></li>
 </ul>
 </li>
 </ul>

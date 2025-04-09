@@ -18,8 +18,11 @@ profile: FORCE
 sparse: quick
 	@cd test && zsh test.arithmetic.matrices.sh
 
-docs:
-	sh docs.sh
+docs: FORCE quick
+	./docs.sh
+
+install: FORCE build
+	pip install -e . --config-settings editable_mode=compat
 
 clean:
 	@rm -f ateams/*.c*

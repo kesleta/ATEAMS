@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.3">
-<title>ateams.Chain API documentation</title>
+<title>ateams.arithmetic.common API documentation</title>
 <meta name="description" content="">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
@@ -24,7 +24,7 @@ hljs.highlightAll();
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>ateams.Chain</code></h1>
+<h1 class="title">Module <code>ateams.arithmetic.common</code></h1>
 </header>
 <section id="section-intro">
 </section>
@@ -37,109 +37,72 @@ hljs.highlightAll();
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="ateams.Chain.Chain"><code class="flex name class">
-<span>class <span class="ident">Chain</span></span>
-<span>(</span><span>model,<br>accept=&lt;function always.&lt;locals&gt;._&gt;,<br>statistics={},<br>steps=10000)</span>
+<dt id="ateams.arithmetic.common.int16"><code class="flex name class">
+<span>class <span class="ident">FINT</span></span>
+<span>(</span><span>...)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Simulates a Markov chain on the given Model.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>model</code></strong> :&ensp;<code>Model</code></dt>
-<dd>An instantiated descendant of <code>Model</code> (e.g. <code>HomologicalPercolation</code>)
-generating the Markov chain.</dd>
-<dt><strong><code>accept</code></strong> :&ensp;<code>Callable</code></dt>
-<dd>A function which consumes the lattice, model, and
-state to determine whether we're going to a good place.</dd>
-<dt><strong><code>statistics</code></strong> :&ensp;<code>dict</code></dt>
-<dd>A mapping of names to functions which take the lattice
-as an argument. The Chain keeps track of these at each iteration
-and stores whatever output is given.</dd>
-<dt><strong><code>steps</code></strong> :&ensp;<code>int</code></dt>
-<dd>The number of iterations in the chain.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Chain:
-    def __init__(self, model, accept=always(), statistics={}, steps=10000):
-        &#34;&#34;&#34;
-        Simulates a Markov chain on the given Model.
-
-        Args:
-            model (Model): An instantiated descendant of `Model` (e.g. `HomologicalPercolation`)
-                generating the Markov chain.
-            accept (Callable): A function which consumes the lattice, model, and
-                state to determine whether we&#39;re going to a good place.
-            statistics (dict): A mapping of names to functions which take the lattice
-                as an argument. The Chain keeps track of these at each iteration
-                and stores whatever output is given.
-            steps (int): The number of iterations in the chain.
-        &#34;&#34;&#34;
-        self.model = model
-        self.steps = steps
-        self.accept = accept
-
-        # Store stats and things.
-        self.functions = statistics
-        self.statistics = { name: [] for name in self.functions.keys() }
-
-
-    def __iter__(self):
-        &#34;&#34;&#34;
-        Initializes the Chain object as a generator.
-        &#34;&#34;&#34;
-        self.step = 0
-        self.state = self.model.spins
-        return self
-    
-
-    def __next__(self):
-        &#34;&#34;&#34;
-        Performs the computations specified by the proposal and acceptance schemes.
-        &#34;&#34;&#34;
-        # While we haven&#39;t reached the max number of steps, propose a new plan,
-        # check whether it&#39;s acceptable/valid, and continue.
-        while self.step &lt; self.steps:
-            # Propose the next state and check whether we want to accept it as
-            # the next state or not; assign whichever state is chosen to the
-            # Model.
-            proposed = self.model.proposal(self.step)
-            self.state = proposed if self.accept(self.state, proposed, self.step) else self.state
-            self.model.assign(self.state[0])
-
-            # Compute statistics.
-            for name, function in self.functions.items():
-                self.statistics[name].append(function(self.model, self.state))
-            
-            # Iterate.
-            self.step += 1
-            
-            return self.state
-        
-        raise StopIteration
-    
-    
-    def progress(self, dynamic_ncols=True, desc=&#34;&#34;):
-        &#34;&#34;&#34;
-        Progress bar.
-
-        Returns:
-            `tqdm` iterable.
-        &#34;&#34;&#34;
-        from tqdm.auto import tqdm
-        return tqdm(self, total=self.steps, dynamic_ncols=dynamic_ncols, desc=desc)</code></pre>
-</details>
+<div class="desc"><p>Signed integer type, compatible with C <code>short</code>.</p>
+<p>:Character code: <code>'h'</code>
+:Canonical name: <code>numpy.short</code>
+:Alias on this platform (Darwin arm64): <code>numpy.int16</code>: 16-bit signed integer (<code>-32_768</code> to <code>32_767</code>).</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>numpy.signedinteger</li>
+<li>numpy.integer</li>
+<li>numpy.number</li>
+<li>numpy.generic</li>
+</ul>
 <h3>Methods</h3>
 <dl>
-<dt id="ateams.Chain.Chain.progress"><code class="name flex">
-<span>def <span class="ident">progress</span></span>(<span>self, dynamic_ncols=True, desc='')</span>
+<dt id="ateams.arithmetic.common.int16.bit_count"><code class="name flex">
+<span>def <span class="ident">bit_count</span></span>(<span>...)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Progress bar.</p>
-<h2 id="returns">Returns</h2>
-<p><code>tqdm</code> iterable.</p></div>
+<div class="desc"><p>int16.bit_count() -&gt; int</p>
+<p>Computes the number of 1-bits in the absolute value of the input.
+Analogous to the builtin <code>int.bit_count</code> or <code>popcount</code> in C++.</p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; np.int16(127).bit_count()
+7
+&gt;&gt;&gt; np.int16(-127).bit_count()
+7
+</code></pre></div>
+</dd>
+</dl>
+</dd>
+<dt id="ateams.arithmetic.common.int64"><code class="flex name class">
+<span>class <span class="ident">MINT</span></span>
+<span>(</span><span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Signed integer type, compatible with Python <code>int</code> and C <code>long</code>.</p>
+<p>:Character code: <code>'l'</code>
+:Canonical name: <code>numpy.int_</code>
+:Alias on this platform (Darwin arm64): <code>numpy.int64</code>: 64-bit signed integer (<code>-9_223_372_036_854_775_808</code> to <code>9_223_372_036_854_775_807</code>).
+:Alias on this platform (Darwin arm64): <code>numpy.intp</code>: Signed integer large enough to fit pointer, compatible with C <code>intptr_t</code>.</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>numpy.signedinteger</li>
+<li>numpy.integer</li>
+<li>numpy.number</li>
+<li>numpy.generic</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.arithmetic.common.int64.bit_count"><code class="name flex">
+<span>def <span class="ident">bit_count</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>int64.bit_count() -&gt; int</p>
+<p>Computes the number of 1-bits in the absolute value of the input.
+Analogous to the builtin <code>int.bit_count</code> or <code>popcount</code> in C++.</p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; np.int64(127).bit_count()
+7
+&gt;&gt;&gt; np.int64(-127).bit_count()
+7
+</code></pre></div>
 </dd>
 </dl>
 </dd>
@@ -201,15 +164,21 @@ column-count: 1 !important;
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="ateams" href="index.html">ateams</a></code></li>
+<li><code><a title="ateams.arithmetic" href="index.html">ateams.arithmetic</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="ateams.Chain.Chain" href="#ateams.Chain.Chain">Chain</a></code></h4>
+<h4><code><a title="ateams.arithmetic.common.int16" href="#ateams.arithmetic.common.int16">int16</a></code></h4>
 <ul class="">
-<li><code><a title="ateams.Chain.Chain.progress" href="#ateams.Chain.Chain.progress">progress</a></code></li>
+<li><code><a title="ateams.arithmetic.common.int16.bit_count" href="#ateams.arithmetic.common.int16.bit_count">bit_count</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ateams.arithmetic.common.int64" href="#ateams.arithmetic.common.int64">int64</a></code></h4>
+<ul class="">
+<li><code><a title="ateams.arithmetic.common.int64.bit_count" href="#ateams.arithmetic.common.int64.bit_count">bit_count</a></code></li>
 </ul>
 </li>
 </ul>

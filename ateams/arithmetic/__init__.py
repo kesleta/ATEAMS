@@ -1,15 +1,29 @@
 
 from .common import FINT, SFINT, MINT
 from .SparsePersistence import Persistence
-from .Sparse import Matrix, MatrixReduction
-from .linalg import KernelBasis, SampleFromKernel, SparseKernelBasis, SparseSampleFromKernel, SparseKernelBasisReduced, SparseSampleFromKernelReduced
+from .Sparse import MatrixReduction
+from .linalg import Kernel, KernelSample
 from .cubicalComplex import cubicalComplex, boundaryMatrix, flatten
 from .fastiteration import energy
 from .reindexing import reindexSparseBoundaryMatrix
 from .persistence import computeGiantCyclePairs
-from .linearAlgebra import sampleFromKernel, autocorrelation, evaluateCochain, isNullHomologous
+from .linearAlgebra import autocorrelation, evaluateCochain, isNullHomologous
+
+
+__pdoc__ = {}
+__pdoc__["ateams.arithmetic.persistence"] = False
+__pdoc__["ateams.arithmetic.linearAlgebra"] = False
+__pdoc__["ateams.arithmetic.linalg.KernelBasis"] = False
+__pdoc__["ateams.arithmetic.linalg.SampleFromKernel"] = False
+__pdoc__["ateams.arithmetic.cubicalComplex"] = False
+__pdoc__["ateams.arithmetic.fastiteration"] = False
+__pdoc__["ateams.arithmetic.reindexing"] = False
+
+__pdoc__["ateams.arithmetic.common.MINT"] = "Global \"machine integer\" data type; this is equivalent to the C `int` data type."
+__pdoc__["ateams.arithmetic.common.FINT"] = "Global \"finite field integer\" data type"
+__pdoc__["ateams.arithmetic.common.SFINT"] = False
 
 __all__ = [
-	"sampleFromKernel", "evaluateCochain", "cubicalComplex", "boundaryMatrix",
-	"isNullHomologous", "autocorrelation", "essentialCyclesBorn", "computeGiantCyclePairs"
+	"Persistence", "MatrixReduction", "Kernel", "KernelSample"
 ]
+

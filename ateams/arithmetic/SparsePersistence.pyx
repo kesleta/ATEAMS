@@ -8,7 +8,6 @@ import numpy as np
 cimport numpy as np
 
 from cython.operator cimport dereference
-# from cython.parallel cimport prange
 from libcpp.unordered_set cimport unordered_set as Set
 from libcpp.set cimport set as OrderedSet
 from libcpp.unordered_map cimport unordered_map as Map
@@ -17,6 +16,10 @@ from libc.math cimport pow
 
 
 cdef class Persistence:
+	"""
+	Computes the persistent homology of a complex with coefficients
+	in an arbitrary finite field.
+	"""
 	def __init__(
 			self,
 			int homology,
@@ -30,9 +33,23 @@ cdef class Persistence:
 				we do computations.
 			flattened (list): List-of-lists representing the *original* flattened
 				boundary matrix for the complex.
-			tranches (np.ndarray): `tranches` property of the `Lattice` object.
-			dimensions (np.ndarray): The dimension of each cell.
-			
+
+		The code below computes the birth times of giant cycles (in this case,
+		elements of the first homology group) on the default
+		\(3 \\times 3\) cubical torus: the filtration stored in `filtration`
+		adds each cube to the cubical complex in order of construction. At
+		completion, `events` contains the times `{17, 21}` which correspond to
+		crossings of the meridian and equator of the torus, respectively.
+		
+			from ateams.arithmetic import Persistence
+			from ateams.structures import Lattice
+			...
+			L = Lattice().fromCorners([3,3], field=3)
+			P = Persistence(1, L.field.characteristic, L.flattened)
+			...
+			filtration = np.arange(len(L.flattened))
+			events = P.ComputePercolationEvents(filtration)
+		
 		"""
 		self.homology = homology;
 		self.characteristic = characteristic;
@@ -110,6 +127,14 @@ cdef class Persistence:
 	cpdef Vector[Vector[int]] ReindexBoundary(self, INDEXFLAT filtration) noexcept:
 		"""
 		Re-indexes the boundary matrix according to the given filtration.
+
+		Args:
+			filtration (np.array): `NumPy` array specifying the order in which
+				cells from the complex are added.
+
+		Returns:
+			A C++ `std::vector` (cast as a `NumPy` array) containing the reindexed
+			boundary matrix.
 		"""
 		cdef int t, i, j, filtered, unfiltered, face, N, M, dimension, start, stop, please;
 		cdef Vector[int] faces, indices, temp;
@@ -153,7 +178,7 @@ cdef class Persistence:
 			flattened (list): Sparse boundary matrix.
 
 		Returns:
-			`std::vector` representing the same data.
+			C++ `std::vector` (cast as as `NumPy` array) representing the same data.
 		"""
 		cdef Vector[Vector[int]] outer;
 		cdef Vector[int] inner, dimensions;
@@ -210,6 +235,21 @@ cdef class Persistence:
 
 
 	cdef OrderedSet[int] Eliminate(self, int youngest, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept:
+		"""
+		Performs Gaussian elimination on the row specified by `faceCoefficients`
+		and the row with a pivot in column `youngest`.
+
+		.. WARNING: Cannot be called from Python; internal only.
+
+		Args:
+			youngest (int): Pivot column.
+			faces (std::set): Ordered set of faces.
+			faceCoefficients (&std::unordered_map[int,FFINT]): Unordered map taking
+				indices to coefficients; this represents a row in the matrix.
+
+		Returns:
+			`std::set` of remaining faces.
+		"""
 		cdef Vector[int] entriesIterable;
 		cdef int i, entry, N;
 		cdef FFINT _q, inverse, q, entryCoefficient, faceCoefficient, mul, add;
@@ -315,14 +355,13 @@ cdef class Persistence:
 
 		Args:
 			filtration (np.array): Order in which cells are added.
-			boundary (list): Flattened boundary matrix.
 
 		Returns:
 			A `set` of times at which homological percolation occurs.
 		"""
 		# Flush the set of marked indices, adding premarked ones.
 		self.__flushDataStructures();
-		events = OrderedSet[int]();
+		cdef OrderedSet[int] events = OrderedSet[int]();
 
 		# Construct the boundary matrix for this filtration; variables for
 		# objects.

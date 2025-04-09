@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.3">
-<title>ateams.Chain API documentation</title>
+<title>ateams.arithmetic.Sparse API documentation</title>
 <meta name="description" content="">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
@@ -24,7 +24,7 @@ hljs.highlightAll();
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>ateams.Chain</code></h1>
+<h1 class="title">Module <code>ateams.arithmetic.Sparse</code></h1>
 </header>
 <section id="section-intro">
 </section>
@@ -37,109 +37,90 @@ hljs.highlightAll();
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="ateams.Chain.Chain"><code class="flex name class">
-<span>class <span class="ident">Chain</span></span>
-<span>(</span><span>model,<br>accept=&lt;function always.&lt;locals&gt;._&gt;,<br>statistics={},<br>steps=10000)</span>
+<dt id="ateams.arithmetic.Sparse.MatrixReduction"><code class="flex name class">
+<span>class <span class="ident">MatrixReduction</span></span>
+<span>(</span><span>...)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Simulates a Markov chain on the given Model.</p>
+<div class="desc"><p>A class for putting matrices over finite fields into reduced row echelon form
+(RREF); works faster than comparable method in the <code>galois</code> library, accelerated
+by sparse matrix methods and cached finite field arithmetic.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>model</code></strong> :&ensp;<code>Model</code></dt>
-<dd>An instantiated descendant of <code>Model</code> (e.g. <code>HomologicalPercolation</code>)
-generating the Markov chain.</dd>
-<dt><strong><code>accept</code></strong> :&ensp;<code>Callable</code></dt>
-<dd>A function which consumes the lattice, model, and
-state to determine whether we're going to a good place.</dd>
-<dt><strong><code>statistics</code></strong> :&ensp;<code>dict</code></dt>
-<dd>A mapping of names to functions which take the lattice
-as an argument. The Chain keeps track of these at each iteration
-and stores whatever output is given.</dd>
-<dt><strong><code>steps</code></strong> :&ensp;<code>int</code></dt>
-<dd>The number of iterations in the chain.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Chain:
-    def __init__(self, model, accept=always(), statistics={}, steps=10000):
-        &#34;&#34;&#34;
-        Simulates a Markov chain on the given Model.
+<dt><strong><code>characteristic</code></strong> :&ensp;<code>int</code></dt>
+<dd>Characteristic of the finite field.</dd>
+<dt><strong><code>parallel</code></strong> :&ensp;<code>bool=False</code></dt>
+<dd>Should computations be done in parallel?
+Defaults to <code>False</code>.</dd>
+<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
+<dd>Smallest number of columns reduced by a
+single thread at one time.</dd>
+<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
+<dd>Largest number of columns reduced by a
+single thread at one time.</dd>
+<dt><strong><code>cores</code></strong> :&ensp;<code>int=2</code></dt>
+<dd>Number of cores/threads available for use at run-time.</dd>
+</dl>
+<p>Suppose we need to compute a basis for the kernel of an <span><span class="MathJax_Preview">m \times n</span><script type="math/tex">m \times n</script></span> matrix <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>
+with entries in the finite field <span><span class="MathJax_Preview">\mathbb F_3</span><script type="math/tex">\mathbb F_3</script></span>. The standard algorithm
+for kernel computation is as follows:</p>
+<ol>
+<li>create an augmented matrix <span><span class="MathJax_Preview">C</span><script type="math/tex">C</script></span> by adjoining the identity matrix <span><span class="MathJax_Preview">I_n</span><script type="math/tex">I_n</script></span> on the right of <span><span class="MathJax_Preview">A^\top</span><script type="math/tex">A^\top</script></span>, so <span><span class="MathJax_Preview">C= \left[ A^\top \mid I_n \right]</span><script type="math/tex">C= \left[ A^\top \mid I_n \right]</script></span>;</li>
+<li>put <span><span class="MathJax_Preview">C</span><script type="math/tex">C</script></span> in RREF, so <span><span class="MathJax_Preview">C = \left[ P \mid K \right]</span><script type="math/tex">C = \left[ P \mid K \right]</script></span>;</li>
+<li>the rows of <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span> corresponding to zero rows of <span><span class="MathJax_Preview">P</span><script type="math/tex">P</script></span> form a basis for the kernel of <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>.</li>
+</ol>
+<p>The below example does this computation.</p>
+<pre><code>    import numpy as np
+    from ateams.arithmetic import MatrixReduction, FINT, SparseKernelBasisReduced
 
-        Args:
-            model (Model): An instantiated descendant of `Model` (e.g. `HomologicalPercolation`)
-                generating the Markov chain.
-            accept (Callable): A function which consumes the lattice, model, and
-                state to determine whether we&#39;re going to a good place.
-            statistics (dict): A mapping of names to functions which take the lattice
-                as an argument. The Chain keeps track of these at each iteration
-                and stores whatever output is given.
-            steps (int): The number of iterations in the chain.
-        &#34;&#34;&#34;
-        self.model = model
-        self.steps = steps
-        self.accept = accept
+    # Construct a matrix A with random entries over F_3.
+    F = 3
+    m, n = 50, 60
+    A = np.random.randint(0, F, size=(m,n))
+    I = np.identity(n)
+    C = np.concatenate([A.T, I], axis=1, dtype=FINT)
 
-        # Store stats and things.
-        self.functions = statistics
-        self.statistics = { name: [] for name in self.functions.keys() }
+    # Initialize the MatrixReduction object with the order of the field,
+    # then reduce.
+    M = MatrixReduction(F)
+    M.RREF(C, m)
 
+    # Find the highest zero row, then slice the matrix to get the rows
+    # of the augmented matrix corresponding to the basis.
+    high = M.HighestZeroRow(m)
+    reduced = M.ToArray()[:,:m]
+    basis = reduced[high:]
 
-    def __iter__(self):
-        &#34;&#34;&#34;
-        Initializes the Chain object as a generator.
-        &#34;&#34;&#34;
-        self.step = 0
-        self.state = self.model.spins
-        return self
-    
-
-    def __next__(self):
-        &#34;&#34;&#34;
-        Performs the computations specified by the proposal and acceptance schemes.
-        &#34;&#34;&#34;
-        # While we haven&#39;t reached the max number of steps, propose a new plan,
-        # check whether it&#39;s acceptable/valid, and continue.
-        while self.step &lt; self.steps:
-            # Propose the next state and check whether we want to accept it as
-            # the next state or not; assign whichever state is chosen to the
-            # Model.
-            proposed = self.model.proposal(self.step)
-            self.state = proposed if self.accept(self.state, proposed, self.step) else self.state
-            self.model.assign(self.state[0])
-
-            # Compute statistics.
-            for name, function in self.functions.items():
-                self.statistics[name].append(function(self.model, self.state))
-            
-            # Iterate.
-            self.step += 1
-            
-            return self.state
-        
-        raise StopIteration
-    
-    
-    def progress(self, dynamic_ncols=True, desc=&#34;&#34;):
-        &#34;&#34;&#34;
-        Progress bar.
-
-        Returns:
-            `tqdm` iterable.
-        &#34;&#34;&#34;
-        from tqdm.auto import tqdm
-        return tqdm(self, total=self.steps, dynamic_ncols=dynamic_ncols, desc=desc)</code></pre>
-</details>
+    # The above is implemented as a convenience method:
+    basis = Kernel(M, A)
+</code></pre></div>
 <h3>Methods</h3>
 <dl>
-<dt id="ateams.Chain.Chain.progress"><code class="name flex">
-<span>def <span class="ident">progress</span></span>(<span>self, dynamic_ncols=True, desc='')</span>
+<dt id="ateams.arithmetic.Sparse.MatrixReduction.HighestZeroRow"><code class="name flex">
+<span>def <span class="ident">HighestZeroRow</span></span>(<span>self, AUGMENT=-1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Progress bar.</p>
+<div class="desc"><p>Report the first lowest-indexed zero row; if no such row exists,
+report -1. If nonnegative AUGMENT is passed, we check for the first row
+with AUGMENT leading zeros.</p></div>
+</dd>
+<dt id="ateams.arithmetic.Sparse.MatrixReduction.RREF"><code class="name flex">
+<span>def <span class="ident">RREF</span></span>(<span>self, A, AUGMENT=-1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the RREF of the matrix <code>A</code>, assuming all pivots are in columns
+of index less than <code>AUGMENT</code>; if <code>AUGMENT</code> is not provided, all columns
+may contain pivots.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>A</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>A 2D <code>NumPy</code> array.</dd>
+<dt><strong><code>AUGMENT</code></strong> :&ensp;<code>int=-1</code></dt>
+<dd>All pivot columns are to the left of this column;
+if <code>-1</code>, all columns are processed.</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p><code>tqdm</code> iterable.</p></div>
+<p>A typed <code>MemoryView</code> containing the RREF of <code>A</code>.</p></div>
 </dd>
 </dl>
 </dd>
@@ -201,15 +182,16 @@ column-count: 1 !important;
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="ateams" href="index.html">ateams</a></code></li>
+<li><code><a title="ateams.arithmetic" href="index.html">ateams.arithmetic</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="ateams.Chain.Chain" href="#ateams.Chain.Chain">Chain</a></code></h4>
+<h4><code><a title="ateams.arithmetic.Sparse.MatrixReduction" href="#ateams.arithmetic.Sparse.MatrixReduction">MatrixReduction</a></code></h4>
 <ul class="">
-<li><code><a title="ateams.Chain.Chain.progress" href="#ateams.Chain.Chain.progress">progress</a></code></li>
+<li><code><a title="ateams.arithmetic.Sparse.MatrixReduction.HighestZeroRow" href="#ateams.arithmetic.Sparse.MatrixReduction.HighestZeroRow">HighestZeroRow</a></code></li>
+<li><code><a title="ateams.arithmetic.Sparse.MatrixReduction.RREF" href="#ateams.arithmetic.Sparse.MatrixReduction.RREF">RREF</a></code></li>
 </ul>
 </li>
 </ul>
