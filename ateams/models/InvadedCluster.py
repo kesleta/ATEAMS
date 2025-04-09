@@ -6,7 +6,6 @@ from math import comb
 
 from ..arithmetic import (
 	KernelSample,
-	# SparseSampleFromKernelReduced,
 	boundaryMatrix,
 	evaluateCochain,
 	reindexSparseBoundaryMatrix,
@@ -174,13 +173,7 @@ class InvadedCluster(Model):
 			# Only sample the next cocycle from the time we homologically percolate,
 			# not after.
 			if (j+1) == stop:
-				# subbasis = np.concatenate([
-				# 	self.coboundary.take(occupiedIndices, axis=0).T,
-				# 	self.identity
-				# ], axis=1, dtype=FINT)
 				spins = KernelSample(self.MatrixReduction, self.coboundary.take(occupiedIndices, axis=0))
-				# self.MatrixReduction.RREF(subbasis, len(occupiedIndices))
-				# spins = SparseSampleFromKernelReduced(self.MatrixReduction, len(occupiedIndices))
 				spins = self.lattice.field(spins)
 
 			j += 1
