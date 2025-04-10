@@ -21,7 +21,6 @@ sync.sh
 # Ignore *most* testing stuff.
 test/sync.profiles.sh
 # test/*.txt
-test/*.json
 test/*.prof
 test/.hopper*
 test/.pangolin*
