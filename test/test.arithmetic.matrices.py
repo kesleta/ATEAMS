@@ -11,6 +11,7 @@ F = GF(p)
 shapes = [(50,60), (60,50), (50,50)]
 # shapes = [(3,5), (5,3), (3,3)]
 # shapes = [(9,12), (12,9), (12,12)]
+# shapes = [(500,500)]
 
 try:
 	sparse = bool(int(sys.argv[-2]))

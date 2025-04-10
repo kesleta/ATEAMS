@@ -469,7 +469,7 @@ cpdef TABLECONTIG Kernel(
 		TABLE A
 	) noexcept:
 	"""
-	Returns a basis for the kernel of A.
+	Returns a basis for the kernel of `A`.
 
 	Args:
 		M (MatrixReduction): A `MatrixReduction` object.
@@ -534,7 +534,8 @@ cpdef np.ndarray[FFINT, ndim=1, negative_indices=False, mode="c"] KernelSample(
 		MatrixReduction M, TABLE A
 	) noexcept:
 	"""
-	Draws a uniform random sample from the kernel of the matrix stored in `M`.
+	Draws a uniform random sample from the kernel of `A` using the `MatrixReduction`
+	object `M`.
 
 	Args:
 		M (MatrixReduction): Contains the RREF form of a matrix.

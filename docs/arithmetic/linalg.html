@@ -39,7 +39,7 @@ hljs.highlightAll();
 <span>def <span class="ident">Kernel</span></span>(<span>M, A)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Returns a basis for the kernel of A.</p>
+<div class="desc"><p>Returns a basis for the kernel of <code>A</code>.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>M</code></strong> :&ensp;<code>MatrixReduction</code></dt>
@@ -54,7 +54,8 @@ hljs.highlightAll();
 <span>def <span class="ident">KernelSample</span></span>(<span>M, A)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Draws a uniform random sample from the kernel of the matrix stored in <code>M</code>.</p>
+<div class="desc"><p>Draws a uniform random sample from the kernel of <code>A</code> using the <code>MatrixReduction</code>
+object <code>M</code>.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>M</code></strong> :&ensp;<code>MatrixReduction</code></dt>
@@ -93,8 +94,8 @@ proof.appendChild(square);
 <style>
 header > h1 { display: none; }
 img.resize {
-max-width: 90%;
-max-height: 90%;
+max-width: 13vw;
+max-height: 13vw;
 display: block;
 margin: 0 auto;
 }
@@ -112,10 +113,13 @@ float: right;
 text-align: justify;
 }
 #sidebar {
-width: 20%;
+width: 15vw;
 }
 #index .two-column {
 column-count: 1 !important;
+}
+#ateams {
+margin-top: 0;
 }
 </style>
 <img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">

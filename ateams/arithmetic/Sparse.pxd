@@ -30,7 +30,7 @@ cdef class MatrixReduction:
 	cdef Vector[Vector[int]] blockSchema
 
 	cdef void _initializeColumns(self, TABLECONTIG A) noexcept
-	cdef TABLECONTIG ToArray(self) noexcept
+	cpdef TABLECONTIG ToArray(self) noexcept
 
 	cdef void SwapRows(self, int i, int j)
 	cdef void AddRows(self, int i, int j, FFINT ratio) noexcept

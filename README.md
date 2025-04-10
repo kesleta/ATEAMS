@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14284172.svg)](https://doi.org/10.5281/zenodo.14284172)
 
-ATEAMS is designed for high-performance simulation of the _Potts_ and _random-cluster_ models in cubical complexes of arbitrary dimension and scale. The linear algebra subroutines supporting these programs are tailored to this application — matrix reduction over finite fields — are implemented in C/C++ using cached 16-bit integer arithmetic. The option to perform these operations in parallel, making computations on large systems manageable with high-performance computers with extremely low memory overhead.
+ATEAMS is designed for high-performance simulation of the _Potts_ and _random-cluster_ models in cubical complexes of arbitrary dimension and scale. The linear algebra subroutines supporting these programs are tailored to this application — matrix reduction over finite fields — and are implemented in C/C++ using cached 16-bit integer arithmetic.
 
 ## Installation
 Clone this repository by `git clone https://github.com/apizzimenti/ateams.git`, navigate into the project's root, and run `make install` in your favorite terminal. This installs the `ateams` package (and its dependencies) globally in development mode, so any changes you make to the source are reflected system-wide.

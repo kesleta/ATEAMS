@@ -346,7 +346,11 @@ cdef class MatrixReduction:
 		return self.zero if self.zero <= AUGMENT else -1
 	
 
-	cdef TABLECONTIG ToArray(self) noexcept: return self.data
+	cpdef TABLECONTIG ToArray(self) noexcept:
+		"""
+		Returns the matrix stored in 
+		"""
+		return self.data
 	
 
 	cpdef TABLECONTIG RREF(self, TABLECONTIG A, int AUGMENT=-1) noexcept:
