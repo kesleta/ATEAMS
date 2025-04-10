@@ -123,31 +123,35 @@ for kernel computation is as follows:</p>
 <li>put <span><span class="MathJax_Preview">C</span><script type="math/tex">C</script></span> in RREF, so <span><span class="MathJax_Preview">C = \left[ P \mid K \right]</span><script type="math/tex">C = \left[ P \mid K \right]</script></span>;</li>
 <li>the rows of <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span> corresponding to zero rows of <span><span class="MathJax_Preview">P</span><script type="math/tex">P</script></span> form a basis for the kernel of <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>.</li>
 </ol>
-<p>The below example does this computation.</p>
+<p>Code to perform these computations looks like</p>
 <pre><code>    import numpy as np
-    from ateams.arithmetic import MatrixReduction, FINT, SparseKernelBasisReduced
+    from ateams.arithmetic import MatrixReduction, FINT, Kernel
 
-    # Construct a matrix A with random entries over F_3.
     F = 3
     m, n = 50, 60
     A = np.random.randint(0, F, size=(m,n))
     I = np.identity(n)
     C = np.concatenate([A.T, I], axis=1, dtype=FINT)
 
-    # Initialize the MatrixReduction object with the order of the field,
-    # then reduce.
     M = MatrixReduction(F)
     M.RREF(C, m)
 
-    # Find the highest zero row, then slice the matrix to get the rows
-    # of the augmented matrix corresponding to the basis.
     high = M.HighestZeroRow(m)
     reduced = M.ToArray()[:,:m]
     basis = reduced[high:]
+</code></pre>
+<p>But can be shortened to</p>
+<pre><code>    import numpy as np
+    from ateams.arithmetic import MatrixReduction, FINT, Kernel
 
-    # The above is implemented as a convenience method:
+    F = 3
+    m, n = 50, 60
+    A = np.random.randint(0, F, size=(m,n), dtype=FINT)
+
+    M = MatrixReduction(F)
     basis = Kernel(M, A)
-</code></pre></div>
+</code></pre>
+<p>Using the <code><a title="ateams.arithmetic.Kernel" href="#ateams.arithmetic.Kernel">Kernel()</a></code> convenience method.</p></div>
 <h3>Methods</h3>
 <dl>
 <dt id="ateams.arithmetic.MatrixReduction.HighestZeroRow"><code class="name flex">

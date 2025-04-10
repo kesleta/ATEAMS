@@ -268,7 +268,7 @@ number of columns processed in parallel.</dd>
                 self.cores = cores
 
                 # Use the `Persistence` and `MatrixReduction` objects to speed up computations.
-                self.MatrixReduction = MatrixReduction(self.lattice.field.characteristic, self.parallel, self.minBlockSize, self.maxBlockSize, self.cores)
+                self.Reducer = MatrixReduction(self.lattice.field.characteristic, self.parallel, self.minBlockSize, self.maxBlockSize, self.cores)
                 self.Persistence = Persistence(self.homology, self.lattice.field.characteristic, self.lattice.flattened)
 
                 # Set an initial spin configuration. After we assign this, we use PHAT
@@ -391,13 +391,7 @@ number of columns processed in parallel.</dd>
                         # Only sample the next cocycle from the time we homologically percolate,
                         # not after.
                         if (j+1) == stop:
-                                # subbasis = np.concatenate([
-                                #       self.coboundary.take(occupiedIndices, axis=0).T,
-                                #       self.identity
-                                # ], axis=1, dtype=FINT)
-                                spins = KernelSample(self.MatrixReduction, self.coboundary.take(occupiedIndices, axis=0))
-                                # self.MatrixReduction.RREF(subbasis, len(occupiedIndices))
-                                # spins = SparseSampleFromKernelReduced(self.MatrixReduction, len(occupiedIndices))
+                                spins = KernelSample(self.Reducer, self.coboundary.take(occupiedIndices, axis=0))
                                 spins = self.lattice.field(spins)
 
                         j += 1

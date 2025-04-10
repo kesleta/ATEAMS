@@ -50,7 +50,7 @@ class InvadedCluster(Model):
 		self.cores = cores
 
 		# Use the `Persistence` and `MatrixReduction` objects to speed up computations.
-		self.MatrixReduction = MatrixReduction(self.lattice.field.characteristic, self.parallel, self.minBlockSize, self.maxBlockSize, self.cores)
+		self.Reducer = MatrixReduction(self.lattice.field.characteristic, self.parallel, self.minBlockSize, self.maxBlockSize, self.cores)
 		self.Persistence = Persistence(self.homology, self.lattice.field.characteristic, self.lattice.flattened)
 
 		# Set an initial spin configuration. After we assign this, we use PHAT
@@ -173,7 +173,7 @@ class InvadedCluster(Model):
 			# Only sample the next cocycle from the time we homologically percolate,
 			# not after.
 			if (j+1) == stop:
-				spins = KernelSample(self.MatrixReduction, self.coboundary.take(occupiedIndices, axis=0))
+				spins = KernelSample(self.Reducer, self.coboundary.take(occupiedIndices, axis=0))
 				spins = self.lattice.field(spins)
 
 			j += 1

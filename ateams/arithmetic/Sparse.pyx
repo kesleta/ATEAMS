@@ -47,31 +47,38 @@ cdef class MatrixReduction:
 		2. put \(C\) in RREF, so \(C = \left[ P \mid K \right]\);
 		3. the rows of \(K\) corresponding to zero rows of \(P\) form a basis for the kernel of \(A\).
 		
-		The below example does this computation.
+		Code to perform these computations looks like
 
 			import numpy as np
-			from ateams.arithmetic import MatrixReduction, FINT, SparseKernelBasisReduced
-			
-			# Construct a matrix A with random entries over F_3.
+			from ateams.arithmetic import MatrixReduction, FINT, Kernel
+
 			F = 3
 			m, n = 50, 60
 			A = np.random.randint(0, F, size=(m,n))
 			I = np.identity(n)
 			C = np.concatenate([A.T, I], axis=1, dtype=FINT)
 
-			# Initialize the MatrixReduction object with the order of the field,
-			# then reduce.
 			M = MatrixReduction(F)
 			M.RREF(C, m)
-
-			# Find the highest zero row, then slice the matrix to get the rows
-			# of the augmented matrix corresponding to the basis.
+			
 			high = M.HighestZeroRow(m)
 			reduced = M.ToArray()[:,:m]
 			basis = reduced[high:]
 
-			# The above is implemented as a convenience method:
+
+		But can be shortened to
+
+			import numpy as np
+			from ateams.arithmetic import MatrixReduction, FINT, Kernel
+			
+			F = 3
+			m, n = 50, 60
+			A = np.random.randint(0, F, size=(m,n), dtype=FINT)
+
+			M = MatrixReduction(F)
 			basis = Kernel(M, A)
+
+		Using the `Kernel` convenience method.
 		"""
 		# Initialize addition and multiplication tables.
 		self.characteristic = characteristic;

@@ -137,7 +137,7 @@ cdef class Persistence:
 			boundary matrix.
 		"""
 		cdef int t, i, j, filtered, unfiltered, face, N, M, dimension, start, stop, please;
-		cdef Vector[int] faces, indices, temp;
+		cdef Vector[int] faces, indices, temp, high;
 
 		N = self._boundary.size();
 		indices = Vector[int](N);
@@ -152,7 +152,7 @@ cdef class Persistence:
 		please = self._tranches[self.homology+1][1];
 
 		# Swaps elements when necessary, relabels elements when necessary.
-		for i in range(N):
+		for i in range(start, please+1):
 			# We're swapping elements of dimension `self.homology`:
 			if i >= start and i < stop:
 				filtered = filtration[i];
@@ -342,7 +342,7 @@ cdef class Persistence:
 			# If the column's empty, we've found a pivot, and we're done.
 			if youngestColumnEntries.empty(): break;
 
-			# Otherwise, get the coefficient for the youngest face, and eliminate.
+			# Otherwise, eliminate.
 			faces = self.Eliminate(youngest, faces, faceCoefficients);
 		
 		return faces;
