@@ -10,6 +10,7 @@ ateams.egg-info/
 *.o
 *.so
 *.c
+*.log
 build/
 
 # Ignore contents, but not directories.
