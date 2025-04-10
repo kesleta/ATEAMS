@@ -12,8 +12,13 @@ test: FORCE
 	@cd test && ./test.arithmetic.persistence.sh
 
 profile: FORCE
-	@cd test && ./profile.models.IC.sh 3 7 32 64 18
-	# @cd test && zsh profile.arithmetic.persistence.sh 5 6 6 32 64 2
+	@cd test && ./profile.models.NH.sh 3 4 32 64 2
+	@echo
+	@echo
+	@cd test && ./profile.models.SW.sh 3 4 32 64 2
+	@echo
+	@echo
+	@cd test && ./profile.models.IC.sh 3 4 32 64 2
 
 sparse: quick
 	@cd test && zsh test.arithmetic.matrices.sh

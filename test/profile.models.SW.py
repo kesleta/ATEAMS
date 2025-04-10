@@ -1,7 +1,7 @@
 
 import pstats, cProfile
 import pyximport
-import IC
+import SW
 import sys
 
 
@@ -24,14 +24,14 @@ except:
 
 pyximport.install()
 
-M = IC.construct(L, sparse, parallel, minBlockSize, maxBlockSize, cores)
+M = SW.construct(L, sparse, parallel, minBlockSize, maxBlockSize, cores)
 
 DESC = [str(int(thing)).ljust(10) for thing in [L, sparse, parallel, minBlockSize, maxBlockSize, cores]]
 DESC = " ".join(DESC)
 
-cProfile.runctx("IC.chain(M, DESC)", globals(), locals(), "Profile.prof")
+cProfile.runctx("SW.chain(M, DESC)", globals(), locals(), "Profile.prof")
 
-fname = f"./profiles/InvadedCluster/{L}{'.sparse' if sparse else ''}{'.parallel' if parallel else ''}{'.slurm' if slurm else ''}.txt"
+fname = f"./profiles/SwendsenWang/{L}{'.sparse' if sparse else ''}{'.parallel' if parallel else ''}{'.slurm' if slurm else ''}.txt"
 with open(fname, 'w') as stream:
     s = pstats.Stats('Profile.prof', stream=stream)
     s.strip_dirs().sort_stats("time").print_stats()

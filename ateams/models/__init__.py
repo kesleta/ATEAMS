@@ -1,4 +1,5 @@
 
+from .Nienhuis import Nienhuis
 from .SwendsenWang import SwendsenWang
 from .InvadedCluster import InvadedCluster
 from .Model import Model
@@ -11,5 +12,5 @@ __pdoc__["ateams.models.GraphSwendsenWang"] = False
 __pdoc__["ateams.models.Model"] = False
 
 __all__ = [
-    "SwendsenWang", "InvadedCluster", "Glauber"
+    "SwendsenWang", "InvadedCluster", "Glauber", "Nienhuis"
 ]

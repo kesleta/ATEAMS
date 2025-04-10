@@ -19,6 +19,13 @@ class SwendsenWang(Model):
 				takes a single positive integer argument `t`, and returns the
 				scheduled temperature at time `t`.
 			initial (galois.FieldArray): A vector of spin assignments to components.
+			sparse (boolean): Should matrices be formatted sparsely? (Uses C/C++).
+			parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
+			minBlockSize (int=32): If `parallel` is truthy, this is the smallest
+				number of columns processed in parallel.
+			maxBlockSize (int=64): If `parallel` is truthy, this is the largest
+				number of columns processed in parallel.
+			cores (int=4): Number of available CPUs/cores/threads on the machine.
 		"""
 		self.lattice = L
 		self.temperatureFunction = temperatureFunction
