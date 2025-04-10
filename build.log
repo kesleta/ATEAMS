@@ -1,0 +1,99 @@
+Compiling ateams/arithmetic/Sparse.pyx because it changed.
+Compiling ateams/arithmetic/SparsePersistence.pyx because it changed.
+Compiling ateams/arithmetic/cubicalComplex.pyx because it changed.
+Compiling ateams/arithmetic/linalg.pyx because it changed.
+Compiling ateams/arithmetic/persistence.pyx because it changed.
+[1/5] Cythonizing ateams/arithmetic/Sparse.pyx
+[2/5] Cythonizing ateams/arithmetic/SparsePersistence.pyx
+[3/5] Cythonizing ateams/arithmetic/cubicalComplex.pyx
+[4/5] Cythonizing ateams/arithmetic/linalg.pyx
+[5/5] Cythonizing ateams/arithmetic/persistence.pyx
+/Users/apizzimenti/.pyenv/versions/3.11.9/lib/python3.11/site-packages/setuptools/config/pyprojecttoml.py:108: _BetaConfiguration: Support for `[tool.setuptools]` in `pyproject.toml` is still *beta*.
+  warnings.warn(msg, _BetaConfiguration)
+running build_ext
+building 'ateams.arithmetic.Sparse' extension
+creating build
+creating build/temp.macosx-14.4-arm64-cpython-311
+creating build/temp.macosx-14.4-arm64-cpython-311/ateams
+creating build/temp.macosx-14.4-arm64-cpython-311/ateams/arithmetic
+gcc-14 -Wsign-compare -Wunreachable-code -DNDEBUG -g -fwrapv -O3 -Wall -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION -I/Users/apizzimenti/.pyenv/versions/3.11.9/lib/python3.11/site-packages/numpy/core/include -Iateams/arithmetic -I/Users/apizzimenti/.pyenv/versions/3.11.9/include/python3.11 -c ateams/arithmetic/Sparse.cpp -o build/temp.macosx-14.4-arm64-cpython-311/ateams/arithmetic/Sparse.o -std=c++20 -O4 -fopenmp -ffast-math -funroll-loops -flto
+ateams/arithmetic/Sparse.cpp: In function 'PyObject* __Pyx_Import(PyObject*, PyObject*, int)':
+ateams/arithmetic/Sparse.cpp:34886:48: warning: comparing the result of pointer addition '(((const char*)"ateams.arithmetic.Sparse") + 6)' and NULL [-Waddress]
+34886 |             if (strchr(__Pyx_MODULE_NAME, '.') != NULL) {
+      |                                                ^
+creating build/lib.macosx-14.4-arm64-cpython-311
+creating build/lib.macosx-14.4-arm64-cpython-311/ateams
+creating build/lib.macosx-14.4-arm64-cpython-311/ateams/arithmetic
+g++-14 -bundle -undefined dynamic_lookup -L/opt/homebrew/opt/readline/lib -L/opt/homebrew/opt/readline/lib -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -Wl,-rpath,/Users/apizzimenti/.pyenv/versions/3.11.9/lib -L/opt/homebrew/lib -Wl,-rpath,/opt/homebrew/lib -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib -L/opt/homebrew/opt/readline/lib -L/opt/homebrew/opt/readline/lib -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -Wl,-rpath,/Users/apizzimenti/.pyenv/versions/3.11.9/lib -L/opt/homebrew/lib -Wl,-rpath,/opt/homebrew/lib -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib build/temp.macosx-14.4-arm64-cpython-311/ateams/arithmetic/Sparse.o -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -o build/lib.macosx-14.4-arm64-cpython-311/ateams/arithmetic/Sparse.cpython-311-darwin.so -fopenmp
+ld: warning: duplicate -rpath '/Users/apizzimenti/.pyenv/versions/3.11.9/lib' ignored
+ld: warning: duplicate -rpath '/opt/homebrew/lib' ignored
+lto-wrapper: warning: using serial compilation of 4 LTRANS jobs
+lto-wrapper: note: see the '-flto' option documentation for more information
+ld: warning: duplicate -rpath '/Users/apizzimenti/.pyenv/versions/3.11.9/lib' ignored
+ld: warning: duplicate -rpath '/opt/homebrew/lib' ignored
+building 'ateams.arithmetic.SparsePersistence' extension
+gcc-14 -Wsign-compare -Wunreachable-code -DNDEBUG -g -fwrapv -O3 -Wall -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION -I/Users/apizzimenti/.pyenv/versions/3.11.9/lib/python3.11/site-packages/numpy/core/include -Iateams/arithmetic -I/Users/apizzimenti/.pyenv/versions/3.11.9/include/python3.11 -c ateams/arithmetic/SparsePersistence.cpp -o build/temp.macosx-14.4-arm64-cpython-311/ateams/arithmetic/SparsePersistence.o -std=c++20 -O4 -fopenmp -ffast-math -funroll-loops -flto
+ateams/arithmetic/SparsePersistence.cpp: In function 'PyObject* __Pyx_Import(PyObject*, PyObject*, int)':
+ateams/arithmetic/SparsePersistence.cpp:33905:48: warning: comparing the result of pointer addition '(((const char*)"ateams.arithmetic.SparsePersistence") + 6)' and NULL [-Waddress]
+33905 |             if (strchr(__Pyx_MODULE_NAME, '.') != NULL) {
+      |                                                ^
+g++-14 -bundle -undefined dynamic_lookup -L/opt/homebrew/opt/readline/lib -L/opt/homebrew/opt/readline/lib -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -Wl,-rpath,/Users/apizzimenti/.pyenv/versions/3.11.9/lib -L/opt/homebrew/lib -Wl,-rpath,/opt/homebrew/lib -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib -L/opt/homebrew/opt/readline/lib -L/opt/homebrew/opt/readline/lib -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -Wl,-rpath,/Users/apizzimenti/.pyenv/versions/3.11.9/lib -L/opt/homebrew/lib -Wl,-rpath,/opt/homebrew/lib -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib build/temp.macosx-14.4-arm64-cpython-311/ateams/arithmetic/SparsePersistence.o -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -o build/lib.macosx-14.4-arm64-cpython-311/ateams/arithmetic/SparsePersistence.cpython-311-darwin.so -fopenmp
+ld: warning: duplicate -rpath '/Users/apizzimenti/.pyenv/versions/3.11.9/lib' ignored
+ld: warning: duplicate -rpath '/opt/homebrew/lib' ignored
+lto-wrapper: warning: using serial compilation of 5 LTRANS jobs
+lto-wrapper: note: see the '-flto' option documentation for more information
+ld: warning: duplicate -rpath '/Users/apizzimenti/.pyenv/versions/3.11.9/lib' ignored
+ld: warning: duplicate -rpath '/opt/homebrew/lib' ignored
+building 'ateams.arithmetic.cubicalComplex' extension
+gcc-14 -Wsign-compare -Wunreachable-code -DNDEBUG -g -fwrapv -O3 -Wall -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION -I/Users/apizzimenti/.pyenv/versions/3.11.9/lib/python3.11/site-packages/numpy/core/include -Iateams/arithmetic -I/Users/apizzimenti/.pyenv/versions/3.11.9/include/python3.11 -c ateams/arithmetic/cubicalComplex.c -o build/temp.macosx-14.4-arm64-cpython-311/ateams/arithmetic/cubicalComplex.o -std=c++20 -O4 -fopenmp -ffast-math -funroll-loops -flto
+cc1: warning: command-line option '-std=c++20' is valid for C++/ObjC++ but not for C
+gcc-14 -bundle -undefined dynamic_lookup -L/opt/homebrew/opt/readline/lib -L/opt/homebrew/opt/readline/lib -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -Wl,-rpath,/Users/apizzimenti/.pyenv/versions/3.11.9/lib -L/opt/homebrew/lib -Wl,-rpath,/opt/homebrew/lib -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib -L/opt/homebrew/opt/readline/lib -L/opt/homebrew/opt/readline/lib -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -Wl,-rpath,/Users/apizzimenti/.pyenv/versions/3.11.9/lib -L/opt/homebrew/lib -Wl,-rpath,/opt/homebrew/lib -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib build/temp.macosx-14.4-arm64-cpython-311/ateams/arithmetic/cubicalComplex.o -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -o build/lib.macosx-14.4-arm64-cpython-311/ateams/arithmetic/cubicalComplex.cpython-311-darwin.so -fopenmp
+ld: warning: duplicate -rpath '/Users/apizzimenti/.pyenv/versions/3.11.9/lib' ignored
+ld: warning: duplicate -rpath '/opt/homebrew/lib' ignored
+lto-wrapper: warning: using serial compilation of 2 LTRANS jobs
+lto-wrapper: note: see the '-flto' option documentation for more information
+ld: warning: duplicate -rpath '/Users/apizzimenti/.pyenv/versions/3.11.9/lib' ignored
+ld: warning: duplicate -rpath '/opt/homebrew/lib' ignored
+building 'ateams.arithmetic.linalg' extension
+gcc-14 -Wsign-compare -Wunreachable-code -DNDEBUG -g -fwrapv -O3 -Wall -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION -I/Users/apizzimenti/.pyenv/versions/3.11.9/lib/python3.11/site-packages/numpy/core/include -Iateams/arithmetic -I/Users/apizzimenti/.pyenv/versions/3.11.9/include/python3.11 -c ateams/arithmetic/linalg.cpp -o build/temp.macosx-14.4-arm64-cpython-311/ateams/arithmetic/linalg.o -std=c++20 -O4 -fopenmp -ffast-math -funroll-loops -flto
+ateams/arithmetic/linalg.cpp: In function 'PyObject* __Pyx_Import(PyObject*, PyObject*, int)':
+ateams/arithmetic/linalg.cpp:33282:48: warning: comparing the result of pointer addition '(((const char*)"ateams.arithmetic.linalg") + 6)' and NULL [-Waddress]
+33282 |             if (strchr(__Pyx_MODULE_NAME, '.') != NULL) {
+      |                                                ^
+g++-14 -bundle -undefined dynamic_lookup -L/opt/homebrew/opt/readline/lib -L/opt/homebrew/opt/readline/lib -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -Wl,-rpath,/Users/apizzimenti/.pyenv/versions/3.11.9/lib -L/opt/homebrew/lib -Wl,-rpath,/opt/homebrew/lib -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib -L/opt/homebrew/opt/readline/lib -L/opt/homebrew/opt/readline/lib -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -Wl,-rpath,/Users/apizzimenti/.pyenv/versions/3.11.9/lib -L/opt/homebrew/lib -Wl,-rpath,/opt/homebrew/lib -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib build/temp.macosx-14.4-arm64-cpython-311/ateams/arithmetic/linalg.o -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -o build/lib.macosx-14.4-arm64-cpython-311/ateams/arithmetic/linalg.cpython-311-darwin.so -fopenmp
+ld: warning: duplicate -rpath '/Users/apizzimenti/.pyenv/versions/3.11.9/lib' ignored
+ld: warning: duplicate -rpath '/opt/homebrew/lib' ignored
+lto-wrapper: warning: using serial compilation of 5 LTRANS jobs
+lto-wrapper: note: see the '-flto' option documentation for more information
+ld: warning: duplicate -rpath '/Users/apizzimenti/.pyenv/versions/3.11.9/lib' ignored
+ld: warning: duplicate -rpath '/opt/homebrew/lib' ignored
+building 'ateams.arithmetic.persistence' extension
+gcc-14 -Wsign-compare -Wunreachable-code -DNDEBUG -g -fwrapv -O3 -Wall -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION -I/Users/apizzimenti/.pyenv/versions/3.11.9/lib/python3.11/site-packages/numpy/core/include -Iateams/arithmetic -I/Users/apizzimenti/.pyenv/versions/3.11.9/include/python3.11 -c ateams/arithmetic/persistence.c -o build/temp.macosx-14.4-arm64-cpython-311/ateams/arithmetic/persistence.o -std=c++20 -O4 -fopenmp -ffast-math -funroll-loops -flto
+cc1: warning: command-line option '-std=c++20' is valid for C++/ObjC++ but not for C
+In file included from ateams/arithmetic/persistence.c:1609:
+In function '__Pyx_XCLEAR_MEMVIEW',
+    inlined from '__pyx_f_6ateams_10arithmetic_11persistence_computeGiantCyclePairs.constprop.0.isra.0' at ateams/arithmetic/persistence.c:23777:3:
+ateams/arithmetic/persistence.c:1622:46: warning: '__atomic_fetch_sub_4' writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+ 1622 |     #define __pyx_atomic_decr_aligned(value) atomic_fetch_sub_explicit(value, 1, memory_order_acq_rel)
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~
+In function '__pyx_f_6ateams_10arithmetic_11persistence_computeGiantCyclePairs.constprop.0.isra.0':
+cc1: note: destination object is likely at address zero
+gcc-14 -bundle -undefined dynamic_lookup -L/opt/homebrew/opt/readline/lib -L/opt/homebrew/opt/readline/lib -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -Wl,-rpath,/Users/apizzimenti/.pyenv/versions/3.11.9/lib -L/opt/homebrew/lib -Wl,-rpath,/opt/homebrew/lib -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib -L/opt/homebrew/opt/readline/lib -L/opt/homebrew/opt/readline/lib -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -Wl,-rpath,/Users/apizzimenti/.pyenv/versions/3.11.9/lib -L/opt/homebrew/lib -Wl,-rpath,/opt/homebrew/lib -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib build/temp.macosx-14.4-arm64-cpython-311/ateams/arithmetic/persistence.o -L/Users/apizzimenti/.pyenv/versions/3.11.9/lib -o build/lib.macosx-14.4-arm64-cpython-311/ateams/arithmetic/persistence.cpython-311-darwin.so -fopenmp
+ld: warning: duplicate -rpath '/Users/apizzimenti/.pyenv/versions/3.11.9/lib' ignored
+ld: warning: duplicate -rpath '/opt/homebrew/lib' ignored
+lto-wrapper: warning: using serial compilation of 4 LTRANS jobs
+lto-wrapper: note: see the '-flto' option documentation for more information
+In function '__Pyx_XCLEAR_MEMVIEW',
+    inlined from '__pyx_f_6ateams_10arithmetic_11persistence_computeGiantCyclePairs.constprop.isra' at ateams/arithmetic/persistence.c:23777:3:
+ateams/arithmetic/persistence.c:33928:29: warning: '__atomic_fetch_sub_4' writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+33928 |     old_acquisition_count = __pyx_sub_acquisition_count(memview);
+      |                             ^
+In function '__pyx_f_6ateams_10arithmetic_11persistence_computeGiantCyclePairs.constprop.isra':
+lto1: note: destination object is likely at address zero
+ld: warning: duplicate -rpath '/Users/apizzimenti/.pyenv/versions/3.11.9/lib' ignored
+ld: warning: duplicate -rpath '/opt/homebrew/lib' ignored
+copying build/lib.macosx-14.4-arm64-cpython-311/ateams/arithmetic/Sparse.cpython-311-darwin.so -> ateams/arithmetic
+copying build/lib.macosx-14.4-arm64-cpython-311/ateams/arithmetic/SparsePersistence.cpython-311-darwin.so -> ateams/arithmetic
+copying build/lib.macosx-14.4-arm64-cpython-311/ateams/arithmetic/cubicalComplex.cpython-311-darwin.so -> ateams/arithmetic
+copying build/lib.macosx-14.4-arm64-cpython-311/ateams/arithmetic/linalg.cpython-311-darwin.so -> ateams/arithmetic
+copying build/lib.macosx-14.4-arm64-cpython-311/ateams/arithmetic/persistence.cpython-311-darwin.so -> ateams/arithmetic
