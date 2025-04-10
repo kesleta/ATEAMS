@@ -21,7 +21,8 @@ dependencies = [
     "wheel",
     "pybind11",
     "phat",
-    "numpy"
+    "numpy",
+    "packaging"
 ]
 
 [tool.setuptools]

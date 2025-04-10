@@ -1,4 +1,8 @@
 
+contribute: build test profile docs
+
+gauntlet: quick test profile
+
 quick:
 	@python setup.py build_ext --inplace
 
@@ -7,21 +11,12 @@ build: clean
 
 test: FORCE
 	@cd test && ./test.arithmetic.matrices.sh
-	@echo
-	@echo
 	@cd test && ./test.arithmetic.persistence.sh
 
 profile: FORCE
 	@cd test && ./profile.models.NH.sh 3 4 32 64 2
-	@echo
-	@echo
 	@cd test && ./profile.models.SW.sh 3 4 32 64 2
-	@echo
-	@echo
 	@cd test && ./profile.models.IC.sh 3 4 32 64 2
-
-sparse: quick
-	@cd test && zsh test.arithmetic.matrices.sh
 
 docs: FORCE quick
 	./docs.sh

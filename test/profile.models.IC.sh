@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 start="${1:-3}"
 stop="${2:-4}"
@@ -7,10 +7,10 @@ maxBlockSize="${4:-64}"
 cores="${5:-2}"
 
 echo "___________________________"
-echo "| PROFILE INVADED-CLUSTER |"
+echo "| PROFILE INVADED-CLUSTER | ➭➭➭ results in profiles/InvadedCluster"
 echo "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾"
 
-printf "%-10s %-10s %-10s %-10s %-10s %-10s %s" "SIZE" "SPARSE" "PARALLEL" "MINBLOCK" "MAXBLOCK" "CORES"
+printf "%-5s %-10s %-10s %-5s %-5s %-5s %s" "SIZE" "SPARSE" "PARALLEL" "MIN" "MAX" "CORES"
 echo
 
 for ((L=$start; L<$stop; L++)); do
@@ -22,18 +22,5 @@ for ((L=$start; L<$stop; L++)); do
 	done
 done
 
-# echo "__________"
-# echo "| KERNEL |"
-# echo "‾‾‾‾‾‾‾‾‾‾"
-
-# for ((sparse=0; sparse<2; sparse++)); do
-# 	for ((parallel=0; parallel<2; parallel++)); do
-# 		python test.arithmetic.matrices.py $sparse $parallel > profiles/kernel/${SPARSE[$(($sparse+1))]}.${PARALLEL[$(($parallel+1))]}.txt &
-# 		wait $!
-# 		if [ $? != 0 ]; then
-# 			echo -e "\033[F$fg[red]FAIL$reset_color"
-# 		else
-# 			echo -e "\033[F$fg[green]PASS$reset_color"
-# 		fi
-# 	done
-# done
+echo
+echo

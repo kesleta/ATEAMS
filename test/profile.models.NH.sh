@@ -1,3 +1,4 @@
+#!/bin/zsh
 
 start="${1:-3}"
 stop="${2:-4}"
@@ -6,10 +7,10 @@ maxBlockSize="${4:-64}"
 cores="${5:-2}"
 
 echo "____________________"
-echo "| PROFILE NIENHUIS |"
+echo "| PROFILE NIENHUIS | ➭➭➭ results in profiles/Nienhuis"
 echo "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾"
 
-printf "%-10s %-10s %-10s %-10s %-10s %-10s %s" "SIZE" "SPARSE" "PARALLEL" "MINBLOCK" "MAXBLOCK" "CORES"
+printf "%-5s %-10s %-10s %-5s %-5s %-5s %s" "SIZE" "SPARSE" "PARALLEL" "MIN" "MAX" "CORES"
 echo
 
 for ((L=$start; L<$stop; L++)); do
@@ -20,3 +21,6 @@ for ((L=$start; L<$stop; L++)); do
 		done
 	done
 done
+
+echo
+echo

@@ -26,7 +26,9 @@ pyximport.install()
 
 M = IC.construct(L, sparse, parallel, minBlockSize, maxBlockSize, cores)
 
-DESC = [str(int(thing)).ljust(10) for thing in [L, sparse, parallel, minBlockSize, maxBlockSize, cores]]
+TESTS = [L, sparse, parallel, minBlockSize, maxBlockSize, cores]
+WIDTHS = [5, 10, 10, 5, 5, 5]
+DESC = [str(int(thing)).ljust(width) for thing, width in zip(TESTS, WIDTHS)]
 DESC = " ".join(DESC)
 
 cProfile.runctx("IC.chain(M, DESC)", globals(), locals(), "Profile.prof")

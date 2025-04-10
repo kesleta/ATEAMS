@@ -1,12 +1,13 @@
 #!/bin/zsh
 
+
 SPARSE=("dense" "sparse")
 PARALLEL=("serial" "parallel")
 autoload colors; colors
 
-echo "__________"
-echo "| KERNEL |"
-echo "‾‾‾‾‾‾‾‾‾‾"
+echo "_______________"
+echo "| TEST KERNEL | ➭➭➭ results in profiles/kernel"
+echo "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾"
 
 for ((sparse=0; sparse<2; sparse++)); do
 	for ((parallel=0; parallel<2; parallel++)); do
@@ -19,3 +20,6 @@ for ((sparse=0; sparse<2; sparse++)); do
 		fi
 	done
 done
+
+echo
+echo

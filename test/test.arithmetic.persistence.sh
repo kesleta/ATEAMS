@@ -4,9 +4,9 @@ SPARSE=("dense" "sparse")
 PARALLEL=("serial" "parallel")
 autoload colors; colors
 
-echo "_______________"
-echo "| PERSISTENCE |"
-echo "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾"
+echo "____________________"
+echo "| TEST PERSISTENCE | ➭➭➭ results in profiles/persistence"
+echo "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾"
 
 ABOVE="\033[F"
 
@@ -21,3 +21,6 @@ for ((sparse=0; sparse<2; sparse++)); do
 		fi
 	done
 done
+
+echo
+echo

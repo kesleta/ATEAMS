@@ -467,6 +467,217 @@ occurrence of homological percolation, and the satisfied plaquettes.</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="ateams.models.Nienhuis"><code class="flex name class">
+<span>class <span class="ident">Nienhuis</span></span>
+<span>(</span><span>L,<br>q1,<br>q2,<br>temperatureFunction=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initializes the self-dual Nienhuis model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>L</code></strong></dt>
+<dd>The <code>Lattice</code> object on which we'll be running experiments.</dd>
+<dt><strong><code>q1</code></strong> :&ensp;<code>float</code></dt>
+<dd>Edge coupling parameter.</dd>
+<dt><strong><code>q2</code></strong> :&ensp;<code>float</code></dt>
+<dd>Face coupling parameter.</dd>
+<dt><strong><code>temperatureFunction</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A temperature schedule function which
+takes a single positive integer argument <code>t</code>, and returns the
+scheduled temperature at time <code>t</code>.</dd>
+<dt><strong><code>initial</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dd>A vector of spin assignments to components.</dd>
+<dt><strong><code>sparse</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrices be formatted sparsely? (Uses C/C++).</dd>
+<dt><strong><code>parallel</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
+<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the smallest
+number of columns processed in parallel.</dd>
+<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the largest
+number of columns processed in parallel.</dd>
+<dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
+<dd>Number of available CPUs/cores/threads on the machine.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Nienhuis(Model):
+        name = &#34;Nienhuis&#34;
+        
+        def __init__(self, 
+                        L, q1, q2, temperatureFunction=constant(-0.6), initial=None,
+                        sparse=True, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
+                ):
+                &#34;&#34;&#34;
+                Initializes the self-dual Nienhuis model.
+
+                Args:
+                        L: The `Lattice` object on which we&#39;ll be running experiments.
+                        q1 (float): Edge coupling parameter.
+                        q2 (float): Face coupling parameter.
+                        temperatureFunction (Callable): A temperature schedule function which
+                                takes a single positive integer argument `t`, and returns the
+                                scheduled temperature at time `t`.
+                        initial (galois.FieldArray): A vector of spin assignments to components.
+                        sparse (boolean): Should matrices be formatted sparsely? (Uses C/C++).
+                        parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
+                        minBlockSize (int=32): If `parallel` is truthy, this is the smallest
+                                number of columns processed in parallel.
+                        maxBlockSize (int=64): If `parallel` is truthy, this is the largest
+                                number of columns processed in parallel.
+                        cores (int=4): Number of available CPUs/cores/threads on the machine.
+                &#34;&#34;&#34;
+
+                self.lattice = L
+                self.temperatureFunction = temperatureFunction #DOESNT DO ANYTHING
+                self.faceCells = len(self.lattice.boundary[self.lattice.dimension-1])
+                self.cubeCells = len(self.lattice.boundary[self.lattice.dimension])
+                self.q1=q1
+                self.q2=q2
+                self.p1=q1/(1+q1)
+                self.p2=q2/(1+q2)
+
+                self.sparse = sparse
+                self.parallel = parallel
+                self.minBlockSize = minBlockSize
+                self.maxBlockSize = maxBlockSize
+                self.cores = cores
+
+                # SW defaults.
+                self.spins = initial if initial else self.initial()
+                
+                self.coboundary = self.lattice.matrices.coboundary.astype(FINT)
+                self.Reducer = MatrixReduction(self.lattice.field.characteristic, parallel, minBlockSize, maxBlockSize, cores)
+                self.SampleFromKernel = KernelSample
+
+
+        def initial(self):
+                &#34;&#34;&#34;
+                Computes an initial state for the model&#39;s Lattice.
+
+                Returns:
+                        A Galois `Array` representing a vector of spin assignments.
+                &#34;&#34;&#34;
+                return self.lattice.field.Random(self.faceCells)
+        
+
+        def proposal(self, time):
+                &#34;&#34;&#34;
+                Proposal scheme for generalized Swendsen-Wang evolution on the Potts model.
+
+                Args:
+                        time (int): Step in the chain.
+
+                Returns:
+                        A Galois `Array` representing a vector of spin assignments.
+                &#34;&#34;&#34;
+                # Compute the probability of choosing any individual cube in the complex.
+                p1=self.p1
+                p2=self.p2
+                
+                # Choose cubes to include; in effect, this just does a boatload of indexing.
+                uniformsFace = np.random.uniform(size=self.cubeCells) #randomly assigns a probability to each face
+                uniformEdge = np.random.uniform(size=self.faceCells) #randomly assigns a probability to each edge
+                includeFace = (uniformsFace &lt; p1).nonzero()[0] #gives you indices where probability is under threshold
+                includeEdge =(uniformEdge &lt; p2).nonzero()[0] #gives you indices where probability is under threshold
+
+                boundary = self.lattice.boundary[self.lattice.dimension][includeFace] #list of edges for faces under threshold
+                boundaryValues = evaluateCochain(boundary, self.spins) #list of face sums for open faces
+                percedFaces = (boundaryValues == 0).nonzero()[0] #indices where is 0 (that is also selected by perc)
+                
+                percedEdges = np.intersect1d((self.spins == 0).nonzero()[0], includeEdge)
+                includedEdges=np.setdiff1d(range(0,len(self.lattice.boundary[self.lattice.dimension-1])),percedEdges)
+                
+
+                #satisfied = np.zeros(len(self.lattice.boundary[self.lattice.dimension])).astype(int) #all 0&#39;s for faces
+                #satisfied[zeroFaces] = 1 #all open faces which evaluate to 0 get label 1
+
+                # Uniformly randomly sample a cocycle on the sublattice admitted by the
+                # chosen edges; reconstruct the labeling on the entire lattice by
+                # subbing in the values of c which differ from existing ones.
+                subbasis = self.coboundary.take(percedFaces, axis=0).take(includedEdges, axis=1)
+                changedSpins = self.SampleFromKernel(self.Reducer, subbasis)
+                # changedSpins=sampleFromKernel(self.lattice.matrices.coboundary, self.lattice.field, relativeCells=percedFaces, relativeFaces=includedEdges) #based on this face set, find a cocycle, return cocycle and labelling
+
+                newSpins=self.spins.copy()
+                newSpins[includedEdges] = changedSpins
+                newSpins[percedEdges] = 0
+
+                edgeEnergy=(len(newSpins)-sum((newSpins==0)))/len(newSpins)
+
+                fullBoundary = self.lattice.boundary[self.lattice.dimension]
+                fullBoundaryValues=evaluateCochain(fullBoundary, self.spins)
+                faceEnergy=(len(fullBoundaryValues)-sum((fullBoundaryValues==0)))/len(fullBoundaryValues)
+
+                #energy=edgeEnergy+faceEnergy
+                #print(edgeEnergy,faceEnergy)
+                
+                return newSpins, (edgeEnergy, faceEnergy)
+
+        def assign(self, cocycle):
+                &#34;&#34;&#34;
+                Updates mappings from faces to spins and cubes to occupations.
+
+                Args:
+                        cocycle (galois.FieldArray): Cocycle on the sublattice.
+                
+                Returns:
+                        None.
+                &#34;&#34;&#34;
+                self.spins = cocycle</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>ateams.models.Model.Model</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ateams.models.Nienhuis.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.models.Nienhuis.assign"><code class="name flex">
+<span>def <span class="ident">assign</span></span>(<span>self, cocycle)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>cocycle</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dd>Cocycle on the sublattice.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+</dd>
+<dt id="ateams.models.Nienhuis.initial"><code class="name flex">
+<span>def <span class="ident">initial</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes an initial state for the model's Lattice.</p>
+<h2 id="returns">Returns</h2>
+<p>A Galois <code>Array</code> representing a vector of spin assignments.</p></div>
+</dd>
+<dt id="ateams.models.Nienhuis.proposal"><code class="name flex">
+<span>def <span class="ident">proposal</span></span>(<span>self, time)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Proposal scheme for generalized Swendsen-Wang evolution on the Potts model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>time</code></strong> :&ensp;<code>int</code></dt>
+<dd>Step in the chain.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A Galois <code>Array</code> representing a vector of spin assignments.</p></div>
+</dd>
+</dl>
+</dd>
 <dt id="ateams.models.SwendsenWang"><code class="flex name class">
 <span>class <span class="ident">SwendsenWang</span></span>
 <span>(</span><span>L,<br>temperatureFunction=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
@@ -483,6 +694,18 @@ takes a single positive integer argument <code>t</code>, and returns the
 scheduled temperature at time <code>t</code>.</dd>
 <dt><strong><code>initial</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
 <dd>A vector of spin assignments to components.</dd>
+<dt><strong><code>sparse</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrices be formatted sparsely? (Uses C/C++).</dd>
+<dt><strong><code>parallel</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
+<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the smallest
+number of columns processed in parallel.</dd>
+<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the largest
+number of columns processed in parallel.</dd>
+<dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
+<dd>Number of available CPUs/cores/threads on the machine.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -501,6 +724,13 @@ scheduled temperature at time <code>t</code>.</dd>
                                 takes a single positive integer argument `t`, and returns the
                                 scheduled temperature at time `t`.
                         initial (galois.FieldArray): A vector of spin assignments to components.
+                        sparse (boolean): Should matrices be formatted sparsely? (Uses C/C++).
+                        parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
+                        minBlockSize (int=32): If `parallel` is truthy, this is the smallest
+                                number of columns processed in parallel.
+                        maxBlockSize (int=64): If `parallel` is truthy, this is the largest
+                                number of columns processed in parallel.
+                        cores (int=4): Number of available CPUs/cores/threads on the machine.
                 &#34;&#34;&#34;
                 self.lattice = L
                 self.temperatureFunction = temperatureFunction
@@ -711,6 +941,15 @@ column-count: 1 !important;
 <li><code><a title="ateams.models.InvadedCluster.initial" href="#ateams.models.InvadedCluster.initial">initial</a></code></li>
 <li><code><a title="ateams.models.InvadedCluster.name" href="#ateams.models.InvadedCluster.name">name</a></code></li>
 <li><code><a title="ateams.models.InvadedCluster.proposal" href="#ateams.models.InvadedCluster.proposal">proposal</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ateams.models.Nienhuis" href="#ateams.models.Nienhuis">Nienhuis</a></code></h4>
+<ul class="">
+<li><code><a title="ateams.models.Nienhuis.assign" href="#ateams.models.Nienhuis.assign">assign</a></code></li>
+<li><code><a title="ateams.models.Nienhuis.initial" href="#ateams.models.Nienhuis.initial">initial</a></code></li>
+<li><code><a title="ateams.models.Nienhuis.name" href="#ateams.models.Nienhuis.name">name</a></code></li>
+<li><code><a title="ateams.models.Nienhuis.proposal" href="#ateams.models.Nienhuis.proposal">proposal</a></code></li>
 </ul>
 </li>
 <li>

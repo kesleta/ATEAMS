@@ -1,3 +1,4 @@
+#!/bin/zsh
 
 start="${1:-3}"
 stop="${2:-4}"
@@ -5,11 +6,11 @@ minBlockSize="${3:-32}"
 maxBlockSize="${4:-64}"
 cores="${5:-2}"
 
-echo "________________________"
-echo "| PROFILE SWENDSEN-WANG |"
-echo "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾"
+echo "_________________________"
+echo "| PROFILE SWENDSEN-WANG | ➭➭➭ results in profiles/SwendsenWang"
+echo "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾"
 
-printf "%-10s %-10s %-10s %-10s %-10s %-10s %s" "SIZE" "SPARSE" "PARALLEL" "MINBLOCK" "MAXBLOCK" "CORES"
+printf "%-5s %-10s %-10s %-5s %-5s %-5s %s" "SIZE" "SPARSE" "PARALLEL" "MIN" "MAX" "CORES"
 echo
 
 for ((L=$start; L<$stop; L++)); do
@@ -20,3 +21,6 @@ for ((L=$start; L<$stop; L++)); do
 		done
 	done
 done
+
+echo
+echo
