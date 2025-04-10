@@ -53,6 +53,6 @@
                 column-count: 1 !important;
             }
         </style>
-        <img class="resize" src="https://github.com/apizzimenti/ateam/blob/main/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
+        <img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature-persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
     </a>
 </header>
