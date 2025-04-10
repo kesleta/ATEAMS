@@ -23,8 +23,8 @@
             header > h1 { display: none; }
 
             img.resize {
-                max-width: 13vw;
-                max-height: 13vw;
+                min-width: 15vw;
+                max-width: 23vw;
                 display: block;
                 margin: 0 auto;
             }
@@ -43,10 +43,6 @@
 
             #section-intro {
                 text-align: justify;
-            }
-
-            #sidebar {
-                width: 15vw;
             }
 
             #index .two-column {
