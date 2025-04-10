@@ -37,6 +37,7 @@ hljs.highlightAll();
 <ul>
 <li><strong>Read the installation note in <code>setup.py</code> to ensure PHAT is correctly installed on your system.</strong></li>
 <li><strong>Ensure you have a C/C++ compiler that supports the <code>-fopenmp</code> compilation and linking flags.</strong></li>
+<li><strong>Before performing sparse/parallel computations, run <code>make profile</code> to determine whether sparse/parallel computations make sense for your machine.</strong></li>
 </ul>
 <h2 id="example-use">Example Use</h2>
 <p>Simulating the $1$-dimensional plaquette random cluster model on a $ 10 \times 10 \times 10 $ cubical $3$-torus with coefficients in the finite field $\mathbb F_3$ looks like:</p>
@@ -56,13 +57,22 @@ for (spins, occupied, satisfied) in Chain(HP, steps=10).progress():
     &lt;do whatever&gt;
 </code></pre>
 <p>pattern.</p>
+<h2 id="contributing">Contributing</h2>
+<ul>
+<li><strong>Do not push directly to this repository: use the pull request model.</strong></li>
+<li>Follow the standard practices already used in this library, including documentation using <a href="https://peps.python.org/pep-0008/">PEP8</a> and <a href="https://peps.python.org/pep-0257/">PEP257</a> guidelines.</li>
+<li>When creating mathematical computation routines, create a testing file in the <code>test</code> directory following the <code>test.&lt;submodule&gt;.&lt;routine&gt;.py</code>/<code>test.&lt;submodule&gt;.&lt;routine&gt;.sh</code> convention. To run existing tests, run <code>make test</code>; to run tests you design, add them to the <code>test</code> recipe in the <code>Makefile</code>. <strong>Please ensure that your routines are tested against ground truth; for example, test new matrix reduction routines against <code>NumPy</code>/<code>SciPy</code>/<code>Galois</code> routines, not against routines already in this library.</strong> <em>(For examples, take a look in the <code>test</code> directory.)</em></li>
+<li>When creating new simulation models or new computation routines, create a profiling file in the <code>test</code> directory following the <code>&lt;model-or-routine&gt;.py</code>/<code>profile.&lt;submodule&gt;.&lt;model-or-routine&gt;.py</code>/<code>profile.&lt;submodule&gt;.&lt;model-or-routine&gt;.sh</code> convention. To profile existing code, run <code>make profile</code>; to run profiles you design, add them to the <code>profile</code> recipe in the <code>Makefile</code>. <em>(For examples, take a look in the <code>test</code> directory.)</em></li>
+<li>To run all tests and all profiles, run <code>make gauntlet</code>.</li>
+<li>Before opening a new pull request, run <code>make contribute</code> to perform a clean rebuild of the C/C++ backend and documentation.</li>
+</ul>
 <h2 id="citing">Citing</h2>
 <h3 id="bibtex">BibTeX</h3>
 <pre><code class="language-bibtex">@software{ateams,
     title={{ATEAMS: Algebraic Topology-Enabled AlgorithMs for Spin systems}},
     author={Duncan, Paul and Pizzimenti, Anthony E. and Schweinhart, Benjamin},
     url={https://github.com/apizzimenti/ateams},
-    version={1.0.0},
+    version={1.0.2},
     doi={10.5281/zenodo.14284172}
 }
 </code></pre>
@@ -156,6 +166,7 @@ column-count: 1 !important;
 </ul>
 </li>
 <li><a href="#example-use">Example Use</a></li>
+<li><a href="#contributing">Contributing</a></li>
 <li><a href="#citing">Citing</a><ul>
 <li><a href="#bibtex">BibTeX</a></li>
 </ul>

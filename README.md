@@ -10,6 +10,7 @@ Clone this repository by `git clone https://github.com/apizzimenti/ateams.git`, 
 ### Notes:
 * **Read the installation note in `setup.py` to ensure PHAT is correctly installed on your system.**
 * **Ensure you have a C/C++ compiler that supports the `-fopenmp` compilation and linking flags.**
+* **Before performing sparse/parallel computations, run `make profile` to determine whether sparse/parallel computations make sense for your machine.**
 
 ## Example Use
 
@@ -36,6 +37,15 @@ for (spins, occupied, satisfied) in Chain(HP, steps=10).progress():
 ```
 pattern.
 
+## Contributing
+
+* **Do not push directly to this repository: use the pull request model.**
+* Follow the standard practices already used in this library, including documentation using [PEP8](https://peps.python.org/pep-0008/) and [PEP257](https://peps.python.org/pep-0257/) guidelines.
+* When creating mathematical computation routines, create a testing file in the `test` directory following the `test.<submodule>.<routine>.py`/`test.<submodule>.<routine>.sh` convention. To run existing tests, run `make test`; to run tests you design, add them to the `test` recipe in the `Makefile`. **Please ensure that your routines are tested against ground truth; for example, test new matrix reduction routines against `NumPy`/`SciPy`/`Galois` routines, not against routines already in this library.** _(For examples, take a look in the `test` directory.)_
+* When creating new simulation models or new computation routines, create a profiling file in the `test` directory following the `<model-or-routine>.py`/`profile.<submodule>.<model-or-routine>.py`/`profile.<submodule>.<model-or-routine>.sh` convention. To profile existing code, run `make profile`; to run profiles you design, add them to the `profile` recipe in the `Makefile`. _(For examples, take a look in the `test` directory.)_
+* To run all tests and all profiles, run `make gauntlet`.
+* Before opening a new pull request, run `make contribute` to perform a clean rebuild of the C/C++ backend and documentation.
+
 ## Citing
 
 ### BibTeX
@@ -44,7 +54,7 @@ pattern.
     title={{ATEAMS: Algebraic Topology-Enabled AlgorithMs for Spin systems}},
     author={Duncan, Paul and Pizzimenti, Anthony E. and Schweinhart, Benjamin},
     url={https://github.com/apizzimenti/ateams},
-    version={1.0.0},
+    version={1.0.2},
     doi={10.5281/zenodo.14284172}
 }
 ```
