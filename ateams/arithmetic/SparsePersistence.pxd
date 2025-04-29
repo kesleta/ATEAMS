@@ -20,7 +20,7 @@ cdef class Persistence:
 	cdef FFINT characteristic
 
 	cdef void __arithmetic(self) noexcept
-	cdef void __flushDataStructures(self) noexcept
+	cdef void __flushDataStructures(self, bool premark=*) noexcept
 
 	cdef INDEXTABLE tranches
 	cdef INDEXFLAT dimensions

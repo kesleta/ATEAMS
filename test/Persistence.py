@@ -70,7 +70,7 @@ def constructDefaults(L, sparse, parallel, minBlockSize, maxBlockSize, cores):
 	store = np.zeros(coboundary.shape[1], dtype=FINT)
 	empty = np.empty(shape=(0,0), dtype=FINT)
 
-	P = Persistence(homology, p, t, dimensions.astype(MINT))
+	P = Persistence(p, LATTICE.flattened, homology=homology)
 	
 	return partial(
 		computeGiantCyclePairs,

@@ -44,15 +44,66 @@ cdef class Persistence:
 		completion, `events` contains the times `{17, 21}` which correspond to
 		crossings of the meridian and equator of the torus, respectively.
 		
+		
 			from ateams.arithmetic import Persistence
 			from ateams.structures import Lattice
-			...
+			
 			L = Lattice().fromCorners([3,3], field=3)
-			P = Persistence(1, L.field.characteristic, L.flattened)
-			...
+			P = Persistence(L.field.characteristic, L.flattened, homology=1)
+
 			filtration = np.arange(len(L.flattened))
 			events = P.ComputePercolationEvents(filtration)
-		
+
+
+		The `ComputeBettiNumbers` method provides functionality to compute the
+		Betti numbers for an entire subcomplex. The subcomplex is specified by
+		a list of indices corresponding to the cells included in the subcomplex.
+		Initializing the `Persistence` object as before, we can get the Betti
+		numbers of the \(2\)-torus encoded by the `Lattice` above by passing a
+		list of all cells' indices in the flattened boundary matrix: since there
+		are \(36\) cells (including vertices, edges, and squares), the `subcomplex`
+		is just the range of integers \(0--36\):
+
+
+			from ateams.arithmetic import Persistence
+			from ateams.structures import Lattice
+			
+			L = Lattice().fromCorners([3,3], field=3)
+			P = Persistence(L.field.characteristic, L.flattened)
+
+			subcomplex = np.array(range(len(L.flattened)))
+
+			bettis = P.ComputeBettiNumbers(subcomplex)
+
+
+		The result in `bettis` is the list `[1,2,1]`. By deleting an edge, we
+		reduce the number of squares by two, so we should expect the homology
+		of a one-edge-deleted \(2\)-torus to have betti numbers `[1,2,0]`. To
+		access the indices of the flattened boundary matrix corresponding to
+		cells of each dimension, we can use the `Lattice.tranches` property
+		which maps an integer dimension to a (start, stop) pair: for example,
+		`L.tranches[1]` is `[9, 27]` in the lattice above, so we know that all
+		entries in the flattened boundary matrix between indices \(9\) and \(27\)
+		(_right-exclusive_) correspond to edges. To test our theory, we
+		construct a subcomplex by deleting the first edge added:
+
+
+			from ateams.arithmetic import Persistence
+			from ateams.structures import Lattice
+			
+			L = Lattice().fromCorners([3,3], field=3)
+			P = Persistence(L.field.characteristic, L.flattened)
+
+			subcomplex = np.array(range(len(L.flattened)))
+			firstEdge = L.tranches[1][0]
+			subcomplex = np.concatenate([subcomplex[:firstEdge], subcomplex[firstEdge+1:]])
+
+			bettis = P.ComputeBettiNumbers(subcomplex)
+
+
+		The result in `bettis` is the list `[1,2,0]`, as expected. Note that we
+		only need to pass a `homology` parameter to the `Persistence` constructor
+		if we call `ComputePercolationEvents`.
 		"""
 		self.characteristic = characteristic;
 		self.boundary = self.Vectorize(flattened);
@@ -124,14 +175,14 @@ cdef class Persistence:
 		self.inverse = inverse;
 
 	
-	cdef void __flushDataStructures(self) noexcept:
+	cdef void __flushDataStructures(self, bool premark=True) noexcept:
 		# Data structures for storing column information.
 		self.columnEntries = Vector[OrderedSet[int]](self.cellCount);
 		self.columnEntriesIterable = Vector[Vector[int]](self.cellCount);
 		self.columnEntriesCoefficients = Vector[Map[int,FFINT]](self.cellCount);
 
 		self.marked = Set[int]();
-		self.marked.insert(self.premarked.begin(), self.premarked.end());
+		if premark: self.marked.insert(self.premarked.begin(), self.premarked.end());
 		self.markedIterable = Vector[int](self.cellCount);
 
 
@@ -196,7 +247,7 @@ cdef class Persistence:
 		for i in range(N): included.insert(subcomplex[i]);
 
 		# Build the subcomplex.
-		M = self.boundary.size();
+		M = self._boundary.size();
 		renumbering = Vector[int](M);
 		subboundary = Vector[Vector[int]](M);
 		retained = Vector[int]();
@@ -232,7 +283,7 @@ cdef class Persistence:
 		dimensions = Vector[int](M);
 
 		for i in range(M):
-			subboundary[i] = self.boundary[retained[i]];
+			subboundary[i] = self._boundary[retained[i]];
 			N = subboundary[i].size();
 			dimensions[i] = <int>(N/2);
 
@@ -261,18 +312,18 @@ cdef class Persistence:
 
 		self._tranches = tranches;
 
-		# Set pre-marked vertices again.
-		self.premarked = Vector[int](self.vertexCount);
-		for i in range(self.vertexCount): self.premarked[i] = i;
-
 		# Re-count cells.
-		self.cellCount = self._boundary.size();
+		self.cellCount = self.boundary.size();
 		self.vertexCount = self._tranches[0][1];
 		self.higherCellCount = self._tranches[self.homology+1][1];
 		self.low = self._tranches[self.homology][0];
 		self.high = self._tranches[self.homology][1];
 
-		return subboundary
+		# Set pre-marked vertices again.
+		self.premarked = Vector[int](self.vertexCount);
+		for i in range(self.vertexCount): self.premarked[i] = i;
+
+		return self.boundary
 		
 
 	cdef Vector[Vector[int]] Vectorize(self, list[list[int]] flattened) noexcept:
@@ -539,12 +590,11 @@ cdef class Persistence:
 		Returns:
 			A C++ `Vector[int]` where the \(i\)th entry is the \(i\)th Betti number.
 		"""
-		# Flush the set of marked indices, adding premarked ones.
-		self.__flushDataStructures();
-
 		# Construct the boundary matrix for this filtration; variables for
-		# objects.
+		# objects. Flush the set of marked indices, adding premarked ones.
 		cdef Vector[Vector[int]] subboundary = self.ReindexSubBoundary(subcomplex);
+		self.__flushDataStructures(premark=False);
+
 		cdef Vector[int] facesIterable, degree = Vector[int](self.cellCount);
 		cdef OrderedSet[int] faces;
 		cdef Map[int,FFINT] faceCoefficients;
@@ -552,7 +602,7 @@ cdef class Persistence:
 		
 		tagged = 0;
 
-		for t in range(0, self.higherCellCount):
+		for t in range(0, self.cellCount):
 			# Since our filtrations are discrete (i.e. we add exactly one simplex
 			# at each time-step), the "degree" of the cell is the same as the time
 			# at which it was added.

@@ -185,7 +185,7 @@ if <code>-1</code>, all columns are processed.</dd>
 <span>def <span class="ident">ToArray</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Returns the matrix stored in</p></div>
+<div class="desc"><p>Returns the matrix stored in <code>self.data</code>.</p></div>
 </dd>
 </dl>
 </dd>
@@ -198,14 +198,16 @@ if <code>-1</code>, all columns are processed.</dd>
 in an arbitrary finite field.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>homology</code></strong> :&ensp;<code>int</code></dt>
-<dd>Degree of homology observed for homological percolation events.</dd>
 <dt><strong><code>characteristic</code></strong> :&ensp;<code>int</code></dt>
 <dd>Characteristic of the finite field over which
 we do computations.</dd>
 <dt><strong><code>flattened</code></strong> :&ensp;<code>list</code></dt>
 <dd>List-of-lists representing the <em>original</em> flattened
 boundary matrix for the complex.</dd>
+<dt><strong><code>homology</code></strong> :&ensp;<code>int</code></dt>
+<dd>Degree of homology observed for homological percolation events;
+if not specified, the homology of the codimension-1 skeleton is
+reported.</dd>
 </dl>
 <p>The code below computes the birth times of giant cycles (in this case,
 elements of the first homology group) on the default
@@ -215,15 +217,73 @@ completion, <code>events</code> contains the times <code>{17, 21}</code> which c
 crossings of the meridian and equator of the torus, respectively.</p>
 <pre><code>    from ateams.arithmetic import Persistence
     from ateams.structures import Lattice
-    ...
+
     L = Lattice().fromCorners([3,3], field=3)
-    P = Persistence(1, L.field.characteristic, L.flattened)
-    ...
+    P = Persistence(L.field.characteristic, L.flattened, homology=1)
+
     filtration = np.arange(len(L.flattened))
     events = P.ComputePercolationEvents(filtration)
-</code></pre></div>
+</code></pre>
+<p>The <code>ComputeBettiNumbers</code> method provides functionality to compute the
+Betti numbers for an entire subcomplex. The subcomplex is specified by
+a list of indices corresponding to the cells included in the subcomplex.
+Initializing the <code><a title="ateams.arithmetic.Persistence" href="#ateams.arithmetic.Persistence">Persistence</a></code> object as before, we can get the Betti
+numbers of the <span><span class="MathJax_Preview">2</span><script type="math/tex">2</script></span>-torus encoded by the <code>Lattice</code> above by passing a
+list of all cells' indices in the flattened boundary matrix: since there
+are <span><span class="MathJax_Preview">36</span><script type="math/tex">36</script></span> cells (including vertices, edges, and squares), the <code>subcomplex</code>
+is just the range of integers <span><span class="MathJax_Preview">0--36</span><script type="math/tex">0--36</script></span>:</p>
+<pre><code>    from ateams.arithmetic import Persistence
+    from ateams.structures import Lattice
+
+    L = Lattice().fromCorners([3,3], field=3)
+    P = Persistence(L.field.characteristic, L.flattened)
+
+    subcomplex = np.array(range(len(L.flattened)))
+
+    bettis = P.ComputeBettiNumbers(subcomplex)
+</code></pre>
+<p>The result in <code>bettis</code> is the list <code>[1,2,1]</code>. By deleting an edge, we
+reduce the number of squares by two, so we should expect the homology
+of a one-edge-deleted <span><span class="MathJax_Preview">2</span><script type="math/tex">2</script></span>-torus to have betti numbers <code>[1,2,0]</code>. To
+access the indices of the flattened boundary matrix corresponding to
+cells of each dimension, we can use the <code>Lattice.tranches</code> property
+which maps an integer dimension to a (start, stop) pair: for example,
+<code>L.tranches[1]</code> is <code>[9, 27]</code> in the lattice above, so we know that all
+entries in the flattened boundary matrix between indices <span><span class="MathJax_Preview">9</span><script type="math/tex">9</script></span> and <span><span class="MathJax_Preview">27</span><script type="math/tex">27</script></span>
+(<em>right-exclusive</em>) correspond to edges. To test our theory, we
+construct a subcomplex by deleting the first edge added:</p>
+<pre><code>    from ateams.arithmetic import Persistence
+    from ateams.structures import Lattice
+
+    L = Lattice().fromCorners([3,3], field=3)
+    P = Persistence(L.field.characteristic, L.flattened)
+
+    subcomplex = np.array(range(len(L.flattened)))
+    firstEdge = L.tranches[1][0]
+    subcomplex = np.concatenate([subcomplex[:firstEdge], subcomplex[firstEdge+1:]])
+
+    bettis = P.ComputeBettiNumbers(subcomplex)
+</code></pre>
+<p>The result in <code>bettis</code> is the list <code>[1,2,0]</code>, as expected. Note that we
+only need to pass a <code>homology</code> parameter to the <code><a title="ateams.arithmetic.Persistence" href="#ateams.arithmetic.Persistence">Persistence</a></code> constructor
+if we call <code>ComputePercolationEvents</code>.</p></div>
 <h3>Methods</h3>
 <dl>
+<dt id="ateams.arithmetic.Persistence.ComputeBettiNumbers"><code class="name flex">
+<span>def <span class="ident">ComputeBettiNumbers</span></span>(<span>self, subcomplex)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the <em>Betti numbers</em> — the ranks of the homology groups — of the
+subcomplex specified.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>subcomplex</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>Indices of cells of the <em>full</em> (flattened)
+boundary matrix to include in the complex.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A C++ <code>Vector[int]</code> where the <span><span class="MathJax_Preview">i</span><script type="math/tex">i</script></span>th entry is the <span><span class="MathJax_Preview">i</span><script type="math/tex">i</script></span>th Betti number.</p></div>
+</dd>
 <dt id="ateams.arithmetic.Persistence.ComputePercolationEvents"><code class="name flex">
 <span>def <span class="ident">ComputePercolationEvents</span></span>(<span>self, filtration)</span>
 </code></dt>
@@ -343,6 +403,7 @@ margin-top: 0;
 <li>
 <h4><code><a title="ateams.arithmetic.Persistence" href="#ateams.arithmetic.Persistence">Persistence</a></code></h4>
 <ul class="">
+<li><code><a title="ateams.arithmetic.Persistence.ComputeBettiNumbers" href="#ateams.arithmetic.Persistence.ComputeBettiNumbers">ComputeBettiNumbers</a></code></li>
 <li><code><a title="ateams.arithmetic.Persistence.ComputePercolationEvents" href="#ateams.arithmetic.Persistence.ComputePercolationEvents">ComputePercolationEvents</a></code></li>
 <li><code><a title="ateams.arithmetic.Persistence.ReindexBoundary" href="#ateams.arithmetic.Persistence.ReindexBoundary">ReindexBoundary</a></code></li>
 </ul>

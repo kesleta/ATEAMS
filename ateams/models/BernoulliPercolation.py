@@ -51,7 +51,7 @@ class BernoulliPercolation(Model):
 
 		# Use the `Persistence` and `MatrixReduction` objects to speed up computations.
 		self.Reducer = MatrixReduction(self.lattice.field.characteristic, self.parallel, self.minBlockSize, self.maxBlockSize, self.cores)
-		self.Persistence = Persistence(self.homology, self.lattice.field.characteristic, self.lattice.flattened)
+		self.Persistence = Persistence(self.lattice.field.characteristic, self.lattice.flattened, homology=self.homology)
 
 		# Set an initial spin configuration. After we assign this, we use PHAT
 		# if we're working over Z/2Z coefficients, or the Zomorodian/Edelsbrunner

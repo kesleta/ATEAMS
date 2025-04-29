@@ -86,7 +86,7 @@ def constructDefaults(LATTICE):
 		multiplication.astype(FINT),
 		powers.astype(FINT),
 		np.zeros(dimensions.shape[0], dtype=FINT)
-	), Persistence(homology, p, LATTICE.flattened)
+	), Persistence(p, LATTICE.flattened, homology=homology)
 
 # Defaults.
 try:
