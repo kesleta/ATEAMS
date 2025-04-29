@@ -11,7 +11,6 @@ readme = "README.md"
 
 requires-python = ">=3.8"
 dependencies = [
-    "numpy",
     "galois",
     "matplotlib",
     "scipy",
@@ -21,7 +20,9 @@ dependencies = [
     "setuptools",
     "wheel",
     "pybind11",
-    "phat"
+    "phat",
+    "numpy",
+    "packaging"
 ]
 
 [tool.setuptools]

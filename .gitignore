@@ -10,6 +10,7 @@ ateams.egg-info/
 *.o
 *.so
 *.c
+*.log
 build/
 
 # Ignore contents, but not directories.
@@ -19,7 +20,17 @@ output/profiles/*
 sync.sh
 
 # Ignore *most* testing stuff.
-test/*
+test/sync.profiles.sh
+# test/*.txt
+test/*.prof
+test/.hopper*
+test/.pangolin*
+# test/profiles/**/*
+test/profiles/**/*.txt
+test/profiles/**/*.err
+test/profiles/**/*.out
+!test/profiles/**/*.gitkeep
 
 # Ignore annotated compilation summaries from Cython.
 ateams/arithmetic/*.html
+ateams/arithmetic/*.so

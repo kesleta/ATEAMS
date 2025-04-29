@@ -1,10 +1,37 @@
 
+contribute: build test profile docs
+
+
+gauntlet: quick test profile
+
+
+quick:
+	@python setup.py build_ext --inplace
+
+
 build: clean
-	python setup.py build_ext --inplace
+	python setup.py build_ext --inplace > build.log 2>&1 
 
-docs:
-	sh docs.sh
 
+test: FORCE
+	@cd test && ./test.arithmetic.matrices.sh
+	@cd test && ./test.arithmetic.persistence.sh
+
+
+profile: FORCE
+	@cd test && ./profile.models.NH.sh 3 4 32 64 2
+	@cd test && ./profile.models.SW.sh 3 4 32 64 2
+	@cd test && ./profile.models.IC.sh 3 4 32 64 2
+
+
+docs: FORCE quick
+	./docs.sh
+
+install: _install gauntlet docs
+
+
+_install: FORCE build
+	pip install -e . --config-settings editable_mode=compat
 
 clean:
 	@rm -f ateams/*.c*
@@ -16,13 +43,5 @@ clean:
 	@rm -f ateams/arithmetic/*.so
 	@rm -rf ./build
 
-
-fp = ./test/output/profiles/metadata/.profiles/profile.json
-
-test: FORCE
-	# screen -dm vprof -r
-	python test/matrices.py
-	# vprof -c mh test/matrices.py --output-file $fp
-	# vprof --input-file $fp
 
 FORCE:

@@ -121,7 +121,7 @@ and stores whatever output is given.</dd>
         raise StopIteration
     
     
-    def progress(self):
+    def progress(self, dynamic_ncols=True, desc=&#34;&#34;):
         &#34;&#34;&#34;
         Progress bar.
 
@@ -129,12 +129,12 @@ and stores whatever output is given.</dd>
             `tqdm` iterable.
         &#34;&#34;&#34;
         from tqdm.auto import tqdm
-        return tqdm(self, total=self.steps)</code></pre>
+        return tqdm(self, total=self.steps, dynamic_ncols=dynamic_ncols, desc=desc)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="ateams.Chain.Chain.progress"><code class="name flex">
-<span>def <span class="ident">progress</span></span>(<span>self)</span>
+<span>def <span class="ident">progress</span></span>(<span>self, dynamic_ncols=True, desc='')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Progress bar.</p>
@@ -167,8 +167,8 @@ proof.appendChild(square);
 <style>
 header > h1 { display: none; }
 img.resize {
-max-width: 90%;
-max-height: 90%;
+min-width: 15vw;
+max-width: 23vw;
 display: block;
 margin: 0 auto;
 }
@@ -185,14 +185,14 @@ float: right;
 #section-intro {
 text-align: justify;
 }
-#sidebar {
-width: 20%;
-}
 #index .two-column {
 column-count: 1 !important;
 }
+#ateams {
+margin-top: 0;
+}
 </style>
-<img class="resize" src="https://github.com/apizzimenti/ateam/blob/main/docs/lattice-55.jpeg?raw=true" alt="Homological percolation on the torus.">
+<img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
 </a>
 </header>
 <div class="toc">

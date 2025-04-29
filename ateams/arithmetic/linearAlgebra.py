@@ -1,13 +1,15 @@
 
-# cython: profile=True
+# cython: language_level=3str, initializedcheck=False, c_api_binop_methods=True, nonecheck=False, profile=True, cdivision=True, wraparound=False, boundscheck=False
+# define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+# distutils: language=C
 
 import cython
 import numpy as np
-cimport numpy as np
+from .linalg import KernelBasis
+from .common import FINT
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-@cython.ccall
 def isNullHomologous(A, x, I, includes=[]):
 	"""
 	Checks whether the provided sequence of faces is a boundary of some chain of
@@ -29,14 +31,13 @@ def isNullHomologous(A, x, I, includes=[]):
 	# Augment the matrix, get the RREF, and check whether we have a solution or
 	# not. If not, the RREF of the matrix is the identity of dimension one
 	# larger than the boundary submatrix.
-	R = (np.c_[B, x].astype(np.int32)).row_reduce()
+	R = (np.c_[B, x].astype(FINT)).row_reduce()
 	_, m = B.shape
 	return not (R[:m+1,:] == I[:m+1,:m+1]).all()
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-@cython.ccall
 def sampleFromKernel(A, F, includes=[], relativeCells=[], relativeFaces=[]):
 	"""
 	Uniformly randomly samples a cochain given the coboundary matrix A.
@@ -75,9 +76,7 @@ def sampleFromKernel(A, F, includes=[], relativeCells=[], relativeFaces=[]):
 	return (Q@K)
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def evaluateCochain(np.ndarray[np.int_t, ndim=2] boundary, spins):
+def evaluateCochain(boundary, spins):
 	"""
 	Evaluates the coboundary of a cochain on the \(k\)-skeleton.
 
@@ -93,9 +92,7 @@ def evaluateCochain(np.ndarray[np.int_t, ndim=2] boundary, spins):
 	return np.array(evaluation.sum(axis=1), dtype=int)
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def autocorrelation(np.ndarray[np.float_t, ndim=1] data):
+def autocorrelation(data):
 	"""
 	Computes the autocorrelation of a given observable.
 
@@ -109,9 +106,9 @@ def autocorrelation(np.ndarray[np.float_t, ndim=1] data):
 
 	# Expected value (i.e. sample mean, which converges to the expectation by
 	# LLN).
-	cdef float mu = data.mean();
-	cdef float normalized = data-mu;
-	cdef float N = len(data);
+	mu = data.mean();
+	normalized = data-mu;
+	N = len(data);
 
 	autocorrs = np.array([
 		np.dot(normalized[t:], normalized[:N-t])*(1/N) for t in range(N)

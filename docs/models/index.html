@@ -201,7 +201,7 @@ and returns the corresponding cocycle.</p>
 </dd>
 <dt id="ateams.models.InvadedCluster"><code class="flex name class">
 <span>class <span class="ident">InvadedCluster</span></span>
-<span>(</span><span>L, homology=1, stop=&lt;function InvadedCluster.&lt;lambda&gt;&gt;)</span>
+<span>(</span><span>L,<br>homology=1,<br>stop=&lt;function InvadedCluster.&lt;lambda&gt;&gt;,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes the plaquette invaded-cluster algorithm on the provided
@@ -217,6 +217,18 @@ complex.</dd>
 <dt><strong><code>stop</code></strong> :&ensp;<code>function</code></dt>
 <dd>A function that returns the number of essential cycles
 found before sampling the next configuration.</dd>
+<dt><strong><code>sparse</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrices be formatted sparsely? (Uses C/C++).</dd>
+<dt><strong><code>parallel</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
+<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the smallest
+number of columns processed in parallel.</dd>
+<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the largest
+number of columns processed in parallel.</dd>
+<dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
+<dd>Number of available CPUs/cores/threads on the machine.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -225,7 +237,7 @@ found before sampling the next configuration.</dd>
 <pre><code class="python">class InvadedCluster(Model):
         name = &#34;InvadedCluster&#34;
         
-        def __init__(self, L, homology=1, stop=lambda: 1):
+        def __init__(self, L, homology=1, stop=lambda: 1, sparse=True, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4):
                 &#34;&#34;&#34;
                 Initializes the plaquette invaded-cluster algorithm on the provided
                 integer lattice, detecting percolation in the `homology`-th homology
@@ -237,28 +249,41 @@ found before sampling the next configuration.</dd>
                                 complex.
                         stop (function): A function that returns the number of essential cycles
                                 found before sampling the next configuration.
+                        sparse (boolean): Should matrices be formatted sparsely? (Uses C/C++).
+                        parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
+                        minBlockSize (int=32): If `parallel` is truthy, this is the smallest
+                                number of columns processed in parallel.
+                        maxBlockSize (int=64): If `parallel` is truthy, this is the largest
+                                number of columns processed in parallel.
+                        cores (int=4): Number of available CPUs/cores/threads on the machine.
                 &#34;&#34;&#34;
                 self.lattice = L
                 self.homology = homology
                 self.stop = stop
+                self.sparse = sparse
+
+                self.parallel = parallel
+                self.minBlockSize = minBlockSize
+                self.maxBlockSize = maxBlockSize
+                self.cores = cores
+
+                # Use the `Persistence` and `MatrixReduction` objects to speed up computations.
+                self.Reducer = MatrixReduction(self.lattice.field.characteristic, self.parallel, self.minBlockSize, self.maxBlockSize, self.cores)
+                self.Persistence = Persistence(self.homology, self.lattice.field.characteristic, self.lattice.flattened)
 
                 # Set an initial spin configuration. After we assign this, we use PHAT
                 # if we&#39;re working over Z/2Z coefficients, or the Zomorodian/Edelsbrunner
                 # algorithm otherwise.
                 self.spins = self.initial()
+                self.coboundary = boundaryMatrix(L.boundary, self.homology, L.field).astype(FINT).T
                 self._initializeProposal()
-                self.coboundary = boundaryMatrix(L.boundary, self.homology, L.field).T
 
                 # Pre-load arguments for re-indexing the boundary matrix.
                 self.reindexSparseBoundaryMatrix = partial(
                         reindexSparseBoundaryMatrix,
-                        self.lattice.boundary[homology+1].astype(DTYPE),
-                        self.lattice.flattened,
-                        int(self.homology),
-                        self.lattice.tranches.astype(DTYPE),
-                        self.lattice.reindexed[homology].astype(DTYPE),
-                        self.targetIndices.astype(DTYPE),
-                        self.zeroedTargetIndices.astype(DTYPE)
+                        self.homology,
+                        self.lattice.tranches,
+                        self.targetIndices
                 )
 
         
@@ -266,76 +291,28 @@ found before sampling the next configuration.</dd>
                 t = self.lattice.tranches
                 p = self.lattice.field.characteristic
 
+                # Indices of each cell and dimensions.
+                dimensions = np.array(sum([
+                        [d]*(t[d,1]-t[d,0]) for d in range(len(t)) if d &lt; self.homology+2
+                ],[]), dtype=FINT)
+
+                times = np.array(range(t[1][0], len(dimensions))).astype(FINT)
+                self.targetIndices = np.arange(*t[self.homology], dtype=FINT)
+                self.identity = np.identity(self.coboundary.shape[1], dtype=FINT)
+
                 # Premake the &#34;occupied cells&#34; array; change the dimension of the lattice
                 # to correspond to the provided dimension.
                 self.rank = comb(len(self.lattice.corners), self.homology)
                 self.nullity = len(self.lattice.boundary[self.homology])
 
-                # Construct a &#34;filtration template&#34; of all the indices. At each step, we
-                # determine which of the target indices correspond to satisfied `homology`
-                # -dimensional cells, then shuffle the order of those indices.
-                self.targetIndices = np.arange(*t[self.homology], dtype=DTYPE)
-                self.zeroedTargetIndices = np.arange(len(self.lattice.boundary[self.homology]), dtype=DTYPE)
-
-                # Indices of each cell and dimensions.
-                dimensions = np.array(sum([
-                        [d]*(t[d,1]-t[d,0]) for d in range(len(t)) if d &lt; self.homology+2
-                ],[]), dtype=DTYPE)
-
-                times = np.array(range(t[1][0], len(dimensions))).astype(DTYPE)
-
                 # If p &gt; 2, we use the simplified Edelsbrunner/Zomorodian persistence
                 # algorithm; otherwise, we use PHAT (Bauer et al.).
                 if p &gt; 2:
-                        # Find the max over the dimensions and specify a &#34;blank&#34; array the max
-                        # width.
-                        zeros = np.zeros((2, t[:,1].max()//8), dtype=DTYPE)
-
-                        # Set multiplicative inverses for the field we&#39;re working with.
-                        fieldInverses = np.array([0] + list(self.lattice.field.Range(1, p)**(-1))).astype(DTYPE)
-
-                        # Create some pre-fab data structures to provide as fixed arguments to
-                        # the proposal method.
-                        low = t[0][1]
-                        premarked = np.array(list(range(low)), dtype=DTYPE)
-
-                        self.lattice.dimension = self.homology
-                        self.coboundary = boundaryMatrix(self.lattice.boundary, self.homology, self.lattice.field).T
-
-                        # Create arithmetic lookup tables.
-                        addition = np.zeros((p,p), dtype=DTYPE)
-                        for j in range(p): addition[:,j] = (np.arange(p, dtype=DTYPE)+j)%p
-
-                        subtraction = np.zeros((p,p), dtype=DTYPE)
-                        for j in range(p): subtraction[:,j] = (np.arange(p, dtype=DTYPE)-j)%p
-
-                        multiplication = np.zeros((p,p), dtype=DTYPE)
-                        for j in range(p): multiplication[:,j] = (np.arange(p, dtype=DTYPE)*j)%p
-
-                        powers = np.full(zeros.shape[1], -1, dtype=DTYPE)
-                        powers[1::2] = -powers[1::2]
-                        powers = powers%p
-
-                        self.computeGiantCyclePairs = partial(
-                                computeGiantCyclePairs,
-                                times,
-                                premarked,
-                                dimensions,
-                                t,
-                                fieldInverses,
-                                p,
-                                self.homology+1,
-                                t[self.homology+1][1],
-                                np.empty((2,0), dtype=DTYPE),
-                                zeros,
-                                np.empty(zeros.shape[1], dtype=DTYPE),
-                                addition.astype(DTYPE),
-                                subtraction.astype(DTYPE),
-                                multiplication.astype(DTYPE),
-                                powers.astype(DTYPE)
-                        )
+                        self.computeGiantCyclePairs = self.Persistence.ComputePercolationEvents
                 else:
-                        def phattified(phatBoundary, dimensions, times, filtration, flattened, zeros):
+                        def phattified(phatBoundary, dimensions, times, filtration):
+                                flattened = self.Persistence.ReindexBoundary(filtration)
+                                
                                 dimensionalFlattened = [
                                         (d, sorted(f)) if d &gt; 0 else (d, [])
                                         for d, f in zip(dimensions, flattened)
@@ -390,21 +367,18 @@ found before sampling the next configuration.</dd>
 
                 # Determine the satisfied plaquettes and re-index the sparse boundary
                 # matrix.
-                cycles = evaluateCochain(boundary[homology], cochain).astype(DTYPE)
-                low, filtration, flattened, shuffledIndices, satisfiedIndices = self.reindexSparseBoundaryMatrix(cycles)
+                cycles = evaluateCochain(boundary[homology], cochain).astype(FINT)
+                filtration, shuffledIndices, satisfiedIndices = self.reindexSparseBoundaryMatrix(cycles)
 
                 # Find essential cycles.
-                essential = self.computeGiantCyclePairs(
-                        filtration,
-                        flattened,
-                        np.zeros(filtration.shape[0], dtype=DTYPE)
-                )
+                essential = self.computeGiantCyclePairs(filtration)
         
                 # Now, make sure we know when *all* the essential cycles are born.
                 j = 0
                 stop = self.stop()
                 occupied = np.zeros((self.rank, self.nullity))
                 satisfied = np.zeros(self.nullity)
+                low, high = self.lattice.tranches[homology]
 
                 # For each essential cycle born...
                 for t in sorted(essential):
@@ -417,7 +391,8 @@ found before sampling the next configuration.</dd>
                         # Only sample the next cocycle from the time we homologically percolate,
                         # not after.
                         if (j+1) == stop:
-                                spins = sampleFromKernel(self.coboundary, self.lattice.field, includes=occupiedIndices)
+                                spins = KernelSample(self.Reducer, self.coboundary.take(occupiedIndices, axis=0))
+                                spins = self.lattice.field(spins)
 
                         j += 1
                 
@@ -492,60 +467,220 @@ occurrence of homological percolation, and the satisfied plaquettes.</p></div>
 </dd>
 </dl>
 </dd>
-<dt id="ateams.models.Model"><code class="flex name class">
-<span>class <span class="ident">Model</span></span>
+<dt id="ateams.models.Nienhuis"><code class="flex name class">
+<span>class <span class="ident">Nienhuis</span></span>
+<span>(</span><span>L,<br>q1,<br>q2,<br>temperatureFunction=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
 </code></dt>
 <dd>
-<div class="desc"><p><code><a title="ateams.models.Model" href="#ateams.models.Model">Model</a></code> class template from which all other <code><a title="ateams.models.Model" href="#ateams.models.Model">Model</a></code>s inherit: they must
-have each of the <code>proposal()</code> and <code>initial()</code> methods.</p></div>
+<div class="desc"><p>Initializes the self-dual Nienhuis model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>L</code></strong></dt>
+<dd>The <code>Lattice</code> object on which we'll be running experiments.</dd>
+<dt><strong><code>q1</code></strong> :&ensp;<code>float</code></dt>
+<dd>Edge coupling parameter.</dd>
+<dt><strong><code>q2</code></strong> :&ensp;<code>float</code></dt>
+<dd>Face coupling parameter.</dd>
+<dt><strong><code>temperatureFunction</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A temperature schedule function which
+takes a single positive integer argument <code>t</code>, and returns the
+scheduled temperature at time <code>t</code>.</dd>
+<dt><strong><code>initial</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dd>A vector of spin assignments to components.</dd>
+<dt><strong><code>sparse</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrices be formatted sparsely? (Uses C/C++).</dd>
+<dt><strong><code>parallel</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
+<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the smallest
+number of columns processed in parallel.</dd>
+<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the largest
+number of columns processed in parallel.</dd>
+<dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
+<dd>Number of available CPUs/cores/threads on the machine.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Model:
-    name = &#34;&#34;
-    def __init__(self):
-        &#34;&#34;&#34;
-        `Model` class template from which all other `Model`s inherit: they must
-        have each of the `proposal()` and `initial()` methods.
-        &#34;&#34;&#34;
-        pass
-    def proposal(self): pass
-    def initial(self): pass
-    # def energy(self): pass</code></pre>
+<pre><code class="python">class Nienhuis(Model):
+        name = &#34;Nienhuis&#34;
+        
+        def __init__(self, 
+                        L, q1, q2, temperatureFunction=constant(-0.6), initial=None,
+                        sparse=True, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
+                ):
+                &#34;&#34;&#34;
+                Initializes the self-dual Nienhuis model.
+
+                Args:
+                        L: The `Lattice` object on which we&#39;ll be running experiments.
+                        q1 (float): Edge coupling parameter.
+                        q2 (float): Face coupling parameter.
+                        temperatureFunction (Callable): A temperature schedule function which
+                                takes a single positive integer argument `t`, and returns the
+                                scheduled temperature at time `t`.
+                        initial (galois.FieldArray): A vector of spin assignments to components.
+                        sparse (boolean): Should matrices be formatted sparsely? (Uses C/C++).
+                        parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
+                        minBlockSize (int=32): If `parallel` is truthy, this is the smallest
+                                number of columns processed in parallel.
+                        maxBlockSize (int=64): If `parallel` is truthy, this is the largest
+                                number of columns processed in parallel.
+                        cores (int=4): Number of available CPUs/cores/threads on the machine.
+                &#34;&#34;&#34;
+
+                self.lattice = L
+                self.temperatureFunction = temperatureFunction #DOESNT DO ANYTHING
+                self.faceCells = len(self.lattice.boundary[self.lattice.dimension-1])
+                self.cubeCells = len(self.lattice.boundary[self.lattice.dimension])
+                self.q1=q1
+                self.q2=q2
+                self.p1=q1/(1+q1)
+                self.p2=q2/(1+q2)
+
+                self.sparse = sparse
+                self.parallel = parallel
+                self.minBlockSize = minBlockSize
+                self.maxBlockSize = maxBlockSize
+                self.cores = cores
+
+                # SW defaults.
+                self.spins = initial if initial else self.initial()
+                
+                self.coboundary = self.lattice.matrices.coboundary.astype(FINT)
+                self.Reducer = MatrixReduction(self.lattice.field.characteristic, parallel, minBlockSize, maxBlockSize, cores)
+                self.SampleFromKernel = KernelSample
+
+
+        def initial(self):
+                &#34;&#34;&#34;
+                Computes an initial state for the model&#39;s Lattice.
+
+                Returns:
+                        A Galois `Array` representing a vector of spin assignments.
+                &#34;&#34;&#34;
+                return self.lattice.field.Random(self.faceCells)
+        
+
+        def proposal(self, time):
+                &#34;&#34;&#34;
+                Proposal scheme for generalized Swendsen-Wang evolution on the Potts model.
+
+                Args:
+                        time (int): Step in the chain.
+
+                Returns:
+                        A Galois `Array` representing a vector of spin assignments.
+                &#34;&#34;&#34;
+                # Compute the probability of choosing any individual cube in the complex.
+                p1=self.p1
+                p2=self.p2
+                
+                # Choose cubes to include; in effect, this just does a boatload of indexing.
+                uniformsFace = np.random.uniform(size=self.cubeCells) #randomly assigns a probability to each face
+                uniformEdge = np.random.uniform(size=self.faceCells) #randomly assigns a probability to each edge
+                includeFace = (uniformsFace &lt; p1).nonzero()[0] #gives you indices where probability is under threshold
+                includeEdge =(uniformEdge &lt; p2).nonzero()[0] #gives you indices where probability is under threshold
+
+                boundary = self.lattice.boundary[self.lattice.dimension][includeFace] #list of edges for faces under threshold
+                boundaryValues = evaluateCochain(boundary, self.spins) #list of face sums for open faces
+                percedFaces = (boundaryValues == 0).nonzero()[0] #indices where is 0 (that is also selected by perc)
+                
+                percedEdges = np.intersect1d((self.spins == 0).nonzero()[0], includeEdge)
+                includedEdges=np.setdiff1d(range(0,len(self.lattice.boundary[self.lattice.dimension-1])),percedEdges)
+                
+
+                #satisfied = np.zeros(len(self.lattice.boundary[self.lattice.dimension])).astype(int) #all 0&#39;s for faces
+                #satisfied[zeroFaces] = 1 #all open faces which evaluate to 0 get label 1
+
+                # Uniformly randomly sample a cocycle on the sublattice admitted by the
+                # chosen edges; reconstruct the labeling on the entire lattice by
+                # subbing in the values of c which differ from existing ones.
+                subbasis = self.coboundary.take(percedFaces, axis=0).take(includedEdges, axis=1)
+                changedSpins = self.SampleFromKernel(self.Reducer, subbasis)
+                # changedSpins=sampleFromKernel(self.lattice.matrices.coboundary, self.lattice.field, relativeCells=percedFaces, relativeFaces=includedEdges) #based on this face set, find a cocycle, return cocycle and labelling
+
+                newSpins=self.spins.copy()
+                newSpins[includedEdges] = changedSpins
+                newSpins[percedEdges] = 0
+
+                edgeEnergy=(len(newSpins)-sum((newSpins==0)))/len(newSpins)
+
+                fullBoundary = self.lattice.boundary[self.lattice.dimension]
+                fullBoundaryValues=evaluateCochain(fullBoundary, self.spins)
+                faceEnergy=(len(fullBoundaryValues)-sum((fullBoundaryValues==0)))/len(fullBoundaryValues)
+
+                #energy=edgeEnergy+faceEnergy
+                #print(edgeEnergy,faceEnergy)
+                
+                return newSpins, (edgeEnergy, faceEnergy)
+
+        def assign(self, cocycle):
+                &#34;&#34;&#34;
+                Updates mappings from faces to spins and cubes to occupations.
+
+                Args:
+                        cocycle (galois.FieldArray): Cocycle on the sublattice.
+                
+                Returns:
+                        None.
+                &#34;&#34;&#34;
+                self.spins = cocycle</code></pre>
 </details>
-<h3>Subclasses</h3>
+<h3>Ancestors</h3>
 <ul class="hlist">
-<li>ateams.models.Glauber.Glauber</li>
-<li>ateams.models.InvadedCluster.InvadedCluster</li>
-<li>ateams.models.SwendsenWang.SwendsenWang</li>
+<li>ateams.models.Model.Model</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ateams.models.Model.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dt id="ateams.models.Nienhuis.name"><code class="name">var <span class="ident">name</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="ateams.models.Model.initial"><code class="name flex">
+<dt id="ateams.models.Nienhuis.assign"><code class="name flex">
+<span>def <span class="ident">assign</span></span>(<span>self, cocycle)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>cocycle</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dd>Cocycle on the sublattice.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+</dd>
+<dt id="ateams.models.Nienhuis.initial"><code class="name flex">
 <span>def <span class="ident">initial</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Computes an initial state for the model's Lattice.</p>
+<h2 id="returns">Returns</h2>
+<p>A Galois <code>Array</code> representing a vector of spin assignments.</p></div>
 </dd>
-<dt id="ateams.models.Model.proposal"><code class="name flex">
-<span>def <span class="ident">proposal</span></span>(<span>self)</span>
+<dt id="ateams.models.Nienhuis.proposal"><code class="name flex">
+<span>def <span class="ident">proposal</span></span>(<span>self, time)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Proposal scheme for generalized Swendsen-Wang evolution on the Potts model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>time</code></strong> :&ensp;<code>int</code></dt>
+<dd>Step in the chain.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A Galois <code>Array</code> representing a vector of spin assignments.</p></div>
 </dd>
 </dl>
 </dd>
 <dt id="ateams.models.SwendsenWang"><code class="flex name class">
 <span>class <span class="ident">SwendsenWang</span></span>
-<span>(</span><span>L, temperatureFunction=&lt;function constant.&lt;locals&gt;._&gt;, initial=None)</span>
+<span>(</span><span>L,<br>temperatureFunction=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes Swendsen-Wang evolution on the Potts model.</p>
@@ -559,86 +694,124 @@ takes a single positive integer argument <code>t</code>, and returns the
 scheduled temperature at time <code>t</code>.</dd>
 <dt><strong><code>initial</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
 <dd>A vector of spin assignments to components.</dd>
+<dt><strong><code>sparse</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrices be formatted sparsely? (Uses C/C++).</dd>
+<dt><strong><code>parallel</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
+<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the smallest
+number of columns processed in parallel.</dd>
+<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the largest
+number of columns processed in parallel.</dd>
+<dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
+<dd>Number of available CPUs/cores/threads on the machine.</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class SwendsenWang(Model):
-    name = &#34;SwendsenWang&#34;
-    
-    def __init__(self, L, temperatureFunction=constant(-0.6), initial=None):
-        &#34;&#34;&#34;
-        Initializes Swendsen-Wang evolution on the Potts model.
-
-        Args:
-            L: The `Lattice` object on which we&#39;ll be running experiments.
-            temperatureFunction (Callable): A temperature schedule function which
-                takes a single positive integer argument `t`, and returns the
-                scheduled temperature at time `t`.
-            initial (galois.FieldArray): A vector of spin assignments to components.
-        &#34;&#34;&#34;
-        self.lattice = L
-        self.temperatureFunction = temperatureFunction
-        self.faceCells = len(self.lattice.boundary[self.lattice.dimension-1])
-        self.cubeCells = len(self.lattice.boundary[self.lattice.dimension])
-
-        # SW defaults.
-        self.spins = initial if initial else self.initial()
-
-
-    def initial(self):
-        &#34;&#34;&#34;
-        Computes an initial state for the model&#39;s Lattice.
-
-        Returns:
-            A Galois `Array` representing a vector of spin assignments.
-        &#34;&#34;&#34;
-        return self.lattice.field.Random(self.faceCells)
-    
-
-    def proposal(self, time):
-        &#34;&#34;&#34;
-        Proposal scheme for generalized Swendsen-Wang evolution on the Potts model.
-
-        Args:
-            time (int): Step in the chain.
-
-        Returns:
-            A Galois `Array` representing a vector of spin assignments.
-        &#34;&#34;&#34;
-        # Compute the probability of choosing any individual cube in the complex.
-        self.temperature = self.temperatureFunction(time)
-        p = 1-np.exp(self.temperature)
-        assert 0 &lt;= p &lt;= 1
-
-        # Choose cubes to include; in effect, this just does a boatload of indexing.
-        uniforms = np.random.uniform(size=self.cubeCells)
-        include = (uniforms &lt; p).nonzero()[0]
-        boundary = self.lattice.boundary[self.lattice.dimension][include]
-        boundaryValues = evaluateCochain(boundary, self.spins)
-        zeros = (boundaryValues == 0).nonzero()[0]
-
-        satisfied = np.zeros(len(self.lattice.boundary[self.lattice.dimension])).astype(int)
-        satisfied[zeros] = 1
-
-        # Uniformly randomly sample a cocycle on the sublattice admitted by the
-        # chosen edges; reconstruct the labeling on the entire lattice by
-        # subbing in the values of c which differ from existing ones.
-        return sampleFromKernel(self.lattice.matrices.coboundary, self.lattice.field, includes=zeros), satisfied
-    
-
-    def assign(self, cocycle):
-        &#34;&#34;&#34;
-        Updates mappings from faces to spins and cubes to occupations.
-
-        Args:
-            cocycle (galois.FieldArray): Cocycle on the sublattice.
+        name = &#34;SwendsenWang&#34;
         
-        Returns:
-            None.
-        &#34;&#34;&#34;
-        self.spins = cocycle</code></pre>
+        def __init__(self, L, temperatureFunction=constant(-0.6), initial=None, sparse=True, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4):
+                &#34;&#34;&#34;
+                Initializes Swendsen-Wang evolution on the Potts model.
+
+                Args:
+                        L: The `Lattice` object on which we&#39;ll be running experiments.
+                        temperatureFunction (Callable): A temperature schedule function which
+                                takes a single positive integer argument `t`, and returns the
+                                scheduled temperature at time `t`.
+                        initial (galois.FieldArray): A vector of spin assignments to components.
+                        sparse (boolean): Should matrices be formatted sparsely? (Uses C/C++).
+                        parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
+                        minBlockSize (int=32): If `parallel` is truthy, this is the smallest
+                                number of columns processed in parallel.
+                        maxBlockSize (int=64): If `parallel` is truthy, this is the largest
+                                number of columns processed in parallel.
+                        cores (int=4): Number of available CPUs/cores/threads on the machine.
+                &#34;&#34;&#34;
+                self.lattice = L
+                self.temperatureFunction = temperatureFunction
+                self.faceCells = len(self.lattice.boundary[self.lattice.dimension-1])
+                self.cubeCells = len(self.lattice.boundary[self.lattice.dimension])
+
+                self.sparse = sparse
+                self.parallel = parallel
+                self.minBlockSize = minBlockSize
+                self.maxBlockSize = maxBlockSize
+                self.cores = cores
+
+                self.coboundary = self.lattice.matrices.coboundary.astype(FINT)
+                self.Reducer = MatrixReduction(self.lattice.field.characteristic, parallel, minBlockSize, maxBlockSize, cores)
+                self.identity = np.identity(self.coboundary.shape[1], dtype=FINT)
+                self.SampleFromKernel = KernelSample
+
+                # SW defaults.
+                self.spins = initial if initial else self.initial()
+
+
+        def initial(self):
+                &#34;&#34;&#34;
+                Computes an initial state for the model&#39;s Lattice.
+
+                Returns:
+                        A Galois `Array` representing a vector of spin assignments.
+                &#34;&#34;&#34;
+                return self.lattice.field.Random(self.faceCells)
+        
+
+        def proposal(self, time):
+                &#34;&#34;&#34;
+                Proposal scheme for generalized Swendsen-Wang evolution on the Potts model.
+
+                Args:
+                        time (int): Step in the chain.
+
+                Returns:
+                        A Galois `Array` representing a vector of spin assignments.
+                &#34;&#34;&#34;
+                # Compute the probability of choosing any individual cube in the complex.
+                self.temperature = self.temperatureFunction(time)
+                p = 1-np.exp(self.temperature)
+                assert 0 &lt;= p &lt;= 1
+
+                # Choose cubes to include; in effect, this just does a boatload of indexing.
+                uniforms = np.random.uniform(size=self.cubeCells)
+                include = (uniforms &lt; p).nonzero()[0]
+                boundary = self.lattice.boundary[self.lattice.dimension][include]
+                boundaryValues = evaluateCochain(boundary, self.spins)
+                zeros = (boundaryValues == 0).nonzero()[0]
+
+                satisfied = np.zeros(len(self.lattice.boundary[self.lattice.dimension])).astype(int)
+                satisfied[zeros] = 1
+
+                # subbasis = np.concatenate([
+                #       self.coboundary.take(zeros, axis=0).T,
+                #       self.identity
+                # ], axis=1, dtype=FINT)
+                # self.Reducer.RREF(subbasis, len(zeros))
+                spins = self.SampleFromKernel(self.Reducer, self.coboundary.take(zeros, axis=0))
+                spins = self.lattice.field(spins)
+
+                # Uniformly randomly sample a cocycle on the sublattice admitted by the
+                # chosen edges; reconstruct the labeling on the entire lattice by
+                # subbing in the values of c which differ from existing ones.
+                return spins, satisfied
+        
+
+        def assign(self, cocycle):
+                &#34;&#34;&#34;
+                Updates mappings from faces to spins and cubes to occupations.
+
+                Args:
+                        cocycle (galois.FieldArray): Cocycle on the sublattice.
+                
+                Returns:
+                        None.
+                &#34;&#34;&#34;
+                self.spins = cocycle</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -713,8 +886,8 @@ proof.appendChild(square);
 <style>
 header > h1 { display: none; }
 img.resize {
-max-width: 90%;
-max-height: 90%;
+min-width: 15vw;
+max-width: 23vw;
 display: block;
 margin: 0 auto;
 }
@@ -731,14 +904,14 @@ float: right;
 #section-intro {
 text-align: justify;
 }
-#sidebar {
-width: 20%;
-}
 #index .two-column {
 column-count: 1 !important;
 }
+#ateams {
+margin-top: 0;
+}
 </style>
-<img class="resize" src="https://github.com/apizzimenti/ateam/blob/main/docs/lattice-55.jpeg?raw=true" alt="Homological percolation on the torus.">
+<img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
 </a>
 </header>
 <div class="toc">
@@ -771,11 +944,12 @@ column-count: 1 !important;
 </ul>
 </li>
 <li>
-<h4><code><a title="ateams.models.Model" href="#ateams.models.Model">Model</a></code></h4>
+<h4><code><a title="ateams.models.Nienhuis" href="#ateams.models.Nienhuis">Nienhuis</a></code></h4>
 <ul class="">
-<li><code><a title="ateams.models.Model.initial" href="#ateams.models.Model.initial">initial</a></code></li>
-<li><code><a title="ateams.models.Model.name" href="#ateams.models.Model.name">name</a></code></li>
-<li><code><a title="ateams.models.Model.proposal" href="#ateams.models.Model.proposal">proposal</a></code></li>
+<li><code><a title="ateams.models.Nienhuis.assign" href="#ateams.models.Nienhuis.assign">assign</a></code></li>
+<li><code><a title="ateams.models.Nienhuis.initial" href="#ateams.models.Nienhuis.initial">initial</a></code></li>
+<li><code><a title="ateams.models.Nienhuis.name" href="#ateams.models.Nienhuis.name">name</a></code></li>
+<li><code><a title="ateams.models.Nienhuis.proposal" href="#ateams.models.Nienhuis.proposal">proposal</a></code></li>
 </ul>
 </li>
 <li>
