@@ -8,6 +8,7 @@ import numpy as np
 cimport numpy as np
 
 from cython.operator cimport dereference
+from libcpp.vector cimport vector as Vector
 from libcpp.unordered_set cimport unordered_set as Set
 from libcpp.set cimport set as OrderedSet
 from libcpp.unordered_map cimport unordered_map as Map
@@ -22,17 +23,19 @@ cdef class Persistence:
 	"""
 	def __init__(
 			self,
-			int homology,
 			FFINT characteristic,
 			list[list[int]] flattened,
+			int homology=-1
 		):
 		"""
 		Args:
-			homology (int): Degree of homology observed for homological percolation events.
 			characteristic (int): Characteristic of the finite field over which
 				we do computations.
 			flattened (list): List-of-lists representing the *original* flattened
 				boundary matrix for the complex.
+			homology (int): Degree of homology observed for homological percolation events;
+				if not specified, the homology of the codimension-1 skeleton is
+				reported.
 
 		The code below computes the birth times of giant cycles (in this case,
 		elements of the first homology group) on the default
@@ -51,9 +54,17 @@ cdef class Persistence:
 			events = P.ComputePercolationEvents(filtration)
 		
 		"""
-		self.homology = homology;
 		self.characteristic = characteristic;
 		self.boundary = self.Vectorize(flattened);
+		
+		# If there was no homology parameter passed, just compute the homology
+		# of the codimension-1 skeleton.
+		if homology < 0:
+			# Knock off *two* dimensions (so we don't get off-by-one errors), and
+			# make sure we're computing at least the zeroth homology.
+			self.homology = self._tranches.size()-2;
+			if self.homology < 0: self.homology = 0;
+		else: self.homology = homology;
 
 		self.cellCount = self._boundary.size();
 		self.vertexCount = self._tranches[0][1];
@@ -168,6 +179,100 @@ cdef class Persistence:
 					self.boundary[i][j] = filtered;
 		
 		return self.boundary
+
+
+	cdef Vector[Vector[int]] ReindexSubBoundary(self, INDEXFLAT subcomplex) noexcept:
+		# Create a "subboundary" matrix that maps old boundary indices to new
+		# ones.
+		cdef Set[int] included;
+		cdef Vector[int] renumbering, faces, retained, dimensions;
+		cdef Vector[Vector[int]] subboundary, subsubboundary;
+		cdef bool retain;
+		cdef int i, j, M, N, dimension;
+
+		# Keep track of which indices are included in the subcomplex.
+		N = subcomplex.shape[0];
+		included = Set[int]();
+		for i in range(N): included.insert(subcomplex[i]);
+
+		# Build the subcomplex.
+		M = self.boundary.size();
+		renumbering = Vector[int](M);
+		subboundary = Vector[Vector[int]](M);
+		retained = Vector[int]();
+
+		for i in range(M):
+			# If this cell is *not* included in the subcomplex, throw it out
+			# and continue.
+			retain = included.contains(i);
+
+			# Check whether all the faces belong.
+			faces = self._boundary[i];
+			N = faces.size();
+
+			for j in range(N):
+				# Check whether this face is included in the subcomplex. If it
+				# is *not* included, we do *not* include the cell, which means
+				# we have to remove it from the set of included cell indices.
+				retain = retain and included.contains(faces[j]);
+
+				if not retain:
+					included.erase(i);
+					break;
+
+			# If this cell should be included, note its original index and new
+			# index.
+			if retain:
+				retained.push_back(i);
+				renumbering[i] = retained.size()-1;
+		
+		# Now, construct the subboundary matrix.
+		M = retained.size();
+		subboundary = Vector[Vector[int]](M);
+		dimensions = Vector[int](M);
+
+		for i in range(M):
+			subboundary[i] = self.boundary[retained[i]];
+			N = subboundary[i].size();
+			dimensions[i] = <int>(N/2);
+
+			for j in range(N):
+				subboundary[i][j] = renumbering[subboundary[i][j]];
+
+		self._dimensions = dimensions;
+		self.boundary = subboundary;
+
+		# Scan over the array of dimensions, checking how many cells of each
+		# dimension exist (and where their indices stop/start).
+		cdef Vector[Vector[int]] tranches = Vector[Vector[int]]();
+		cdef Vector[int] tranche;
+		cdef int t, _tranche = 0;
+
+		N = dimensions.size();
+
+		for t in range(1, N):
+			if dimensions[t] > dimensions[t-1] or t == N-1:
+				tranche = Vector[int](2);
+				tranche[0] = _tranche;
+				tranche[1] = t if t < N-1 else N;
+				tranches.push_back(tranche);
+
+				_tranche = t;
+
+		self._tranches = tranches;
+
+		# Set pre-marked vertices again.
+		self.premarked = Vector[int](self.vertexCount);
+		for i in range(self.vertexCount): self.premarked[i] = i;
+
+		# Re-count cells.
+		self.cellCount = self._boundary.size();
+		self.vertexCount = self._tranches[0][1];
+		self.higherCellCount = self._tranches[self.homology+1][1];
+		self.low = self._tranches[self.homology][0];
+		self.high = self._tranches[self.homology][1];
+
+		return subboundary
 		
 
 	cdef Vector[Vector[int]] Vectorize(self, list[list[int]] flattened) noexcept:
@@ -369,7 +474,7 @@ cdef class Persistence:
 		cdef Vector[int] facesIterable, degree = Vector[int](self.cellCount);
 		cdef OrderedSet[int] faces;
 		cdef Map[int,FFINT] faceCoefficients;
-		cdef int t, j, cell, time, tagged, youngest;
+		cdef int t, j, cell, dimension, time, tagged, youngest;
 
 		# TODO: shouldn't have to iterate over vertices
 		tagged = 0;
@@ -420,3 +525,79 @@ cdef class Persistence:
 			if unmarked.empty(): events.insert(degree[cell]);
 		
 		return events
+	
+	
+	cpdef Vector[int] ComputeBettiNumbers(self, INDEXFLAT subcomplex) noexcept:
+		"""
+		Computes the _Betti numbers_ — the ranks of the homology groups — of the
+		subcomplex specified.
+
+		Args:
+			subcomplex (np.ndarray): Indices of cells of the _full_ (flattened)
+				boundary matrix to include in the complex.
+
+		Returns:
+			A C++ `Vector[int]` where the \(i\)th entry is the \(i\)th Betti number.
+		"""
+		# Flush the set of marked indices, adding premarked ones.
+		self.__flushDataStructures();
+
+		# Construct the boundary matrix for this filtration; variables for
+		# objects.
+		cdef Vector[Vector[int]] subboundary = self.ReindexSubBoundary(subcomplex);
+		cdef Vector[int] facesIterable, degree = Vector[int](self.cellCount);
+		cdef OrderedSet[int] faces;
+		cdef Map[int,FFINT] faceCoefficients;
+		cdef int t, j, cell, time, tagged, youngest;
+		
+		tagged = 0;
+
+		for t in range(0, self.higherCellCount):
+			# Since our filtrations are discrete (i.e. we add exactly one simplex
+			# at each time-step), the "degree" of the cell is the same as the time
+			# at which it was added.
+			cell = t;
+
+			# Create buckets for indices and coefficients; these are created and
+			# stored ONCE, but accessed many times.
+			faces = OrderedSet[int]();
+			faceCoefficients = Map[int,FFINT]();
+
+			# Eliminate.
+			faces = self.ReducePivotRow(cell, faces, faceCoefficients);
+			
+			# If we end up with no faces, we've found a pivot row.
+			if faces.empty():
+				# Mark the face, but only add it to the marked iterable if it's
+				# of the right dimension.
+				self.marked.insert(cell);
+				degree[cell] = t;
+				
+				self.markedIterable[tagged] = cell;
+				tagged = tagged + 1;
+
+			# Otherwise, store the row in the appropriate locations.
+			else:
+				youngest = dereference(faces.rbegin());
+				facesIterable = Vector[int]();
+				facesIterable.insert(facesIterable.begin(), faces.begin(), faces.end());
+
+				self.columnEntries[youngest] = faces;
+				self.columnEntriesIterable[youngest] = facesIterable;
+				self.columnEntriesCoefficients[youngest] = faceCoefficients;
+				degree[youngest] = t;
+
+		# Once we're done eliminating, check over what we find.
+		cdef OrderedSet[int] unmarked;
+		cdef Vector[int] bettis = Vector[int](self._tranches.size(),0);
+
+		for j in range(tagged):
+			cell = self.markedIterable[j];
+			unmarked = self.columnEntries[cell];
+			dimension = self._dimensions[cell];
+
+			if unmarked.empty():
+				bettis[dimension] = bettis[dimension] + 1
+		
+		return bettis
+
