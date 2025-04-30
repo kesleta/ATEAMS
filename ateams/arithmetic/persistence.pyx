@@ -1,463 +1,653 @@
 
-# distutils: language=c
+# distutils: language=c++
+
+from .common cimport TABLE, FLAT, FFINT, TABLECONTIG, FLATCONTIG
+from .common import FINT
 
 import numpy as np
 cimport numpy as np
 
-from .common cimport TABLE, FLAT, FFINT, INDEXFLAT
-from .common import FINT
+from cython.operator cimport dereference
+from libcpp.vector cimport vector as Vector
+from libcpp.unordered_set cimport unordered_set as Set
+from libcpp.set cimport set as OrderedSet
+from libcpp.unordered_map cimport unordered_map as Map
+from libcpp cimport bool
+from libc.math cimport pow
 
 
-cdef FFINT Max(FLAT A) noexcept:
+cdef class Persistence:
 	"""
-	Substitution for Python's `max` function.
-
-	Args:
-		FLAT A: `memoryview` on a Cython NumPy array.
-
-	Returns:
-		Maximum value in the array.
+	Computes the persistent homology of a complex with coefficients
+	in an arbitrary finite field.
 	"""
-	cdef int j, N;
-	cdef FFINT l = A[0];
+	def __init__(
+			self,
+			FFINT characteristic,
+			list[list[int]] flattened,
+			int homology=-1
+		):
+		"""
+		Args:
+			characteristic (int): Characteristic of the finite field over which
+				we do computations.
+			flattened (list): List-of-lists representing the *original* flattened
+				boundary matrix for the complex.
+			homology (int): Degree of homology observed for homological percolation events;
+				if not specified, the homology of the codimension-1 skeleton is
+				reported.
 
-	N = A.shape[0];
-
-	for j in range(N):
-		if A[j] > l: l = A[j]
-
-	return l
-
-
-cdef FFINT MaxNonzero(TABLE A) noexcept:
-	"""
-	Finds and returns the largest value in the second row of an array given
-	the value in the row above it is nonzero.
-
-	Args:
-		TABLE A: `memoryview` on a Cython NumPy array. It is assumed that
-			the values in `A` are "packed" toward the beginning: if there are
-			N nonzero values in the second row of the array, they can be found
-			in the first N+1 indices.
-
-	Returns:
-		Largest value in the second row of an array given the value in the row
-		above it is nonzero.
-	"""
-	cdef int j, N, tripleZeros;
-	cdef FFINT l = 0;
-
-	N = A.shape[1];
-	tripleZeros = 0;
-
-	for j in range(N):
-		if A[0,j] > 0 and A[1,j] > l: l = A[1,j]
-
-		# Avoid traversing the whole array: we check to see whether we've
-		# found all the "packed" elements.
-		if j > 0:
-			if A[1,j-1] == 0 and A[1,j] == 0:
-				tripleZeros += 1
-
-		if tripleZeros > 4: break
-
-	return l
-
-
-cdef FLAT NonzeroIndices(TABLE A, FLAT indices) noexcept:
-	"""
-	Finds and returns an array containing the indices of columns in A whose
-	first entry is nonzero.
-
-	Args:
-		TABLE A: `memoryview` on a Cython NumPy array. It is assumed that
-			the values in `A` are "packed" toward the beginning: if there are
-			N nonzero values in the second row of the array, they can be found
-			in the first N+1 indices.
-
-	Returns:
-		Indices of columns with nonzero first entry.
-	"""
-	cdef int j, N, l, tripleZeros;
-	
-	N = A.shape[1];
-	l = 0;
-	tripleZeros = 0;
-
-	for j in range(N):
-		if A[0,j] > 0:
-			indices[l] = j;
-			l += 1
-
-		# Avoid traversing the whole array: we check to see whether we've
-		# found all the "packed" elements.
-		if j > 0:
-			if A[1,j-1] == 0 and A[1,j] == 0:
-				tripleZeros += 1
-
-		if tripleZeros > 4: break
-
-	return indices[:l]
-
-
-cdef TABLE SliceMatrix(TABLE A, FLAT indices) noexcept:
-	"""
-	Trims a matrix, keeping only columns with nonzero first entry.
-
-	Args:
-		TABLE A: `memoryview` on a Cython NumPy array. It is assumed that
-			the values in `A` are "packed" toward the beginning: if there are
-			N nonzero values in the second row of the array, they can be found
-			in the first N+1 indices.
-		FLAT indices: `memoryview` on a Cython NumPy array of blanks for
-			object recycling.
-
-	Returns:
-		`A`, but only with columns with nonzero first entry.
-	"""
-	cdef int j, t, N;
-	cdef FLAT nonzero;
-	cdef TABLE resized;
-
-	# Find the nonzero indices, create an array of appropriate size, then
-	# write. This may be less efficient, but we (sadly) need to do it.
-	nonzero = NonzeroIndices(A, indices);
-	N = nonzero.shape[0];
-	resized = np.empty((2, N), dtype=FINT);
-
-	for j in range(N):
-		t = nonzero[j]
-		resized[0,j] = A[0,t]
-		resized[1,j] = A[1,t]
-
-	return resized[:,:N]
-
-
-cdef int CountNonzero(TABLE A) noexcept:
-	"""
-	Counts the columns of `A` with nonzero first entry.
-
-	Args:
-		TABLE A: `memoryview` on a Cython NumPy array. It is assumed that
-			the values in `A` are "packed" toward the beginning: if there are
-			N nonzero values in the second row of the array, they can be found
-			in the first N+1 indices.
-
-	Returns:
-		Number of columns of `A` with nonzero first entry.
-	"""
-	cdef int j, N, l, tripleZeros;
-
-	j = 0;
-	N = A.shape[1];
-	l = 0;
-	tripleZeros = 0;
-
-	for j in range(N):
-		if A[0,j] > 0: l += 1
-
-		# Avoid traversing the whole array: we check to see whether we've
-		# found all the "packed" elements.
-		if j > 0:
-			if A[1,j-1] == 0 and A[1,j] == 0:
-				tripleZeros += 1
-
-		if tripleZeros > 4: break
-
-	return l
-
-
-cdef void Tare(TABLE A) noexcept:
-	"""
-	Tares (zeroes out) the array.
-
-	Args:
-		TABLE A: `memoryview` on a Cython NumPy array. It is assumed that
-			the values in `A` are "packed" toward the beginning: if there are
-			N nonzero values in the second row of the array, they can be found
-			in the first N+1 indices.
-
-	Returns:
-		Zeroed-out array.
-	"""
-	cdef int j, N, tripleZeros;
-
-	tripleZeros = 0;
-	N = A.shape[1]
-
-	for j in range(N):
-		# Avoid traversing the whole array: we check to see whether we've
-		# found all the "packed" elements. Do this *first*, though, since we're
-		# editing the array to have zero elements precending the current one.
-		if j > 0:
-			if A[1,j] == 0:
-				tripleZeros += 1
-
-		if tripleZeros > 4: break
-
-		A[0,j] = 0
-		A[1,j] = 0
-
-
-cdef TABLE FillMarkedIndices (
-		TABLE A, FLAT powers, list[int] boundary, set[int] marked
-	) noexcept:
-	"""
-	Fills the marked indices of A with the appropriate coefficient.
-
-	Args:
-		TABLE A: Array of blanks to be filled.
-		FLAT powers: Array of alternating powers of -1 (mod p).
-		list boundary: Degrees of bounding faces for this plaquette.
-		set marked: Marked plaquettes.
-
-	Returns:
-		`A` with filled coefficients and indices.
-	"""
-	cdef int j, b, N;
-
-	N = len(boundary)
-
-	for j in range(N):
-		b = boundary[j]
-		if b not in marked: continue
-
-		A[0,j] = powers[j]
-		A[1,j] = b
-
-	return A
-
-
-cdef TABLE FillSharedIndices(
-		TABLE coefficients,
-		TABLE nonpivot,
-		set[int] shared,
-		dict[int,int] coefficientIndices,
-		dict[int,int] nonpivotIndices,
-		int q,
-		TABLE multiplication,
-		TABLE subtraction
-	) noexcept:
-	"""
-	Computes the coefficients of bounding faces shared by those in `coefficients`
-	and `nonpivot`.
-	"""
-	cdef int k, sub, mul, lindex, rindex;
-
-	for k in shared:
-		lindex = coefficientIndices[k]
-		rindex = nonpivotIndices[k]
-		sub = coefficients[0,lindex]
-		mul = multiplication[q,nonpivot[0,rindex]]
-		coefficients[0,lindex] = subtraction[sub,mul]
-
-	return coefficients
-
-
-cdef TABLE FillRightIndices(
-		TABLE coefficients,
-		TABLE nonpivot,
-		set[int] rOnly,
-		dict[int,int] nonpivotIndices,
-		int q,
-		TABLE multiplication,
-		TABLE subtraction
-	) noexcept:
-	cdef int added, R, a, rindex, mul, N;
-
-	N = coefficients.shape[1];
-	R = len(rOnly);
-	added = 0;
-	a = 0;
-
-	for a in range(N):
-		if added == R: break
-		if coefficients[0,a] < 1:
-			rindex = nonpivotIndices[rOnly.pop()]
-			mul = multiplication[q,nonpivot[0,rindex]]
+		The code below computes the birth times of giant cycles (in this case,
+		elements of the first homology group) on the default
+		\(3 \\times 3\) cubical torus: the filtration stored in `filtration`
+		adds each cube to the cubical complex in order of construction. At
+		completion, `events` contains the times `{17, 21}` which correspond to
+		crossings of the meridian and equator of the torus, respectively.
+		
+		
+			from ateams.arithmetic import Persistence
+			from ateams.structures import Lattice
 			
-			coefficients[0,a] = subtraction[0,mul]
-			coefficients[1,a] = nonpivot[1,rindex]
+			L = Lattice().fromCorners([3,3], field=3)
+			P = Persistence(L.field.characteristic, L.flattened, homology=1)
 
-			added += 1
+			filtration = np.arange(len(L.flattened))
+			events = P.ComputePercolationEvents(filtration)
 
-	return coefficients
+
+		The `ComputeBettiNumbers` method provides functionality to compute the
+		Betti numbers for an entire subcomplex. The subcomplex is specified by
+		a list of indices corresponding to the cells included in the subcomplex.
+		Initializing the `Persistence` object as before, we can get the Betti
+		numbers of the \(2\)-torus encoded by the `Lattice` above by passing a
+		list of all cells' indices in the flattened boundary matrix: since there
+		are \(36\) cells (including vertices, edges, and squares), the `subcomplex`
+		is just the range of integers \(0--36\):
 
 
-cdef TABLE ReducePivotRow(
-		TABLE coefficients,
-		list[int] boundary,
-		set[int] marked,
-		FLAT indices,
-		dict[int,TABLE] dynamicCoeffs,
-		dict[int,dict[int,int]] dynamicIndices,
-		dict[int,set[int]] dynamicSets,
-		FLAT fieldInverses,
-		FFINT fieldCharacteristic,
-		TABLE addition,
-		TABLE subtraction,
-		TABLE multiplication,
-		FLAT powers
-	) noexcept:
-	cdef int i, d, dadded, occupied, locator, q;
-	cdef dict[int,int] nonpivotIndices, coefficientIndices;
-	cdef set[int] left, right, shared, rOnly;
-	cdef TABLE nonpivot;
+			from ateams.arithmetic import Persistence
+			from ateams.structures import Lattice
+			
+			L = Lattice().fromCorners([3,3], field=3)
+			P = Persistence(L.field.characteristic, L.flattened)
 
-	# Fill the coefficient array; count the occupied indices.
-	coefficients = FillMarkedIndices(coefficients, powers, boundary, marked)
-	occupied = CountNonzero(coefficients)
+			subcomplex = np.array(range(len(L.flattened)))
 
-	while occupied > 0:
-		# Find the largest index over the included cells; this is our potential
-		# pivot row. Notably, we *cannot* include indices with coefficient zero.
-		i = MaxNonzero(coefficients)
-		nonpivot = dynamicCoeffs[i]
+			bettis = P.ComputeBettiNumbers(subcomplex)
 
-		# If the column *is* a pivot, then we've already reduced the row and we
-		# return the coefficients.
-		if nonpivot.shape[1] < 1: break
 
-		# Find the array index of the plaquette of greatest degree (i.e. the
-		# plaquette added latest in the filtration).
-		nonpivotIndices = dynamicIndices[i]
-		locator = nonpivotIndices[i]
-		q = fieldInverses[nonpivot[0,locator]]
+		The result in `bettis` is the list `[1,2,1]`. By deleting an edge, we
+		reduce the number of squares by two, so we should expect the homology
+		of a one-edge-deleted \(2\)-torus to have betti numbers `[1,2,0]`. To
+		access the indices of the flattened boundary matrix corresponding to
+		cells of each dimension, we can use the `Lattice.tranches` property
+		which maps an integer dimension to a (start, stop) pair: for example,
+		`L.tranches[1]` is `[9, 27]` in the lattice above, so we know that all
+		entries in the flattened boundary matrix between indices \(9\) and \(27\)
+		(_right-exclusive_) correspond to edges. To test our theory, we
+		construct a subcomplex by deleting the first edge added:
 
-		# Otherwise, we determine the maximum index over those specified by the
-		# chain and get its multiplicative inverse (over the finite field).
-		# Because `dynamicIndices` is a Python `dict`, `s` has to remain untyped.
-		# `s` is then just a dictionary mapping degrees to indices, so we use this
-		# to access the coefficients.
-		coefficientIndices = dict()
-		left = set()
-		dadded = 0;
+
+			from ateams.arithmetic import Persistence
+			from ateams.structures import Lattice
+			
+			L = Lattice().fromCorners([3,3], field=3)
+			P = Persistence(L.field.characteristic, L.flattened)
+
+			subcomplex = np.array(range(len(L.flattened)))
+			firstEdge = L.tranches[1][0]
+			subcomplex = np.concatenate([subcomplex[:firstEdge], subcomplex[firstEdge+1:]])
+
+			bettis = P.ComputeBettiNumbers(subcomplex)
+
+
+		The result in `bettis` is the list `[1,2,0]`, as expected. Note that we
+		only need to pass a `homology` parameter to the `Persistence` constructor
+		if we call `ComputePercolationEvents`.
+		"""
+		self.characteristic = characteristic;
+		self.boundary = self.Vectorize(flattened);
 		
-		for d in range(coefficients.shape[1]):
-			if dadded == occupied: break
-			if coefficients[0,d] > 0:
-				coefficientIndices[coefficients[1,d]] = d
-				left.add(coefficients[1,d])
-				dadded += 1
+		# If there was no homology parameter passed, just compute the homology
+		# of the codimension-1 skeleton.
+		if homology < 0:
+			# Knock off *two* dimensions (so we don't get off-by-one errors), and
+			# make sure we're computing at least the zeroth homology.
+			self.homology = self._tranches.size()-2;
+			if self.homology < 0: self.homology = 0;
+		else: self.homology = homology;
 
-		# Find the overlap in sets.
-		right = dynamicSets[i]
-		shared = left & right
-		rOnly = right - left
-		L = len(left)
-		R = len(rOnly)
+		self.cellCount = self._boundary.size();
+		self.vertexCount = self._tranches[0][1];
+		self.higherCellCount = self._tranches[self.homology+1][1];
+		self.low = self._tranches[self.homology][0];
+		self.high = self._tranches[self.homology][1];
 
-		# Compute coefficients on shared indices.
-		coefficients = FillSharedIndices(
-			coefficients, nonpivot, shared, coefficientIndices, nonpivotIndices,
-			q, multiplication, subtraction
-		)
+		# Construct arithmetic operations.
+		self.__arithmetic();
 
-		# Place the remaining coefficients (and indices) in slots that have been
-		# zeroed out.
-		coefficients = FillRightIndices(
-			coefficients, nonpivot, rOnly, nonpivotIndices, q, multiplication,
-			subtraction
-		)
+		# Load premarked indices into a `Vector` so we can refresh quickly.
+		cdef int i;
 
-		# Count the number of occupied indices and re-start the loop.
-		occupied = CountNonzero(coefficients)
+		self.premarked = Vector[int](self.vertexCount);
+		for i in range(self.vertexCount): self.premarked[i] = i;
 
-	return coefficients
+		# Data structures for storing column information.
+		self.columnEntries = Vector[OrderedSet[int]](self.cellCount);
+		self.columnEntriesIterable = Vector[Vector[int]](self.cellCount);
+		self.columnEntriesCoefficients = Vector[Map[int,FFINT]](self.cellCount);
+
+		self.__flushDataStructures();
 
 
-cpdef set[int] computeGiantCyclePairs(
-		FLAT times,
-		FLAT premarked,
-		FLAT dimensions,
-		TABLE tranches,
-		FLAT fieldInverses,
-		FFINT fieldCharacteristic,
-		int maxDimension,
-		int maxIndex,
-		TABLE empty,
-		TABLE chain,
-		FLAT indices,
-		TABLE addition,
-		TABLE subtraction,
-		TABLE multiplication,
-		FLAT powers,
-		FLAT degree,
-		INDEXFLAT filtration,
-		list[int] boundary
-	):
-	# Buckets for marked indices, dynamic coefficients (for storing 2d arrays
-	# corresponding to chains), and indices (mapping cell degrees to indices in
-	# `dynamicCoeffs`). The first data structure is required; the second data
-	# structure tries to mitigate linear-time searches for max index coefficients.
-	cdef set[int] marked, events;
-	cdef dict[int,TABLE] dynamicCoeffs;
-	cdef dict[int,dict[int,int]] dynamicIndices;
-	cdef dict[int,set[int]] dynamicSets;
+	cdef void __arithmetic(self) noexcept:
+		# Given a field characteristic, construct addition and multiplication
+		# tables.
+		cdef int p = self.characteristic;
+		cdef TABLECONTIG addition, multiplication;
+		cdef FLATCONTIG negation, inverse;
+		cdef int i, j;
 
-	marked = set(premarked)
-	dynamicCoeffs = { }
-	dynamicIndices = { }
-	dynamicSets = { }
+		addition = np.zeros((p,p), dtype=FINT);
+		multiplication = np.zeros((p,p), dtype=FINT);
 
-	# Initialize the buckets.
-	cdef int _j;
+		# Addition, multiplication tables.
+		for i in range(p):
+			for j in range(p):
+				addition[i,j] = <FFINT>((i+j)%p);
+				multiplication[i,j] = <FFINT>((i*j)%p);
 
-	for _j in range(maxIndex):
-		dynamicCoeffs[_j] = empty
-		dynamicIndices[_j] = {}
-		dynamicSets[_j] = set();
+		self.addition = addition;
+		self.multiplication = multiplication;
 
-	# Set for collecting the degrees of giant cycles.
-	events = set()
+		# Negations and inverses.
+		negation = np.zeros(p, dtype=FINT);
+		inverse = np.zeros(p, dtype=FINT);
 
-	# We want fast loops, so this is how we do it.
-	cdef int _t, t, i, cell;
-	cdef int N = times.shape[0];
-	cdef TABLE reduced;
+		negation[0] = 0;
+		inverse[0] = 0;
 
-	for _t in range(N):
-		t = times[_t]
-		cell = t;
-		# cell = filtration[t]
+		for i in range(1, p):
+			negation[i] = <FFINT>(p-i);
+			inverse[i] = <FFINT>(pow(i, p-2)%p);
+
+		self.negation = negation;
+		self.inverse = inverse;
+
+	
+	cdef void __flushDataStructures(self, bool premark=True) noexcept:
+		# Data structures for storing column information.
+		self.columnEntries = Vector[OrderedSet[int]](self.cellCount);
+		self.columnEntriesIterable = Vector[Vector[int]](self.cellCount);
+		self.columnEntriesCoefficients = Vector[Map[int,FFINT]](self.cellCount);
+
+		self.marked = Set[int]();
+		if premark: self.marked.insert(self.premarked.begin(), self.premarked.end());
+		self.markedIterable = Vector[int](self.cellCount);
+
+
+	cpdef Vector[Vector[int]] ReindexBoundary(self, INDEXFLAT filtration) noexcept:
+		"""
+		Re-indexes the boundary matrix according to the given filtration.
+
+		Args:
+			filtration (np.array): `NumPy` array specifying the order in which
+				cells from the complex are added.
+
+		Returns:
+			A C++ `std::vector` (cast as a `NumPy` array) containing the reindexed
+			boundary matrix.
+		"""
+		cdef int t, i, j, filtered, unfiltered, face, N, M, dimension, start, stop, please;
+		cdef Vector[int] faces, indices, temp, high;
+
+		N = self._boundary.size();
+		indices = Vector[int](N);
+
+		# Maps the elements of the filtration to their new indices.
+		for t in range(N):
+			filtered = filtration[t];
+			indices[filtered] = t;
+
+		start = self._tranches[self.homology][0];
+		stop = self._tranches[self.homology][1];
+		please = self._tranches[self.homology+1][1];
+
+		# Swaps elements when necessary, relabels elements when necessary.
+		for i in range(start, please+1):
+			# We're swapping elements of dimension `self.homology`:
+			if i >= start and i < stop:
+				filtered = filtration[i];
+				self.boundary[i] = self._boundary[filtered];
+			# Otherwise, we're relabeling indices.
+			elif i >= stop and i < please:
+				faces = self._boundary[i];
+				M = faces.size();
+
+				for j in range(M):
+					unfiltered = faces[j];
+					filtered = indices[unfiltered];
+					self.boundary[i][j] = filtered;
 		
-		chain = ReducePivotRow(
-			chain,
-			boundary[cell],
-			marked,
-			indices,
-			dynamicCoeffs,
-			dynamicIndices,
-			dynamicSets,
-			fieldInverses,
-			fieldCharacteristic,
-			addition,
-			subtraction,
-			multiplication,
-			powers
-		)
+		return self.boundary
 
-		reduced = SliceMatrix(chain, indices)
 
-		if reduced.shape[1] < 1:
-			marked.add(cell)
-			degree[cell] = t
-		else:
-			i = Max(reduced[1])
-			dynamicCoeffs[i] = reduced
-			dynamicIndices[i] = dict(zip(reduced[1], range(reduced.shape[1])))
-			dynamicSets[i] = set(reduced[1])
-			degree[i] = t
+	cdef Vector[Vector[int]] ReindexSubBoundary(self, INDEXFLAT subcomplex) noexcept:
+		# Create a "subboundary" matrix that maps old boundary indices to new
+		# ones.
+		cdef Set[int] included;
+		cdef Vector[int] renumbering, faces, retained, dimensions;
+		cdef Vector[Vector[int]] subboundary, subsubboundary;
+		cdef bool retain;
+		cdef int i, j, M, N, dimension;
 
-		# Zero out the chain.
-		Tare(chain)
+		# Keep track of which indices are included in the subcomplex.
+		N = subcomplex.shape[0];
+		included = Set[int]();
+		for i in range(N): included.insert(subcomplex[i]);
+
+		# Build the subcomplex.
+		M = self._boundary.size();
+		renumbering = Vector[int](M);
+		subboundary = Vector[Vector[int]](M);
+		retained = Vector[int]();
+
+		for i in range(M):
+			# If this cell is *not* included in the subcomplex, throw it out
+			# and continue.
+			retain = included.contains(i);
+
+			# Check whether all the faces belong.
+			faces = self._boundary[i];
+			N = faces.size();
+
+			for j in range(N):
+				# Check whether this face is included in the subcomplex. If it
+				# is *not* included, we do *not* include the cell, which means
+				# we have to remove it from the set of included cell indices.
+				retain = retain and included.contains(faces[j]);
+
+				if not retain:
+					included.erase(i);
+					break;
+
+			# If this cell should be included, note its original index and new
+			# index.
+			if retain:
+				retained.push_back(i);
+				renumbering[i] = retained.size()-1;
+		
+		# Now, construct the subboundary matrix.
+		M = retained.size();
+		subboundary = Vector[Vector[int]](M);
+		dimensions = Vector[int](M);
+
+		for i in range(M):
+			subboundary[i] = self._boundary[retained[i]];
+			N = subboundary[i].size();
+			dimensions[i] = <int>(N/2);
+
+			for j in range(N):
+				subboundary[i][j] = renumbering[subboundary[i][j]];
+
+		self._dimensions = dimensions;
+		self.boundary = subboundary;
+
+		# Scan over the array of dimensions, checking how many cells of each
+		# dimension exist (and where their indices stop/start).
+		cdef Vector[Vector[int]] tranches = Vector[Vector[int]]();
+		cdef Vector[int] tranche;
+		cdef int t, _tranche = 0;
+
+		N = dimensions.size();
+
+		for t in range(1, N):
+			if dimensions[t] > dimensions[t-1] or t == N-1:
+				tranche = Vector[int](2);
+				tranche[0] = _tranche;
+				tranche[1] = t if t < N-1 else N;
+				tranches.push_back(tranche);
+
+				_tranche = t;
+
+		self._tranches = tranches;
+
+		# Re-count cells.
+		self.cellCount = self.boundary.size();
+		self.vertexCount = self._tranches[0][1];
+		self.higherCellCount = self._tranches[self.homology+1][1];
+		self.low = self._tranches[self.homology][0];
+		self.high = self._tranches[self.homology][1];
+
+		# Set pre-marked vertices again.
+		self.premarked = Vector[int](self.vertexCount);
+		for i in range(self.vertexCount): self.premarked[i] = i;
+
+		return self.boundary
+		
+
+	cdef Vector[Vector[int]] Vectorize(self, list[list[int]] flattened) noexcept:
+		"""
+		Convert a list of lists into C++ vectors.
+
+		Args:
+			flattened (list): Sparse boundary matrix.
+
+		Returns:
+			C++ `std::vector` (cast as as `NumPy` array) representing the same data.
+		"""
+		cdef Vector[Vector[int]] outer;
+		cdef Vector[int] inner, dimensions;
+		cdef int i, j, lower, M, N, dimension;
+
+		# We only want to get boundary matrices for indices of dimension 1 or
+		# greater; i.e. we're excluding vertices.
+		M = len(flattened);
+		outer = Vector[Vector[int]](M);
+		dimensions = Vector[int](M);
+
+		for i in range(M):
+			# If we're dealing with a non-vertex, we just copy the original
+			# boundary matrix over; otherwise, we're dealing with a vertex, which
+			# has no boundary.
+			try:
+				N = len(flattened[i]);
+				inner = Vector[int](N);
+				for j in range(N): inner[j] = flattened[i][j];
+
+				dimension = <int>(N/2);
+			except:
+				inner = Vector[int](0);
+				dimension = 0;
+			
+			dimensions[i] = dimension;
+			outer[i] = inner;
+
+		# Set this as the current boundary matrix, but also return it (for
+		# completion's sake).
+		self._boundary = outer;
+		self._dimensions = dimensions;
+
+		# Scan over the array of dimensions, checking how many cells of each
+		# dimension exist (and where their indices stop/start).
+		cdef Vector[Vector[int]] tranches = Vector[Vector[int]]();
+		cdef Vector[int] tranche;
+		cdef int t, _tranche = 0;
+
+		N = dimensions.size();
+
+		for t in range(1, N):
+			if dimensions[t] > dimensions[t-1] or t == N-1:
+				tranche = Vector[int](2);
+				tranche[0] = _tranche;
+				tranche[1] = t if t < N-1 else N;
+				tranches.push_back(tranche);
+
+				_tranche = t;
+
+		self._tranches = tranches;
+		
+		return outer;
+
+
+	cdef OrderedSet[int] Eliminate(self, int youngest, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept:
+		"""
+		Performs Gaussian elimination on the row specified by `faceCoefficients`
+		and the row with a pivot in column `youngest`.
+
+		.. WARNING: Cannot be called from Python; internal only.
+
+		Args:
+			youngest (int): Pivot column.
+			faces (std::set): Ordered set of faces.
+			faceCoefficients (&std::unordered_map[int,FFINT]): Unordered map taking
+				indices to coefficients; this represents a row in the matrix.
+
+		Returns:
+			`std::set` of remaining faces.
+		"""
+		cdef Vector[int] entriesIterable;
+		cdef int i, entry, N;
+		cdef FFINT _q, inverse, q, entryCoefficient, faceCoefficient, mul, add;
+
+		# Get the coefficient of the pivot entry, then eliminate the row.
+		_q = self.columnEntriesCoefficients[youngest][youngest];
+		inverse = self.inverse[_q];
+
+		entriesIterable = self.columnEntriesIterable[youngest];
+		N = entriesIterable.size();
+
+		# Eliminate.
+		for i in range(N):
+			# `entry` is the index of the row (column?) we're trying to eliminate.
+			entry = entriesIterable[i];
+			entryCoefficient = self.columnEntriesCoefficients[youngest][entry];
+			mul = self.multiplication[inverse,entryCoefficient];
+			q = self.negation[mul];
+
+			# If `add` is 0, we don't care about tracking it anymore; throw it
+			# out of the faces (and remove it from the dict, if it were in there
+			# in the first place?).
+			if faces.contains(entry):
+				faceCoefficient = faceCoefficients[entry];
+				add = self.addition[faceCoefficient,q];
+			else:
+				add = q;
+
+			if add < 1:
+				faces.erase(entry);
+				faceCoefficients.erase(entry);
+			else:
+				faces.insert(entry);
+				faceCoefficients[entry] = add;
+			
+		return faces
+
+
+	cdef OrderedSet[int] RemoveUnmarkedCells(self, int cell, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept:
+		"""
+		Given the latest cell added to the filtration, remove unmarked
+		(nonpivot) entries from its boundary.
+
+		Args:
+			int (cell): The most recent cell added to the filtration.
+
+		Returns:
+			An `OrderedSet` of `int`s corresponding to (indices of!) pivot
+			entries in the boundary of cell `cell`.
+		"""
+		cdef int i, face, parity, N;
+		N = self.boundary[cell].size();
+
+		for i in range(N):
+			face = self.boundary[cell][i];
+
+			# If the face is unmarked, throw it out.
+			if self.marked.contains(face):
+				faces.insert(face);
+
+				if (i%2) < 1: faceCoefficients[face] = self.negation[1];
+				else: faceCoefficients[face] = self.negation[self.characteristic-1];
+		
+		return faces;
+
 	
-	cdef TABLE unmarked;
+	cdef OrderedSet[int] ReducePivotRow(self, int cell, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept:
+		"""
+		Reduces the pivot row corresponding to cell `cell`.
 
-	for cell in marked:
-		if dimensions[cell] != maxDimension-1: continue
+		Args:
+			cell (int): The most recent cell added to the filtration.
 
-		unmarked = dynamicCoeffs[cell]
-		if unmarked.shape[1] < 1: events.add(degree[cell])
+		Returns:
+			An ordered set of indices corresponding to nonzero entries in the
+			of the pivot column.
+		"""
+		cdef OrderedSet[int] youngestColumnEntries;
+		cdef int youngest;
+		cdef FFINT _q, q;
+
+		faces = self.RemoveUnmarkedCells(cell, faces, faceCoefficients);
+
+		while not faces.empty():
+			# Get the face of `cell` of maximum degree (i.e. the one added latest
+			# to the complex).
+			youngest = dereference(faces.rbegin());
+			youngestColumnEntries = self.columnEntries[youngest];
+
+			# If the column's empty, we've found a pivot, and we're done.
+			if youngestColumnEntries.empty(): break;
+
+			# Otherwise, eliminate.
+			faces = self.Eliminate(youngest, faces, faceCoefficients);
+		
+		return faces;
+			
+
+	cpdef OrderedSet[int] ComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
+		"""
+		Computes the times of homological percolation events given a filtration
+		and a boundary matrix.
+
+		Args:
+			filtration (np.array): Order in which cells are added.
+
+		Returns:
+			A `set` of times at which homological percolation occurs.
+		"""
+		# Flush the set of marked indices, adding premarked ones.
+		self.__flushDataStructures();
+		cdef OrderedSet[int] events = OrderedSet[int]();
+
+		# Construct the boundary matrix for this filtration; variables for
+		# objects.
+		cdef Vector[Vector[int]] boundary = self.ReindexBoundary(filtration);
+		cdef Vector[int] facesIterable, degree = Vector[int](self.cellCount);
+		cdef OrderedSet[int] faces;
+		cdef Map[int,FFINT] faceCoefficients;
+		cdef int t, j, cell, dimension, time, tagged, youngest;
+
+		# TODO: shouldn't have to iterate over vertices
+		tagged = 0;
+
+		for t in range(self.vertexCount, self.higherCellCount):
+			# Since our filtrations are discrete (i.e. we add exactly one simplex
+			# at each time-step), the "degree" of the cell is the same as the time
+			# at which it was added.
+			cell = t;
+
+			# Create buckets for indices and coefficients; these are created and
+			# stored ONCE, but accessed many times.
+			faces = OrderedSet[int]();
+			faceCoefficients = Map[int,FFINT]();
+
+			# Eliminate.
+			faces = self.ReducePivotRow(cell, faces, faceCoefficients);
+			
+			# If we end up with no faces, we've found a pivot row.
+			if faces.empty():
+				# Mark the face, but only add it to the marked iterable if it's
+				# of the right dimension.
+				self.marked.insert(cell);
+				degree[cell] = t;
+				
+				if self._dimensions[cell] == self.homology:
+					self.markedIterable[tagged] = cell;
+					tagged = tagged + 1;
+
+			# Otherwise, store the row in the appropriate locations.
+			else:
+				youngest = dereference(faces.rbegin());
+				facesIterable = Vector[int]();
+				facesIterable.insert(facesIterable.begin(), faces.begin(), faces.end());
+
+				self.columnEntries[youngest] = faces;
+				self.columnEntriesIterable[youngest] = facesIterable;
+				self.columnEntriesCoefficients[youngest] = faceCoefficients;
+				degree[youngest] = t;
+
+		# # Once we're done eliminating, check over what we find.
+		cdef OrderedSet[int] unmarked;
+
+		for j in range(tagged):
+			cell = self.markedIterable[j];
+
+			unmarked = self.columnEntries[cell];
+			if unmarked.empty(): events.insert(degree[cell]);
+		
+		return events
 	
-	return events
+	
+	cpdef Vector[int] ComputeBettiNumbers(self, INDEXFLAT subcomplex) noexcept:
+		"""
+		Computes the _Betti numbers_ — the ranks of the homology groups — of the
+		subcomplex specified.
+
+		Args:
+			subcomplex (np.ndarray): Indices of cells of the _full_ (flattened)
+				boundary matrix to include in the complex.
+
+		Returns:
+			A C++ `Vector[int]` where the \(i\)th entry is the \(i\)th Betti number.
+		"""
+		# Construct the boundary matrix for this filtration; variables for
+		# objects. Flush the set of marked indices, adding premarked ones.
+		cdef Vector[Vector[int]] subboundary = self.ReindexSubBoundary(subcomplex);
+		self.__flushDataStructures(premark=False);
+
+		cdef Vector[int] facesIterable, degree = Vector[int](self.cellCount);
+		cdef OrderedSet[int] faces;
+		cdef Map[int,FFINT] faceCoefficients;
+		cdef int t, j, cell, time, tagged, youngest;
+		
+		tagged = 0;
+
+		for t in range(0, self.cellCount):
+			# Since our filtrations are discrete (i.e. we add exactly one simplex
+			# at each time-step), the "degree" of the cell is the same as the time
+			# at which it was added.
+			cell = t;
+
+			# Create buckets for indices and coefficients; these are created and
+			# stored ONCE, but accessed many times.
+			faces = OrderedSet[int]();
+			faceCoefficients = Map[int,FFINT]();
+
+			# Eliminate.
+			faces = self.ReducePivotRow(cell, faces, faceCoefficients);
+			
+			# If we end up with no faces, we've found a pivot row.
+			if faces.empty():
+				# Mark the face, but only add it to the marked iterable if it's
+				# of the right dimension.
+				self.marked.insert(cell);
+				degree[cell] = t;
+				
+				self.markedIterable[tagged] = cell;
+				tagged = tagged + 1;
+
+			# Otherwise, store the row in the appropriate locations.
+			else:
+				youngest = dereference(faces.rbegin());
+				facesIterable = Vector[int]();
+				facesIterable.insert(facesIterable.begin(), faces.begin(), faces.end());
+
+				self.columnEntries[youngest] = faces;
+				self.columnEntriesIterable[youngest] = facesIterable;
+				self.columnEntriesCoefficients[youngest] = faceCoefficients;
+				degree[youngest] = t;
+
+		# Once we're done eliminating, check over what we find.
+		cdef OrderedSet[int] unmarked;
+		cdef Vector[int] bettis = Vector[int](self._tranches.size(),0);
+
+		for j in range(tagged):
+			cell = self.markedIterable[j];
+			unmarked = self.columnEntries[cell];
+			dimension = self._dimensions[cell];
+
+			if unmarked.empty():
+				bettis[dimension] = bettis[dimension] + 1
+		
+		return bettis
+

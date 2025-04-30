@@ -1,17 +1,17 @@
 
 from .common import FINT, SFINT, MINT
-from .SparsePersistence import Persistence
-from .Sparse import MatrixReduction
+from .Persistence import Persistence
+from .MatrixReduction import MatrixReduction
 from .linalg import Kernel, KernelSample
 from .cubicalComplex import cubicalComplex, boundaryMatrix, flatten
 from .fastiteration import energy
 from .reindexing import reindexSparseBoundaryMatrix
-from .persistence import computeGiantCyclePairs
+from ._persistence import computeGiantCyclePairs
 from .linearAlgebra import autocorrelation, evaluateCochain, isNullHomologous
 
 
 __pdoc__ = {}
-__pdoc__["ateams.arithmetic.persistence"] = False
+__pdoc__["ateams.arithmetic._persistence"] = False
 __pdoc__["ateams.arithmetic.linearAlgebra"] = False
 __pdoc__["ateams.arithmetic.linalg.KernelBasis"] = False
 __pdoc__["ateams.arithmetic.linalg.SampleFromKernel"] = False

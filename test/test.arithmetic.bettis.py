@@ -11,7 +11,7 @@ from tqdm import tqdm
 F = 3
 
 # Number of trials.
-SCALE = 3
+SCALE = 4
 DIMENSION = 4
 LATTICES = [Lattice().fromCorners([SCALE]*d, field=F) for d in range(2, DIMENSION+1)]
 SUBCOMPLEXES = 20

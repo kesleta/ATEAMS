@@ -5,7 +5,7 @@ import numpy as np
 cimport numpy as np
 from .common cimport FFINT, FLAT, TABLE, FLATCONTIG, TABLECONTIG
 from .common import FINT
-from .Sparse cimport MatrixReduction
+from .MatrixReduction cimport MatrixReduction
 
 
 from cython.parallel cimport prange
