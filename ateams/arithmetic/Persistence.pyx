@@ -33,12 +33,14 @@ cdef class Persistence:
 				we do computations.
 			flattened (list): List-of-lists representing the *original* flattened
 				boundary matrix for the complex.
-			homology (int): Degree of homology observed for homological percolation events;
+			homology (int=-1): Degree of homology observed for homological percolation events;
 				if not specified, the homology of the codimension-1 skeleton is
 				reported.
 
-		The code below computes the birth times of giant cycles (in this case,
-		elements of the first homology group) on the default
+		The `Persistence.ComputePercolationEvents` method computes the birth
+		times of giant cycles given a complete filtration — that is, a filtration
+		where the terminal element is the entire cubical complex. For example,
+		the code below finds the birth times of giant cycles on the default
 		\(3 \\times 3\) cubical torus: the filtration stored in `filtration`
 		adds each cube to the cubical complex in order of construction. At
 		completion, `events` contains the times `{17, 21}` which correspond to
@@ -55,14 +57,14 @@ cdef class Persistence:
 			events = P.ComputePercolationEvents(filtration)
 
 
-		The `ComputeBettiNumbers` method provides functionality to compute the
+		The `Persistence.ComputeBettiNumbers` method provides functionality to compute the
 		Betti numbers for an entire subcomplex. The subcomplex is specified by
 		a list of indices corresponding to the cells included in the subcomplex.
 		Initializing the `Persistence` object as before, we can get the Betti
 		numbers of the \(2\)-torus encoded by the `Lattice` above by passing a
 		list of all cells' indices in the flattened boundary matrix: since there
 		are \(36\) cells (including vertices, edges, and squares), the `subcomplex`
-		is just the range of integers \(0--36\):
+		is just the range of integers \(0-36\):
 
 
 			from ateams.arithmetic import Persistence
@@ -71,7 +73,7 @@ cdef class Persistence:
 			L = Lattice().fromCorners([3,3], field=3)
 			P = Persistence(L.field.characteristic, L.flattened)
 
-			subcomplex = np.array(range(len(L.flattened)))
+			subcomplex = np.arange(len(L.flattened))
 
 			bettis = P.ComputeBettiNumbers(subcomplex)
 
@@ -94,7 +96,7 @@ cdef class Persistence:
 			L = Lattice().fromCorners([3,3], field=3)
 			P = Persistence(L.field.characteristic, L.flattened)
 
-			subcomplex = np.array(range(len(L.flattened)))
+			subcomplex = np.arange(len(L.flattened))
 			firstEdge = L.tranches[1][0]
 			subcomplex = np.concatenate([subcomplex[:firstEdge], subcomplex[firstEdge+1:]])
 
@@ -103,7 +105,7 @@ cdef class Persistence:
 
 		The result in `bettis` is the list `[1,2,0]`, as expected. Note that we
 		only need to pass a `homology` parameter to the `Persistence` constructor
-		if we call `ComputePercolationEvents`.
+		if we call `Persistence.ComputePercolationEvents`.
 		"""
 		self.characteristic = characteristic;
 		self.boundary = self.Vectorize(flattened);

@@ -52,6 +52,10 @@
             #ateams {
                 margin-top: 0;
             }
+
+            #content {
+                text-align: justify;
+            }
         </style>
         <img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
     </a>
