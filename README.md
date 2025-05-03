@@ -50,11 +50,11 @@ pattern.
 
 ### BibTeX
 ```bibtex
-@software{ateams,
+@software{ATEAMS,
     title={{ATEAMS: Algebraic Topology-Enabled AlgorithMs for Spin systems}},
     author={Duncan, Paul and Pizzimenti, Anthony E. and Schweinhart, Benjamin},
-    url={https://github.com/apizzimenti/ateams},
-    version={1.0.2},
+    url={https://github.com/apizzimenti/ATEAMS},
+    version={1.0.3},
     doi={10.5281/zenodo.14284172}
 }
 ```

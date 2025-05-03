@@ -1,7 +1,7 @@
 
 # distutils: language=c++
 
-from .common cimport TABLE, FLAT, FFINT, TABLECONTIG, FLATCONTIG
+from .common cimport INDEXFLAT, FFINT, TABLECONTIG, FLATCONTIG
 from .common import FINT
 
 import numpy as np
@@ -186,6 +186,47 @@ cdef class Persistence:
 		self.marked = Set[int]();
 		if premark: self.marked.insert(self.premarked.begin(), self.premarked.end());
 		self.markedIterable = Vector[int](self.cellCount);
+
+
+	cdef Vector[Vector[int]] ReorderBoundary(self, INDEXFLAT filtration) noexcept:
+		"""
+		Re-indexes the boundary matrix according to the given filtration.
+
+		Args:
+			filtration (np.array): `NumPy` array specifying the order in which
+				cells from the complex are added.
+
+		Returns:
+			A C++ `std::vector` (cast as a `NumPy` array) containing the reindexed
+			boundary matrix.
+		"""
+		cdef int t, i, j, filtered, unfiltered, face, N, M, dimension, start, stop, please;
+		cdef Vector[int] faces, indices;
+		cdef Vector[Vector[int]] reordered;
+
+		N = self._boundary.size();
+		indices = Vector[int](N);
+
+		# Maps the elements of the filtration to their new indices.
+		for t in range(N):
+			filtered = filtration[t];
+			indices[filtered] = t;
+
+		# Re-orders the (flattened) boundary matrix.
+		reordered = Vector[Vector[int]](N);
+		for t in range(N):
+			reordered[t] = self._boundary[filtration[t]]
+
+		# Re-indexes the re-ordered boundary matrix.
+		for t in range(N):
+			M = reordered[t].size();
+
+			for i in range(M):
+				reordered[t][i] = indices[reordered[t][i]];
+
+		self.boundary = reordered;
+		return self.boundary;
+		
 
 
 	cpdef Vector[Vector[int]] ReindexBoundary(self, INDEXFLAT filtration) noexcept:
@@ -533,6 +574,81 @@ cdef class Persistence:
 		tagged = 0;
 
 		for t in range(self.vertexCount, self.higherCellCount):
+			# Since our filtrations are discrete (i.e. we add exactly one simplex
+			# at each time-step), the "degree" of the cell is the same as the time
+			# at which it was added.
+			cell = t;
+
+			# Create buckets for indices and coefficients; these are created and
+			# stored ONCE, but accessed many times.
+			faces = OrderedSet[int]();
+			faceCoefficients = Map[int,FFINT]();
+
+			# Eliminate.
+			faces = self.ReducePivotRow(cell, faces, faceCoefficients);
+			
+			# If we end up with no faces, we've found a pivot row.
+			if faces.empty():
+				# Mark the face, but only add it to the marked iterable if it's
+				# of the right dimension.
+				self.marked.insert(cell);
+				degree[cell] = t;
+				
+				if self._dimensions[cell] == self.homology:
+					self.markedIterable[tagged] = cell;
+					tagged = tagged + 1;
+
+			# Otherwise, store the row in the appropriate locations.
+			else:
+				youngest = dereference(faces.rbegin());
+				facesIterable = Vector[int]();
+				facesIterable.insert(facesIterable.begin(), faces.begin(), faces.end());
+
+				self.columnEntries[youngest] = faces;
+				self.columnEntriesIterable[youngest] = facesIterable;
+				self.columnEntriesCoefficients[youngest] = faceCoefficients;
+				degree[youngest] = t;
+
+		# # Once we're done eliminating, check over what we find.
+		cdef OrderedSet[int] unmarked;
+
+		for j in range(tagged):
+			cell = self.markedIterable[j];
+
+			unmarked = self.columnEntries[cell];
+			if unmarked.empty(): events.insert(degree[cell]);
+		
+		return events
+
+	
+	cpdef OrderedSet[int] ComputeGiantCycles(self, INDEXFLAT filtration) noexcept:
+		"""
+		Computes the times of homological percolation events given a filtration
+		and a boundary matrix.
+
+		Args:
+			filtration (np.array): Order in which cells are added.
+
+		Returns:
+			A `set` of times at which homological percolation occurs.
+		"""
+		# Flush the set of marked indices, adding premarked ones.
+		self.__flushDataStructures();
+		cdef OrderedSet[int] events = OrderedSet[int]();
+
+		# Construct the boundary matrix for this filtration; variables for
+		# objects.
+		cdef Vector[Vector[int]] boundary = self.ReorderBoundary(filtration);
+		print(boundary)
+		cdef Vector[int] facesIterable, degree = Vector[int](self.cellCount);
+		cdef OrderedSet[int] faces;
+		cdef Map[int,FFINT] faceCoefficients;
+		cdef int t, j, cell, dimension, time, tagged, youngest;
+
+		# TODO: shouldn't have to iterate over vertices
+		tagged = 0;
+
+		for t in range(0, self.cellCount):
 			# Since our filtrations are discrete (i.e. we add exactly one simplex
 			# at each time-step), the "degree" of the cell is the same as the time
 			# at which it was added.

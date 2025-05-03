@@ -51,6 +51,7 @@ cdef class Persistence:
 	cdef Set[int] marked
 	cdef Vector[int] premarked
 	
+	cdef Vector[Vector[int]] ReorderBoundary(self, INDEXFLAT filtration) noexcept
 	cpdef Vector[Vector[int]] ReindexBoundary(self, INDEXFLAT filtration) noexcept
 	cdef Vector[Vector[int]] ReindexSubBoundary(self, INDEXFLAT subcomplex) noexcept
 	cdef Vector[Vector[int]] Vectorize(self, list[list[int]] flattened) noexcept
@@ -59,4 +60,5 @@ cdef class Persistence:
 	cdef OrderedSet[int] Eliminate(self, int youngest, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept
 	cdef OrderedSet[int] ReducePivotRow(self, int cell, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept
 	cpdef OrderedSet[int] ComputePercolationEvents(self, INDEXFLAT filtration) noexcept
+	cpdef OrderedSet[int] ComputeGiantCycles(self, INDEXFLAT filtration) noexcept
 	cpdef Vector[int] ComputeBettiNumbers(self, INDEXFLAT subcomplex) noexcept
