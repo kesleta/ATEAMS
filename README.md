@@ -9,8 +9,9 @@ Clone this repository by `git clone https://github.com/apizzimenti/ateams.git`, 
 
 ### Notes:
 * **Read the installation note in `setup.py` to ensure PHAT is correctly installed on your system.**
-* **Ensure you have a C/C++ compiler that supports the `-fopenmp` compilation and linking flags.**
+* **Use the Clang/LLVM compiler family, as some features break when using GCC compilers.**
 * **Before performing sparse/parallel computations, run `make profile` to determine whether sparse/parallel computations make sense for your machine.**
+* For C++ support, you must install GMP, OpenBLAS (or another BLAS library), Givaro, fflas-ffpack, and LinBox. In general, the auto-installation tools provided by LinBox do not work, so these installations will have to be done manually. It is horrible.
 
 ## Example Use
 
