@@ -4,6 +4,7 @@ from .SwendsenWang import SwendsenWang
 from .InvadedCluster import InvadedCluster
 from .Model import Model
 from .Glauber import Glauber
+from .FlatSwendsenWang import FlatSwendsenWang
 
 __pdoc__ = {}
 __pdoc__["ateams.models.GraphIsing"] = False

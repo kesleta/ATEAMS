@@ -1,12 +1,12 @@
  
 import numpy as np
 
-from ..arithmetic import evaluateCochain, FINT, KernelSample, MatrixReduction, Fast
+from ..arithmetic import evaluateCochain, MINT, FINT, KernelSample, MatrixReduction, FastFlat
 from ..stats import constant
 from .Model import Model
 
 
-class SwendsenWang(Model):
+class FlatSwendsenWang(Model):
 	name = "SwendsenWang"
 	
 	def __init__(
@@ -42,9 +42,8 @@ class SwendsenWang(Model):
 		self.maxBlockSize = maxBlockSize
 		self.cores = cores
 
-		self.coboundary = self.lattice.matrices.coboundary.astype(FINT)
+		self.coboundary = self.lattice.matrices.coboundary
 		self.Reducer = MatrixReduction(self.lattice.field.characteristic, parallel, minBlockSize, maxBlockSize, cores)
-		self.identity = np.identity(self.coboundary.shape[1], dtype=FINT)
 		self.SampleFromKernel = KernelSample
 		self.LinBox = LinBox
 
@@ -80,12 +79,21 @@ class SwendsenWang(Model):
 		# Choose cubes to include; in effect, this just does a boatload of indexing.
 		uniforms = np.random.uniform(size=self.cubeCells)
 		include = (uniforms < p).nonzero()[0]
-		boundary = self.lattice.boundary[self.lattice.dimension][include]
-		boundaryValues = evaluateCochain(boundary, self.spins)
-		zeros = (boundaryValues == 0).nonzero()[0]
+		boundary = self.lattice.boundary[self.lattice.dimension]
+		orientations = np.tile([-1,1], self.lattice.dimension)
+		zeros = set()
+		q = self.lattice.field.characteristic
+
+		for cube in include:
+			faces = boundary[cube]
+			coefficients = np.array(self.spins[faces])
+			bounding = (coefficients*orientations)%q
+			
+			if bounding.sum()%q < 1: zeros.add(cube)
 
 		satisfied = np.zeros(len(self.lattice.boundary[self.lattice.dimension])).astype(int)
-		satisfied[zeros] = 1
+		satisfied[np.array(list(zeros))] = 1
+		indexmap = dict(zip(zeros, range(len(zeros))))
 
 		# Uniformly randomly sample a cocycle on the sublattice admitted by the
 		# chosen edges; reconstruct the labeling on the entire lattice by
@@ -93,8 +101,19 @@ class SwendsenWang(Model):
 		if not self.LinBox:
 			spins = self.SampleFromKernel(self.Reducer, self.coboundary.take(zeros, axis=0))
 		else:
-			print(self.coboundary.take(zeros, axis=0).shape)
-			spins = Fast(self.coboundary.take(zeros, axis=0), self.lattice.field.characteristic)
+			# Create the flattened sub-coboundary matrix to send.
+			submatrix = np.zeros(len(self.coboundary), dtype=MINT)
+			t = 0
+
+			for i in range(0, len(self.coboundary), 3):
+				if self.coboundary[i] in zeros:
+					submatrix[t] = indexmap[self.coboundary[i]]
+					submatrix[t+1] = self.coboundary[i+1]
+					submatrix[t+2] = self.coboundary[i+2]
+					t += 3
+
+			submatrix = submatrix[:t]
+			spins = FastFlat(submatrix, len(zeros), self.faceCells, self.lattice.field.characteristic)
 
 		spins = self.lattice.field(spins)
 

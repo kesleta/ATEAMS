@@ -1,7 +1,7 @@
 
 # distutils: language=c++
 
-from .common cimport FFINT, TABLE
+from .common cimport FFINT, TABLE, MINT
 
 from libcpp.vector cimport vector as Vector
 
@@ -38,4 +38,16 @@ cpdef Vector[int] Fast(TABLE A, int p) noexcept:
 	coboundary = Vector[int](t);
 	for k in range(t): coboundary[k] = _coboundary[k];
 	
+	return FastSample(coboundary, M, N, p);
+
+
+cpdef Vector[int] FastFlat(MINT[:] A, int M, int N, int p) noexcept:
+	cdef int i, L;
+	cdef Vector[int] coboundary;
+
+	L = A.shape[0];
+	coboundary = Vector[int](L);
+
+	for i in range(L): coboundary[i] = A[i];
+
 	return FastSample(coboundary, M, N, p);

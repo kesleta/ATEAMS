@@ -4,10 +4,11 @@ from .Persistence import Persistence
 from .MatrixReduction import MatrixReduction
 from .linalg import Kernel, KernelSample
 from .cubicalComplex import cubicalComplex, boundaryMatrix, flatten
+from .flatCubicalComplex import cubicalComplex as flatCubicalComplex, boundaryMatrix as flatBoundaryMatrix
 from .fastiteration import energy
 from .reindexing import reindexSparseBoundaryMatrix
 from .linearAlgebra import autocorrelation, evaluateCochain, isNullHomologous
-from .Fast import Fast
+from .Fast import Fast, FastFlat
 
 
 __pdoc__ = {}
