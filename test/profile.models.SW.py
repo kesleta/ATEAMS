@@ -6,6 +6,7 @@ import sys
 
 
 try:
+    LinBox = int(sys.argv[-8])
     L = int(sys.argv[-7])
     sparse = bool(int(sys.argv[-6]))
     parallel = bool(int(sys.argv[-5]))
@@ -14,7 +15,8 @@ try:
     cores = int(sys.argv[-2])
     slurm = bool(int(sys.argv[-1]))
 except:
-    L = 3
+    LinBox = False
+    L = 5
     sparse = False
     parallel = False
     minBlockSize = 32
@@ -24,10 +26,10 @@ except:
 
 pyximport.install()
 
-M = SW.construct(L, sparse, parallel, minBlockSize, maxBlockSize, cores)
+M = SW.construct(L, sparse, parallel, minBlockSize, maxBlockSize, cores, LinBox)
 
-TESTS = [L, sparse, parallel, minBlockSize, maxBlockSize, cores]
-WIDTHS = [5, 10, 10, 5, 5, 5]
+TESTS = [L, sparse, parallel, minBlockSize, maxBlockSize, cores, LinBox]
+WIDTHS = [5, 10, 10, 5, 5, 5, 10]
 DESC = [str(int(thing)).ljust(width) for thing, width in zip(TESTS, WIDTHS)]
 DESC = " ".join(DESC)
 

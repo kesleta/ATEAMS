@@ -6,14 +6,14 @@ from ateams import Chain
 import json
 
 
-def construct(L, sparse, parallel, minBlockSize, maxBlockSize, cores):
+def construct(L, sparse, parallel, minBlockSize, maxBlockSize, cores, LinBox):
 	# Construct lattice object.
 	field = 3
 	L = Lattice().fromCorners([L]*4, dimension=2, field=field)
 
 	# Set up Model and Chain.
 	T = critical(L.field.characteristic)
-	SW = SwendsenWang(L, temperatureFunction=lambda t: -T(t), sparse=sparse, parallel=parallel, minBlockSize=minBlockSize, maxBlockSize=maxBlockSize, cores=cores)
+	SW = SwendsenWang(L, temperatureFunction=lambda t: -T(t), sparse=sparse, parallel=parallel, minBlockSize=minBlockSize, maxBlockSize=maxBlockSize, cores=cores, LinBox=LinBox)
 	N = 20
 	M = Chain(SW, steps=N)
 
@@ -24,6 +24,6 @@ def chain(M, DESC=""):
 		pass
 
 if __name__ == "__main__":
-	M = construct(3, False, True, 32, 64, 2)
+	M = construct(5, False, True, 32, 64, 2, True)
 	chain(M)
 
