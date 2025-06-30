@@ -680,7 +680,7 @@ number of columns processed in parallel.</dd>
 </dd>
 <dt id="ateams.models.SwendsenWang"><code class="flex name class">
 <span>class <span class="ident">SwendsenWang</span></span>
-<span>(</span><span>L,<br>temperatureFunction=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
+<span>(</span><span>L,<br>temperatureFunction=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4,<br>LinBox=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes Swendsen-Wang evolution on the Potts model.</p>
@@ -694,9 +694,9 @@ takes a single positive integer argument <code>t</code>, and returns the
 scheduled temperature at time <code>t</code>.</dd>
 <dt><strong><code>initial</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
 <dd>A vector of spin assignments to components.</dd>
-<dt><strong><code>sparse</code></strong> :&ensp;<code>boolean</code></dt>
+<dt><strong><code>sparse</code></strong> :&ensp;<code>bool=True</code></dt>
 <dd>Should matrices be formatted sparsely? (Uses C/C++).</dd>
-<dt><strong><code>parallel</code></strong> :&ensp;<code>boolean</code></dt>
+<dt><strong><code>parallel</code></strong> :&ensp;<code>bool=False</code></dt>
 <dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
 <dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
 <dd>If <code>parallel</code> is truthy, this is the smallest
@@ -706,6 +706,8 @@ number of columns processed in parallel.</dd>
 number of columns processed in parallel.</dd>
 <dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
 <dd>Number of available CPUs/cores/threads on the machine.</dd>
+<dt><strong><code>LinBox</code></strong> :&ensp;<code>bool=False</code></dt>
+<dd>Uses fast LinBox routines.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -714,7 +716,10 @@ number of columns processed in parallel.</dd>
 <pre><code class="python">class SwendsenWang(Model):
         name = &#34;SwendsenWang&#34;
         
-        def __init__(self, L, temperatureFunction=constant(-0.6), initial=None, sparse=True, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4):
+        def __init__(
+                        self, L, temperatureFunction=constant(-0.6), initial=None, sparse=True,
+                        parallel=False, minBlockSize=32, maxBlockSize=64, cores=4, LinBox=False
+                ):
                 &#34;&#34;&#34;
                 Initializes Swendsen-Wang evolution on the Potts model.
 
@@ -724,13 +729,14 @@ number of columns processed in parallel.</dd>
                                 takes a single positive integer argument `t`, and returns the
                                 scheduled temperature at time `t`.
                         initial (galois.FieldArray): A vector of spin assignments to components.
-                        sparse (boolean): Should matrices be formatted sparsely? (Uses C/C++).
-                        parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
+                        sparse (bool=True): Should matrices be formatted sparsely? (Uses C/C++).
+                        parallel (bool=False): Should matrix computations be done in parallel? (Uses C/C++).
                         minBlockSize (int=32): If `parallel` is truthy, this is the smallest
                                 number of columns processed in parallel.
                         maxBlockSize (int=64): If `parallel` is truthy, this is the largest
                                 number of columns processed in parallel.
                         cores (int=4): Number of available CPUs/cores/threads on the machine.
+                        LinBox (bool=False): Uses fast LinBox routines.
                 &#34;&#34;&#34;
                 self.lattice = L
                 self.temperatureFunction = temperatureFunction
@@ -747,6 +753,7 @@ number of columns processed in parallel.</dd>
                 self.Reducer = MatrixReduction(self.lattice.field.characteristic, parallel, minBlockSize, maxBlockSize, cores)
                 self.identity = np.identity(self.coboundary.shape[1], dtype=FINT)
                 self.SampleFromKernel = KernelSample
+                self.LinBox = LinBox
 
                 # SW defaults.
                 self.spins = initial if initial else self.initial()
@@ -787,17 +794,16 @@ number of columns processed in parallel.</dd>
                 satisfied = np.zeros(len(self.lattice.boundary[self.lattice.dimension])).astype(int)
                 satisfied[zeros] = 1
 
-                # subbasis = np.concatenate([
-                #       self.coboundary.take(zeros, axis=0).T,
-                #       self.identity
-                # ], axis=1, dtype=FINT)
-                # self.Reducer.RREF(subbasis, len(zeros))
-                spins = self.SampleFromKernel(self.Reducer, self.coboundary.take(zeros, axis=0))
-                spins = self.lattice.field(spins)
-
                 # Uniformly randomly sample a cocycle on the sublattice admitted by the
                 # chosen edges; reconstruct the labeling on the entire lattice by
                 # subbing in the values of c which differ from existing ones.
+                if not self.LinBox:
+                        spins = self.SampleFromKernel(self.Reducer, self.coboundary.take(zeros, axis=0))
+                else:
+                        spins = Fast(self.coboundary.take(zeros, axis=0), self.lattice.field.characteristic)
+
+                spins = self.lattice.field(spins)
+
                 return spins, satisfied
         
 
