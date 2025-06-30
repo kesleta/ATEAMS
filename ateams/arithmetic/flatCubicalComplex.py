@@ -60,9 +60,12 @@ def boundaryMatrix(Complex, D, F):
 	cubes = Complex[D]
 
 	# Construct flat versions of the boundary and coboundary matrices.
+	Boundary = []
+	Coboundary = []
+
 	M, N  = len(faces), len(cubes)
-	Boundary = np.zeros(3*M*N, dtype=MINT)
-	Coboundary = np.zeros(3*M*N, dtype=MINT)
+	# Boundary = np.zeros(3*M*N, dtype=MINT)
+	# Coboundary = np.zeros(3*M*N, dtype=MINT)
 	t = 0
 
 	for i in range(N):
@@ -70,18 +73,25 @@ def boundaryMatrix(Complex, D, F):
 		q = 0
 
 		for face in boundary:
-			Boundary[t] = face
-			Boundary[t+1] = i
-			Boundary[t+2] = (1 if q%2 else -1)%F.characteristic
+			# Boundary[t] = face
+			# Boundary[t+1] = i
+			# Boundary[t+2] = (1 if q%2 else -1)%F.characteristic
+			Boundary.append(face)
+			Boundary.append(i)
+			Boundary.append((1 if q%2 else -1)%F.characteristic)
 
-			Coboundary[t] = i
-			Coboundary[t+1] = face
-			Coboundary[t+2] = (1 if q%2 else -1)%F.characteristic
+			# Coboundary[t] = i
+			# Coboundary[t+1] = face
+			# Coboundary[t+2] = (1 if q%2 else -1)%F.characteristic
+			Coboundary.append(i)
+			Coboundary.append(face)
+			Coboundary.append((1 if q%2 else -1)%F.characteristic)
+
 			q += 1
 			t += 3
 	
-	Boundary = Boundary[:t]
-	Coboundary = Coboundary[:t]
+	Boundary = np.array(Boundary)
+	Coboundary = np.array(Coboundary)
 	
 	return Boundary, Coboundary
 

@@ -61,7 +61,7 @@ class FlatLattice:
                 int(t): data["boundary"][t].astype(int) for t in data["boundary"].files
             }
             data["boundary"].close()
-            B = flatBoundaryMatrix(self.boundary, self.dimension, self.field)
+            boundary, coboundary = flatBoundaryMatrix(self.boundary, self.dimension, self.field)
 
         # Construct the finite field and boundary matrices.
         self.matrices.boundary = boundary
