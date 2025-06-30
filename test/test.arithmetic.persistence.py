@@ -1,4 +1,7 @@
 
+import warnings
+warnings.simplefilter("ignore", UserWarning)
+
 from ateams.arithmetic import computeGiantCyclePairs, FINT, MINT, boundaryMatrix, Persistence
 from ateams.structures import Lattice
 from math import comb

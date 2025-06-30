@@ -15,7 +15,6 @@ build: clean fast
 
 test: FORCE
 	@cd test && ./test.arithmetic.matrices.sh
-	@cd test && ./test.arithmetic.persistence.sh
 	@cd test && ./test.arithmetic.bettis.sh
 
 

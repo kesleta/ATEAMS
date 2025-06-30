@@ -1,4 +1,7 @@
 
+import warnings
+warnings.simplefilter("ignore", UserWarning)
+
 import pstats, cProfile
 import pyximport
 import SW

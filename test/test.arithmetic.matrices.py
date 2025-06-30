@@ -1,9 +1,13 @@
 
+import warnings
+warnings.simplefilter("ignore", UserWarning)
+
 from ateams.arithmetic import Kernel, FINT, MatrixReduction
 from galois import GF
 import numpy as np
 import sys
 from tqdm import tqdm
+
 
 N = 20
 p = 3
