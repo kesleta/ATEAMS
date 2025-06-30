@@ -6,12 +6,11 @@ from .linalg import Kernel, KernelSample
 from .cubicalComplex import cubicalComplex, boundaryMatrix, flatten
 from .fastiteration import energy
 from .reindexing import reindexSparseBoundaryMatrix
-from ._persistence import computeGiantCyclePairs
 from .linearAlgebra import autocorrelation, evaluateCochain, isNullHomologous
+from .Fast import Fast
 
 
 __pdoc__ = {}
-__pdoc__["ateams.arithmetic._persistence"] = False
 __pdoc__["ateams.arithmetic.linearAlgebra"] = False
 __pdoc__["ateams.arithmetic.linalg.KernelBasis"] = False
 __pdoc__["ateams.arithmetic.linalg.SampleFromKernel"] = False
