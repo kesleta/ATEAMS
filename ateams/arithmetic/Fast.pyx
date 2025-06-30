@@ -1,7 +1,7 @@
 
 # distutils: language=c++
 
-from .common cimport FFINT, FLAT, TABLE, FLATCONTIG, TABLECONTIG
+from .common cimport FFINT, TABLE
 
 from libcpp.vector cimport vector as Vector
 
