@@ -1,6 +1,6 @@
 
-from ateams.structures import Lattice
-from ateams.models import SwendsenWang
+from ateams.complex import Lattice
+from ateams.model import SwendsenWang
 from ateams.stats import constant, critical
 from ateams import Chain
 import json

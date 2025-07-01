@@ -1,6 +1,6 @@
 
-from ateams.structures import Lattice
-from ateams.models import InvadedCluster
+from ateams.complex import Lattice
+from ateams.model import InvadedCluster
 from ateams import Chain
 import json
 

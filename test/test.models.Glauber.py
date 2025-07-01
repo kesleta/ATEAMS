@@ -2,16 +2,16 @@
 import numpy as np
 import dateutil.relativedelta, time, datetime, json, pathlib, sys, platform
 from ateams.complex import Cubical
-from ateams.model import SwendsenWang
+from ateams.model import Glauber
 from ateams.stats import constant, critical
 from ateams import Chain, Tape, _version
 import sys
 
-L = Cubical().fromCorners([12,12,12,12], field=3)
+L = Cubical().fromCorners([3,3,3,3], field=3)
 
-SW = SwendsenWang(L, temperature=constant(-0.585), LinBox=True)
+SW = Glauber(L, temperature=constant(-0.585))
 N = 10
 M = Chain(SW, steps=N)
 
 for (spins, occupied) in M.progress():
-	pass
+	print(spins)

@@ -1,6 +1,6 @@
 
 from ateams.arithmetic import Persistence, FINT
-from ateams.structures import Lattice
+from ateams.complex import Lattice
 from galois import GF
 from math import comb as combinations
 from random import choice
