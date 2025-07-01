@@ -1,1 +1,0 @@
-{"field": 3, "dimension": 2, "periodic": 1, "corners": [3, 3], "Complex": "/Users/apizzimenti/Dropbox/School/GMU/Research/Faculty/Schweinhart/magnetization/ATEAMS/test/.lattice.lattice.npz", "vertexMap": {"(0, 0)": 0, "(0, 1)": 1, "(1, 0)": 2, "(1, 1)": 3, "(0, 2)": 4, "(1, 2)": 5, "(2, 0)": 6, "(2, 1)": 7, "(2, 2)": 8}}

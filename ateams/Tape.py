@@ -3,7 +3,6 @@ import jsonlines as jsl
 import gzip
 import numpy as np
 
-from .models import Model
 from .Chain import Chain
 
 
@@ -98,7 +97,7 @@ class Player():
     """
     def __init__(self): pass
 
-    def playback(self, S:Model, fp:str, outputs: dict, compressed=True, steps=None):
+    def playback(self, S, fp:str, outputs: dict, compressed=True, steps=None):
         """
         Initialize playback; context management.
 

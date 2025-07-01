@@ -23,16 +23,6 @@ import numpy
 # To ensure installation.
 #
 
-# try:
-# 	if os.environ["CC"]: os.environ["CC"] = "gcc-14"
-# 	if os.environ["CXX"]: os.environ["CXX"] = "g++-14"
-# except:
-# 	os.environ["CC"] = "gcc-12"
-# 	os.environ["CXX"] = "g++-12"
-
-# os.environ["CC"] = "gcc"
-# os.environ["CXX"] = "g++"
-
 DD = GDD()
 DD["linetrace"] = True
 DD["binding"] = True
@@ -42,10 +32,10 @@ extensions = [
 		"*",
 		["ateams/**/*.pyx"],
 		include_dirs=[numpy.get_include()],
-		extra_compile_args=["-std=c++20", "-O3", "-lz"],
+		extra_compile_args=["-std=c++20", "-O3"],
 		define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
 		language="c++",
-		libraries=["FastSample"]
+		libraries=["LinBoxMethods"]
 	)
 ]
 
