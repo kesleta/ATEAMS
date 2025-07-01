@@ -34,3 +34,7 @@ test/profiles/**/*.out
 # Ignore annotated compilation summaries from Cython.
 ateams/arithmetic/*.html
 ateams/arithmetic/*.so
+
+ateams/**/*.html
+ateams/**/*.so
+ateams/complex/*.cpp
