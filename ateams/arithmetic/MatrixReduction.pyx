@@ -1,8 +1,8 @@
 
 # distutils: language=c++
 
-from .common cimport FFINT, FLAT, TABLE, FLATCONTIG, TABLECONTIG
-from .common import FINT
+from ..common cimport FFINT, FLAT, TABLE, FLATCONTIG, TABLECONTIG
+from ..common import FINT
 
 import numpy as np
 cimport numpy as np
@@ -10,7 +10,6 @@ cimport numpy as np
 from cython.parallel cimport prange
 from libcpp cimport bool
 from libcpp.unordered_set cimport unordered_set as Set
-from libcpp.vector cimport vector as Vector
 from libcpp.unordered_map cimport unordered_map as Map
 
 

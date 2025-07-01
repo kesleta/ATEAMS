@@ -1,8 +1,8 @@
 
 # distutils: language=c++
 
-from .common cimport INDEXFLAT, FFINT, TABLECONTIG, FLATCONTIG
-from .common import FINT
+from ..common cimport INDEXFLAT, FFINT, TABLECONTIG, FLATCONTIG
+from ..common import FINT
 
 import numpy as np
 cimport numpy as np

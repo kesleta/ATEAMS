@@ -1,5 +1,5 @@
 
-from .common cimport FFINT, FLAT, TABLE, FLATCONTIG, TABLECONTIG
+from ..common cimport FFINT, FLAT, TABLE, FLATCONTIG, TABLECONTIG
 
 from libcpp cimport bool
 from libcpp.vector cimport vector as Vector

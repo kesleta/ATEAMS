@@ -1,5 +1,5 @@
 
-from .common cimport FFINT, FLATCONTIG, TABLECONTIG, INDEXTABLE, INDEXFLAT
+from ..common cimport FFINT, FLATCONTIG, TABLECONTIG, INDEXTABLE, INDEXFLAT
 
 import numpy as np
 cimport numpy as np

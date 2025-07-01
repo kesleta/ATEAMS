@@ -1,6 +1,6 @@
 
 import numpy as np
-from .common import FINT
+from ..common import FINT
 
 
 def reindexSparseBoundaryMatrix(
