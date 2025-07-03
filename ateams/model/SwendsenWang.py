@@ -3,7 +3,7 @@ import numpy as np
 from functools import partial
 
 from ..arithmetic import LanczosKernelSample, KernelSample, MatrixReduction
-from ..common import MINT, FINT
+from ..common import MINT, FINT, Matrices
 from ..stats import constant
 from .Model import Model
 
@@ -12,7 +12,7 @@ class SwendsenWang(Model):
 	name = "SwendsenWang"
 
 	def __init__(
-			self, C, temperature=constant(-0.6), initial=None, LinBox=True,
+			self, C, dimension=1, temperature=constant(-0.6), initial=None, LinBox=True,
 			sparse=True, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
 		):
 		"""
@@ -20,6 +20,7 @@ class SwendsenWang(Model):
 
 		Args:
 			C (Complex): The `Complex` object on which we'll be running experiments.
+			dimension (int=1): The dimension of cells on which we're percolating.
 			temperature (Callable): A temperature schedule function which
 				takes a single positive integer argument `t`, and returns the
 				scheduled temperature at time `t`.
@@ -38,12 +39,21 @@ class SwendsenWang(Model):
 		# Object access.
 		self.complex = C
 		self.temperature = temperature
-		self.matrices = self.complex.matrices
+		self.dimension = dimension
+
+		# Force-recompute the matrices for a different dimension; creates
+		# a set of orientations for fast elementwise products.
+		self.matrices = Matrices()
+		self.matrices.full = self.complex.matrices.full
+
+		boundary, coboundary = self.complex.recomputeBoundaryMatrices(dimension)
+		self.matrices.boundary = boundary
+		self.matrices.coboundary = coboundary
 
 		# Useful values to have later.
-		self.cells = len(self.complex.Boundary[self.complex.dimension])
-		self.faces = len(self.complex.Boundary[self.complex.dimension-1])
-		self.orientations = np.tile([-1,1], self.complex.dimension).astype(FINT)
+		self.cells = len(self.complex.Boundary[self.dimension])
+		self.faces = len(self.complex.Boundary[self.dimension-1])
+		self.orientations = np.tile([-1,1], self.dimension).astype(FINT)
 
 		# Seed the random number generator.
 		self.RNG = np.random.default_rng()
@@ -63,7 +73,7 @@ class SwendsenWang(Model):
 				if zeros.shape[0] < 1: return self.spins;
 				
 				return np.array(LanczosKernelSample(
-					self.matrices.coboundary, zeros, 2*self.complex.dimension,
+					self.matrices.coboundary, zeros, 2*self.dimension,
 					self.faces, self.complex.field
 				), dtype=FINT)
 		
@@ -116,7 +126,7 @@ class SwendsenWang(Model):
 		# Choose cubes to include.
 		uniform = self.RNG.uniform(size=self.cells)
 		include = np.nonzero(uniform < p)[0]
-		boundary = self.complex.Boundary[self.complex.dimension]
+		boundary = self.complex.Boundary[self.dimension]
 		q = self.complex.field
 
 		# Evaluate the current spin assignment (cochain).

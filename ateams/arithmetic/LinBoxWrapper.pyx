@@ -87,5 +87,8 @@ cpdef Vector[int] LanczosKernelSample(
 
 
 cpdef Set[int] ComputePercolationEvents(INDEXFLAT boundary, INDEXFLAT filtration, int homology, int p, INDEXFLAT breaks):
-	cdef Vector[int] _boundary = Vectorize(boundary), _filtration = Vectorize(filtration), _breaks = Vectorize(breaks);
+	cdef Vector[int] _boundary = Vectorize(boundary);
+	cdef Vector[int] _filtration = Vectorize(filtration);
+	cdef Vector[int] _breaks = Vectorize(breaks);
+
 	return _ComputePercolationEvents(_boundary, _filtration, homology, p, _breaks);

@@ -18,7 +18,7 @@ class Matrices:
 class Cubical:
 	def __init__(self): pass
 
-	def fromCorners(self, corners, field=2, dimension=np.inf, periodic=True):
+	def fromCorners(self, corners, field=2, periodic=True):
 		"""
 		Creates a cell complex with the given corners made of cells of the
 		provided dimension.
@@ -28,23 +28,18 @@ class Cubical:
 				cell dimension.
 			field (int): Characteristic of finite field from which cells take
 				coefficients.
-			dimension (int): Maximal cell dimension; if this argument is larger
-				than that permitted by the underlying cell structure, this is
-				re-set to the maximal legal dimension. Defaults to 1, so the
-				lattice is constructed only of vertices (0-cells) and edges
-				(1-cells).
 			periodic (bool): Do we use periodic boundary
 				conditions (i.e. are we making a torus)?
 		"""
-		self._construct(corners, dimension, periodic, field)
+		self._construct(corners, periodic, field)
 		return self
 	
 
 	def _construct(
-			self, corners, dimension, periodic, field, data=None
+			self, corners, periodic, field, data=None
 		):
 		self.field = field
-		self.dimension = min(dimension, len(corners))
+		self.dimension = len(corners)
 		self.periodic = periodic
 		self.corners = corners
 		self.matrices = Matrices()
@@ -61,7 +56,7 @@ class Cubical:
 			}
 			data["Complex"].close()
 			flatBoundary, flatCoboundary = boundaryMatrix(self.Boundary, self.dimension)
-
+		
 		# Construct the finite field and boundary matrices.
 		self.reindexer, self.reindexed, self.flattened = flatten(self.Boundary, self.dimension)
 		self.matrices.boundary = flatBoundary
@@ -81,6 +76,23 @@ class Cubical:
 		self.breaks = np.array(self.tranches[:,0])
 
 		return self
+	
+
+	def recomputeBoundaryMatrices(self, dimension):
+		"""
+		Recomputes the boundary matrices up to the provided dimension.
+
+		Args:
+			dimension (int): New dimention.
+
+		Returns:
+			A triple of matrices --- the new flat boundary/coboundary, and the
+			new full boundary.
+		"""
+		boundary, coboundary = boundaryMatrix(self.Boundary, dimension)
+		
+		return boundary, coboundary
+
 
 	
 	def toFile(self, fp:str):
@@ -195,7 +207,7 @@ def boundaryMatrix(Complex, D):
 	return np.array(boundary, dtype=MINT), np.array(coboundary, dtype=MINT)
 
 
-def hammingCube(D, cutoff):
+def hammingCube(D):
 	"""
 	Constructs a Hamming cube of dimension D.
 
@@ -223,7 +235,7 @@ def hammingCube(D, cutoff):
 	])
 	Complex[1] = edges.astype(MINT)
 
-	for d in range(2, cutoff):
+	for d in range(2, D+1):
 		# Construct an appropriately-sized bucket for the boundary of the cube.
 		cubes = 2**(D-d)*comb(D, d)
 		facesPerCube = 2*d
@@ -285,7 +297,7 @@ def cubicalComplex(corners, D, periodic=True):
 	# Get the boundary specification for a D-dimensional Hamming cube; we use
 	# this cube to enforce an ordering on the vertices (and thus edges, etc.) so
 	# the boundary/coboundary operations make sense.
-	boundary = hammingCube(len(corners), D+1)
+	boundary = hammingCube(D)
 
 	# Specify the "basis" Hamming cube and the remaining separately; this
 	# helps when we need to shift the cubes around and properly index.

@@ -1,12 +1,9 @@
 
 # distutils: language=c++
 
-import numpy as np
-cimport numpy as np
-
 from libcpp.vector cimport vector as Vector
 
-from ..common cimport INDEXTABLE, INDEX, MINT
+from ..common cimport INDEX, MINT
 
 
 cpdef Vector[Vector[MINT]] boundaryMatrices(MINT[:,:] cubes, MINT[:] coefficients):

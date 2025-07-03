@@ -1,6 +1,6 @@
 
 from .SwendsenWang import SwendsenWang
-# from .InvadedCluster import InvadedCluster
+from .InvadedCluster import InvadedCluster
 from .Model import Model
 from .Glauber import Glauber
 

@@ -23,9 +23,9 @@ fast:
 
 
 profile: FORCE
-	@cd test && ./profile.models.NH.sh 3 4 32 64 2
+	# @cd test && ./profile.models.NH.sh 3 4 32 64 2
 	@cd test && ./profile.models.SW.sh 7 11 32 64 2
-	@cd test && ./profile.models.IC.sh 3 4 32 64 2
+	@cd test && ./profile.models.IC.sh 3 5 32 64 2
 
 
 docs: FORCE quick
