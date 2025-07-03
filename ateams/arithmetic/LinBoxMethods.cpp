@@ -5,11 +5,14 @@
 #include <linbox/ring/modular.h>
 
 #include <iostream>
+#include <chrono>
+#include <thread>
 
 #include "LinBoxMethods.h"
 
 using namespace LinBox;
 using namespace std;
+using namespace std::chrono_literals;
 
 typedef Givaro::Modular<int> Field;
 typedef SparseMatrix<Field, SparseMatrixFormat::SparseSeq> FieldMatrix;
@@ -81,7 +84,7 @@ vector<int> LanczosKernelSample(vector<int> coboundary, int M, int N, int p, int
 }
 
 
-typedef unordered_set<int> Set;
+typedef set<int> Set;
 typedef map<int, Field::Element> Column;
 typedef vector<Column> BoundaryMatrix;
 
@@ -96,7 +99,8 @@ BoundaryMatrix FillBoundaryMatrix(vector<int> boundary, Field F, int L) {
 		i = boundary[t];
 		j = boundary[t+1];
 		F.init(q, boundary[t+2]);
-		B[j][i] = q;
+		
+		if (q > 0) B[j][i] = q;
 	}
 
 	return B;
@@ -113,12 +117,32 @@ int dim(int index, vector<int> breaks) {
 	return i;
 }
 
-int low(Column column) {
+int youngestOf(Column column) {
 	return column.rbegin()->first;
 }
 
 
-Set ComputePercolationEvents(vector<int> boundary, vector<int> filtration, int p, vector<int> breaks) {
+void printColumn(Column column) {
+	cout << "{" << endl;
+	for (auto it = column.begin(); it != column.end(); ++it) {
+		cout << "\t" << it->first << ": " << it->second << endl;
+	}
+	cout << "}" << endl;
+}
+
+void printSet(Set S) {
+	cout << "{";
+	for (auto it = S.begin(); it != S.end(); ++it) {
+		cout << *it << ", ";
+	}
+	cout << "}" << endl;
+}
+
+
+Set ComputePercolationEvents(
+		vector<int> boundary, vector<int> filtration, int homology, int p,
+		vector<int> breaks
+	) {
 	// Construct the finite field and build the boundary matrix. Similarly to Chen and
 	// Kerber (2011), we store each column of the boundary matrix as a balanced
 	// binary search tree (as implemented by the C++ standard library). Chen
@@ -129,18 +153,26 @@ Set ComputePercolationEvents(vector<int> boundary, vector<int> filtration, int p
 	// C++ map, which takes column indices to Givaro::Modular<int> finite field
 	// elements for fast arithmetic.
 	int cellCount = filtration.size();
-	int topDimension = breaks.size()-1;
-	int lowIndex, row;
+	int topDimension = breaks.size();
+	int high = (homology+2 < breaks.size() ? breaks[homology+2] : cellCount);
+	int row;
 
 	Field F(p);
-	Field::Element q, r, s;
-	BoundaryMatrix B = FillBoundaryMatrix(boundary, F, cellCount);
+	BoundaryMatrix Boundary = FillBoundaryMatrix(boundary, F, cellCount);
 	vector<int> nextColumn = vector<int>(cellCount, 0);
-	Column column, replacement, lower;
+	Column column, younger;
+	Set erase, skip, marked;
+
+	// Initialize some things.
+	Field::Element q, r, s, inv, prod, result;
+	F.init(inv);
+	F.init(prod);
+	F.init(result);
 
 	// TODO: dimensionality lookup; should probably be done with breaks/tranches
 	// but we can figure that out later.
 	for (int d = topDimension; d > 0; d--) {
+		// for (int j = breaks[d-1]; j < breaks[d]; j++) {
 		for (int j = 0; j < cellCount; j++) {
 			// If we aren't of the right dimension, don't do anything; I think
 			// we can probably improve the efficiency here, since we know when
@@ -150,13 +182,14 @@ Set ComputePercolationEvents(vector<int> boundary, vector<int> filtration, int p
 
 			// Otherwise, while the current column isn't zero, do some column
 			// reduction.
-			column = B[j];
-			replacement = Column();
-			lowIndex = low(column);
+			column = Boundary[j];
 
-			while (!column.empty() & nextColumn[lowIndex] != 0) {
-				lower = B[lowIndex];
-				q = lower[lower.rend()->first];
+			while (!column.empty() && nextColumn[youngestOf(column)] != 0) {
+				younger = Boundary[nextColumn[youngestOf(column)]];
+				q = younger[youngestOf(column)];
+
+				erase = Set();
+				skip = Set();
 
 				// Row arithmetic. TODO: put this in an actual separate function
 				// so it's easier to debug. If this is faster than my old stuff,
@@ -167,18 +200,63 @@ Set ComputePercolationEvents(vector<int> boundary, vector<int> filtration, int p
 					row = it->first;
 					r = it->second;
 
-					// If we *do* have a shared element in that row, go nuts.
-					if (auto search = lower.find(row); search != lower.end()) {
-						s = search->second;
-						replacement[row] = r-(1/q)*s;
-						lower.erase(row);
-					} else {
-						replacement[row] = r;
+					// If we share a row, compute the result; if the result is
+					// nonzero, overwrite whatever's in there already.
+					if (younger.count(row) > 0) {
+						s = younger[row];
+						
+						F.inv(inv, q);
+						F.mul(prod, inv, s);
+						F.sub(result, r, prod);
+						column[row] = result;
+
+						if (result == 0) erase.insert(row);
+
+						skip.insert(row);
 					}
 				}
+
+				// Go through and erase the rows that were zeroed out.
+				for (auto it = erase.begin(); it != erase.end(); ++it) column.erase(*it);
+
+				// Go through and eliminate the remaining rows, skipping ones
+				// we've already computed.
+				for (auto it = younger.begin(); it != younger.end(); ++it) {
+					row = it->first;
+					s = it->second;
+
+					if (skip.count(row) > 0) continue;
+
+					F.inv(inv, q);
+					F.mul(prod, inv, s);
+					F.neg(result, prod);
+					column[row] = result;
+				}
+			}
+
+			// If there is no younger column to add and the column is nonempty,
+			// then we've found a pivot column. On the other hand, if there's no
+			// younger column to add and the column is empty, then this column
+			// (corresponding to the boundary of the jth cell) is in the basis
+			// of the kernel --- congrats, it's a cycle!
+			if (!column.empty()) {
+				nextColumn[youngestOf(column)] = j;
+				Boundary[youngestOf(column)] = Column();
+			} else {
+				marked.insert(j);
 			}
 		}
 	}
 
-	return Set();
+	// Find the essential birth times by checking whether the column is marked
+	// (i.e. is a cycle) and has no younger columns to add. (For some reason,
+	// 0 gets left out here. Not sure why...)
+	Set essential = Set();
+	essential.insert(0);
+	
+	for (auto it = marked.begin(); it != marked.end(); it++) {
+		if (nextColumn[*it] == 0) essential.insert(*it);
+	}
+
+	return essential;
 }

@@ -4,7 +4,7 @@ from .Persistence import Persistence
 from .MatrixReduction import MatrixReduction
 from .reindexing import reindexSparseBoundaryMatrix
 from .BuiltinWrapper import Kernel, KernelSample
-from .LinBoxWrapper import LanczosKernelSample
+from .LinBoxWrapper import LanczosKernelSample, ComputePercolationEvents
 
 
 __pdoc__ = {}

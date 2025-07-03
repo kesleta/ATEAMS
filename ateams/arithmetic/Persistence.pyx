@@ -639,7 +639,6 @@ cdef class Persistence:
 		# Construct the boundary matrix for this filtration; variables for
 		# objects.
 		cdef Vector[Vector[int]] boundary = self.ReorderBoundary(filtration);
-		print(boundary)
 		cdef Vector[int] facesIterable, degree = Vector[int](self.cellCount);
 		cdef OrderedSet[int] faces;
 		cdef Map[int,FFINT] faceCoefficients;

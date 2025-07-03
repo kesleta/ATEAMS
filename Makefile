@@ -19,7 +19,7 @@ test: FORCE
 
 
 fast:
-	@sudo clang++ `pkg-config --libs linbox` -shared -fPIC -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp -v -Ofast
+	@sudo clang++ `pkg-config --libs linbox` -shared -fPIC -std=c++17 -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp -v -O3 -ffast-math
 
 
 profile: FORCE
