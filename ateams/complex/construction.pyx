@@ -1,6 +1,9 @@
 
 # distutils: language=c++
 
+import numpy as np
+cimport numpy as np
+
 from libcpp.vector cimport vector as Vector
 
 from ..common cimport INDEXTABLE, INDEX, MINT
@@ -41,3 +44,30 @@ cpdef Vector[Vector[MINT]] boundaryMatrices(MINT[:,:] cubes, MINT[:] coefficient
 
 	return Matrices;
 
+
+cpdef Vector[int] fullBoundaryMatrix(list boundary, dict coefficients):
+	cdef int M, i, N, j, face;
+	cdef Vector[int] Boundary = Vector[int]();
+
+	M = len(boundary);
+	
+	for i in range(M):
+		faces = boundary[i];
+
+		# If we find a vertex, we just push back the required entries (a 1 at the
+		# (i,i)th entry) and be done.
+		try: N = len(faces);
+		except:
+			Boundary.push_back(i);
+			Boundary.push_back(i);
+			Boundary.push_back(0);
+			continue;
+
+		# Otherwise, we iterate over the faces, adding the required entries.
+		for j in range(N):
+			face = faces[j];
+			Boundary.push_back(face);
+			Boundary.push_back(i);
+			Boundary.push_back(<int>coefficients[N//2][j]);
+
+	return Boundary;

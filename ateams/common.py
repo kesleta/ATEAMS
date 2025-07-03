@@ -14,4 +14,5 @@ FINT = np.int16
 class Matrices:
     boundary = None
     coboundary = None
+    full = None
 

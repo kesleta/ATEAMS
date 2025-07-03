@@ -7,7 +7,7 @@ from itertools import combinations as combs, product
 from math import comb
 
 from ..common import MINT, Matrices
-from .construction import boundaryMatrices
+from .construction import boundaryMatrices, fullBoundaryMatrix
 
 
 class Matrices:
@@ -63,16 +63,22 @@ class Cubical:
 			flatBoundary, flatCoboundary = boundaryMatrix(self.Boundary, self.dimension)
 
 		# Construct the finite field and boundary matrices.
+		self.reindexer, self.reindexed, self.flattened = flatten(self.Boundary, self.dimension)
 		self.matrices.boundary = flatBoundary
 		self.matrices.coboundary = flatCoboundary
-		self.reindexer, self.reindexed, self.flattened = flatten(self.Boundary, self.dimension)
 
-		# Get index ranges.
+		coefficients = { d: np.tile([-1,1], d*2).astype(MINT) for d in range(1, self.dimension+1) }
+		self.matrices.full = np.array(fullBoundaryMatrix(self.flattened, coefficients), dtype=MINT)
+
+		# Get index ranges. (This may turn out to be vestigial; who knows?)
 		self.tranches = np.zeros((self.dimension+1, 2), dtype=int)
 		self.tranches[0][1] = len(self.Boundary[0])
 
 		for d in range(1, self.dimension+1):
 			self.tranches[d] = [self.tranches[d-1][1], self.tranches[d-1][1] + len(self.Boundary[d])]
+
+		# Breaks. (For percolation computation.)
+		self.breaks = np.array(self.tranches[:,0])
 
 		return self
 
