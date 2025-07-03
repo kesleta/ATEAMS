@@ -10,13 +10,12 @@
 
 #include "LinBoxMethods.h"
 
-using namespace LinBox;
 using namespace std;
-using namespace std::chrono_literals;
 
+typedef vector<int> Vector;
 typedef Givaro::Modular<int> Field;
-typedef SparseMatrix<Field, SparseMatrixFormat::SparseSeq> FieldMatrix;
-typedef DenseVector<Field> FieldVector;
+typedef LinBox::SparseMatrix<Field, LinBox::SparseMatrixFormat::SparseSeq> FieldMatrix;
+typedef LinBox::DenseVector<Field> FieldVector;
 
 
 bool containsNonzero(FieldVector X) {
@@ -35,7 +34,7 @@ bool containsNonzero(FieldVector X) {
 }
 
 
-FieldMatrix FieldFill(vector<int> coboundary, int M, int N, Field F) {
+FieldMatrix FieldFill(Vector coboundary, int M, int N, Field F) {
 	// Construct the sparse coboundary matrix.
 	FieldMatrix A(F, M, N);
 
@@ -53,9 +52,9 @@ FieldMatrix FieldFill(vector<int> coboundary, int M, int N, Field F) {
 }
 
 
-vector<int> populate(FieldMatrix A, FieldVector X) {
+Vector populate(FieldMatrix A, FieldVector X) {
 	// Populate a vector with entries from a LinBox vector.
-	std::vector<int> x(A.coldim());
+	Vector x(A.coldim());
 	
 	for (size_t k = 0; k < A.coldim(); k++) {
 		x[k] = X.getEntry(k);
@@ -65,7 +64,7 @@ vector<int> populate(FieldMatrix A, FieldVector X) {
 }
 
 
-vector<int> LanczosKernelSample(vector<int> coboundary, int M, int N, int p, int maxTries) {
+Vector LanczosKernelSample(Vector coboundary, int M, int N, int p, int maxTries) {
 	// Construct the finite field and construct the matrix.
 	Field F(p);
 	FieldMatrix A = FieldFill(coboundary, M, N, F);
@@ -74,9 +73,12 @@ vector<int> LanczosKernelSample(vector<int> coboundary, int M, int N, int p, int
 	// Re-sample until we get something other than the zero vector (up to four
 	// tries).
 	int t = 0;
+	size_t rank;
 
 	while (!containsNonzero(X) and t < maxTries) {
-		solve(X, A, b, Method::Lanczos());
+		LinBox::Method::Lanczos LANK;
+		LANK.preconditioner = LinBox::Preconditioner::FullDiagonal;
+		solve(X, A, b, LANK);
 		t++;
 	}
 
@@ -86,10 +88,15 @@ vector<int> LanczosKernelSample(vector<int> coboundary, int M, int N, int p, int
 
 typedef set<int> Set;
 typedef map<int, Field::Element> Column;
+typedef map<int,int> Map;
 typedef vector<Column> BoundaryMatrix;
 
 
-BoundaryMatrix FillBoundaryMatrix(vector<int> boundary, Field F, int L) {
+BoundaryMatrix FillBoundaryMatrix(Vector boundary, Field F, int L) {
+	// Fills a sparse representation of a boundary matrix. Uses standard maps,
+	// since they're red-black trees that allow for fast min/max lookups (and
+	// are self-balancing on removals); take integer indices to Givaro modular
+	// integers.
 	BoundaryMatrix B(L);
 
 	for (int t = 0; t < boundary.size(); t += 3) {
@@ -107,7 +114,8 @@ BoundaryMatrix FillBoundaryMatrix(vector<int> boundary, Field F, int L) {
 }
 
 
-int dim(int index, vector<int> breaks) {
+int dim(int index, Vector breaks) {
+	// Looks up the dimension of a cell based on the breaks.
 	int i = 0;
 
 	for (; i < breaks.size()-1; i++) {
@@ -117,8 +125,19 @@ int dim(int index, vector<int> breaks) {
 	return i;
 }
 
+
 int youngestOf(Column column) {
+	// Gets the "youngest" (largest-indexed) cell in the column.
 	return column.rbegin()->first;
+}
+
+
+void printMap(Map column) {
+	cout << "{" << endl;
+	for (auto it = column.begin(); it != column.end(); ++it) {
+		cout << "\t" << it->first << ": " << it->second << endl;
+	}
+	cout << "}" << endl;
 }
 
 
@@ -139,9 +158,18 @@ void printSet(Set S) {
 }
 
 
+void printBoundary(Vector boundary) {
+	cout << "[" << endl;
+	for (int i=0; i < boundary.size(); i+=3) {
+		cout << "  [ " << boundary[i] << " " << boundary[i+1] << " " << boundary[i+2] << " ]" << endl;
+	}
+	cout << "]" << endl;
+}
+
+
 Set ComputePercolationEvents(
-		vector<int> boundary, vector<int> filtration, int homology, int p,
-		vector<int> breaks
+		Vector boundary, Vector filtration, int homology, int p,
+		Vector breaks
 	) {
 	// Construct the finite field and build the boundary matrix. Similarly to Chen and
 	// Kerber (2011), we store each column of the boundary matrix as a balanced
@@ -153,17 +181,17 @@ Set ComputePercolationEvents(
 	// C++ map, which takes column indices to Givaro::Modular<int> finite field
 	// elements for fast arithmetic.
 	int cellCount = filtration.size();
-	int topDimension = breaks.size();
-	int high = (homology+2 < breaks.size() ? breaks[homology+2] : cellCount);
-	int row;
+	int topDimension = (homology < breaks.size() ? homology+1 : breaks.size());
+	int row, j, high;
 
 	Field F(p);
 	BoundaryMatrix Boundary = FillBoundaryMatrix(boundary, F, cellCount);
-	vector<int> nextColumn = vector<int>(cellCount, 0);
+	Vector nextColumn = Vector(cellCount, 0);
 	Column column, younger;
 	Set erase, skip, marked;
 
 	// Initialize some things.
+	// TODO: PRE-MARK THINGS WE KNOW WILL BE MARKED EVENTUALLY
 	Field::Element q, r, s, inv, prod, result;
 	F.init(inv);
 	F.init(prod);
@@ -171,9 +199,11 @@ Set ComputePercolationEvents(
 
 	// TODO: dimensionality lookup; should probably be done with breaks/tranches
 	// but we can figure that out later.
-	for (int d = topDimension; d > 0; d--) {
-		// for (int j = breaks[d-1]; j < breaks[d]; j++) {
-		for (int j = 0; j < cellCount; j++) {
+	for (int d = topDimension; d > homology-1; d--) {
+		// Since we know the cells will always be added in order of dimension,
+		// we know specifically which range to search (saving us a lot of time).
+		high = (d+2 >= breaks.size() ? cellCount : breaks[d+2]);
+		for (int j = breaks[d-1]; j < high; j++) {
 			// If we aren't of the right dimension, don't do anything; I think
 			// we can probably improve the efficiency here, since we know when
 			// cells of whatever dimension will be placed in the filtration.

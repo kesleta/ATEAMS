@@ -50,7 +50,7 @@ class SwendsenWang(Model):
 
 		# If no initial spin configuration is passed, initialize.
 		if not initial: self.spins = self.initial()
-		else: self.spins = (initial%self.lattice.field).astype(FINT)
+		else: self.spins = (initial%self.complex.field).astype(FINT)
 
 		# Delegate computation.
 		self._delegateComputation(LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores)
@@ -60,6 +60,8 @@ class SwendsenWang(Model):
 		# If we use LinBox, keep everything as-is.
 		if LinBox:
 			def sample(zeros):
+				if zeros.shape[0] < 1: return self.spins;
+				
 				return np.array(LanczosKernelSample(
 					self.matrices.coboundary, zeros, 2*self.complex.dimension,
 					self.faces, self.complex.field
