@@ -1,29 +1,29 @@
 
-from ateams.complexes import Lattice
-from ateams.models import SwendsenWang, Nienhuis
-from ateams.statistics import constant, critical
+from ateams.complexes import Cubical
+from ateams.models import Nienhuis
+from ateams.statistics import critical
 from ateams import Chain
 import json
+import sys
 
-
-def construct(L, sparse, parallel, minBlockSize, maxBlockSize, cores):
+def construct(L, parallel, cores, LinBox):
 	# Construct lattice object.
 	field = 3
-	L = Lattice().fromCorners([L]*2, dimension=1, field=field)
+	L = Cubical().fromCorners([L]*2, field=field)
 
 	# Set up Model and Chain.
-	T = critical(L.field.characteristic)
-	SW = Nienhuis(L, 1, 1, temperatureFunction=lambda t: -T(t))
+	SW = Nienhuis(L, 1, 1, dimension=2, LinBox=LinBox, parallel=parallel, cores=cores)
 	N = 20
 	M = Chain(SW, steps=N)
 
 	return M
 
 def chain(M, DESC=""):
-	for (spins, occupied) in M.progress(dynamic_ncols=True, desc=DESC):
+	for (spins, faceEnergy, cellEnergy) in M.progress(dynamic_ncols=True, desc=DESC):
 		pass
 
+
 if __name__ == "__main__":
-	M = construct(20, False, True, 32, 64, 2)
+	M = construct(100, False, 2, True)
 	chain(M)
 

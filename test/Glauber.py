@@ -1,19 +1,19 @@
 
 from ateams.complexes import Cubical
-from ateams.models import SwendsenWang
+from ateams.models import Glauber
 from ateams.statistics import constant, critical
 from ateams import Chain
 import json
 
 
-def construct(L, parallel, cores, LinBox):
+def construct(L):
 	# Construct lattice object.
 	field = 3
 	L = Cubical().fromCorners([L]*4, field=field)
 
 	# Set up Model and Chain.
 	T = critical(L.field)
-	SW = SwendsenWang(L, dimension=2, temperature=lambda t: -T(t), LinBox=LinBox, parallel=parallel, cores=cores)
+	SW = Glauber(L, dimension=2, temperature=lambda t: -T(t))
 	N = 20
 	M = Chain(SW, steps=N)
 
@@ -25,6 +25,6 @@ def chain(M, DESC=""):
 
 
 if __name__ == "__main__":
-	M = construct(7, False, 2, True)
+	M = construct(10)
 	chain(M)
 

@@ -66,7 +66,46 @@ pattern.
 2. Navigate into the ATEAMS directory.
 3. Run `make install`.
 
-Clone this repository by `git clone https://github.com/apizzimenti/ateams.git`, navigate into the project's root, and run `make install` in your favorite terminal. This installs the `ateams` package (and its dependencies) globally in development mode, so any changes you make to the source are reflected system-wide.
+In summary,
+
+```
+$ git clone https://github.com/apizzimenti/ATEAMS.git
+  ...
+
+$ cd ATEAMS
+$ make install
+```
+
+**Should you run into errors,** the `make install` recipe performs the following operations in the order they're listed:
+
+1. Attempts to compile the Python $\leftrightarrow$ Cython $\leftrightarrow$ LinBox C++ interface at `ATEAMS/ateams/arithmetic/LinBoxMethods.cpp`, building it as a shared library and storing it at `/usr/local/lib/libLinBoxMethods.so`.
+2. Attempts to compile the Cython components of ATEAMS.
+3. Attempts to install PHAT.
+4. Runs `setup.py` and installs the ATEAMS package as a local development package, so it is importable system-wide.
+5. Tests arithmetic and profiles the four main models of the library in varying configurations.
+6. Builds local documentation.
+
+**Done manually, these steps are:**
+
+```
+$ sudo clang++ `pkg-config --libs linbox` -shared -fPIC -std=c++17 -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp -v -O3 -ffast-math
+  ...
+
+$ python setup.py build_ext --inplace > build.log 2>&1 
+$ pip install pybind11 wheel setuptools
+$ pip install --use-deprecated=legacy-resolver --no-binary :all: phat
+$ python setup.py develop
+  ...
+
+$ cd test && ./test.arithmetic.matrices.sh
+$ cd test && ./test.arithmetic.bettis.sh
+$ cd test && ./profile.models.NH.sh 99 102 32 64 2
+$ cd test && ./profile.models.SW.sh 7 11 32 64 2
+$ cd test && ./profile.models.IC.sh 3 5 32 64 2
+  ...
+
+$ ./docs.sh
+```
 
 ### Dependencies
 ATEAMS relies on [LinBox](https://github.com/apizzimenti/linbox) — this link goes to our GitHub fork of LinBox, which addresses a small matrix preconditioning bug; otherwise, the library is unchanged from [its original source](https://github.com/linbox-team/linbox). LinBox relies on [fflas-ffpack](https://github.com/linbox-team/fflas-ffpack), [Givaro](https://github.com/linbox-team/givaro), [OpenBLAS](https://github.com/OpenMathLib/OpenBLAS), and [GMP](https://gmplib.org/). **It is recommended that you install these dependencies to make sure you get the most out of this toolkit.**
@@ -148,7 +187,7 @@ This package can be slightly trickier, and may need some convincing that the pre
 	* macOS:
 		* `--prefix=/usr/local`
 		* ``--with-blas-libs="-framework Accelerate"``
-		* (it's possible to use the `pkg-config` arguments to ``--with-blas-libs`` and ``--with-blas-cflags`` here, but the LinBox team reccomends using the Accelerate framework.)
+		* (it's possible to use the `pkg-config` arguments to ``--with-blas-libs`` and ``--with-blas-cflags`` here, but the LinBox team recommends using the Accelerate framework.)
 3. Run `make`.
 4. _Optionally_, run `make autotune`. This takes a really long time, but can help speed things up on your machine.
 5. Run `sudo make install; make check`.
@@ -227,6 +266,8 @@ In summary,
 $ pip install PyBind11 wheel setuptools
 $ pip install --use-deprecated=legacy-resolver --no-binary :all: phat
 ```
+
+**ATEAMS attempts to install PHAT whenever `make install` is executed.**
 
 ## Contributing
 

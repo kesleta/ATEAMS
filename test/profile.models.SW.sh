@@ -1,35 +1,33 @@
 #!/bin/zsh
 
+autoload colors; colors
 start="${1:-3}"
 stop="${2:-4}"
-minBlockSize="${3:-32}"
-maxBlockSize="${4:-64}"
-cores="${5:-2}"
+cores="${3:-2}"
 
 echo "_________________________"
 echo "| PROFILE SWENDSEN-WANG | ➭➭➭ results in profiles/SwendsenWang"
 echo "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾"
 
-printf "%-5s %-10s %-10s %-5s %-5s %-5s %-10s %s" "SCALE" "SPARSE" "PARALLEL" "MIN" "MAX" "CORES" "LINBOX"
+printf "%-5s %-8s %-8s %-8s %-8s %s" "     " "SCALE" "PARALLEL" "CORES" "LINBOX"
 echo
 
-# for ((L=$start; L<$stop; L++)); do
-# 	for ((sparse=0; sparse<2; sparse++)); do
-# 		for ((parallel=0; parallel<2; parallel++)); do
-# 			for ((LinBox=0; LinBox<2; LinBox++)); do
-# 				python profile.models.SW.py $LinBox $L $sparse $parallel $minBlockSize $maxBlockSize $cores 0 &
-# 				wait $!
-# 			done
-# 		done
-# 	done
-# done
-
 for ((L=$start; L<$stop; L++)); do
-	for ((LinBox=0; LinBox<1; LinBox++)); do
-		python profile.models.SW.py 1 $L 1 0 32 64 2 0 &
-		wait $!
+	for ((parallel=0; parallel<2; parallel++)); do
+		for ((LinBox=0; LinBox<2; LinBox++)); do
+			python profile.models.SW.py $LinBox $L $(($parallel & $(($LinBox < 1)))) $cores 0 &
+			wait $!
+
+			if [ $? != 0 ]; then
+				echo -e "\033[F$fg[red]FAIL$reset_color"
+			else
+				echo -e "\033[F$fg[green]PASS$reset_color"
+			fi
+		done
 	done
+	echo
 done
 
+echo
 echo
 echo

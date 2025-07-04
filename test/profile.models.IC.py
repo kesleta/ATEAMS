@@ -9,31 +9,31 @@ import sys
 
 
 try:
-    L = int(sys.argv[-7])
-    sparse = bool(int(sys.argv[-6]))
-    parallel = bool(int(sys.argv[-5]))
-    minBlockSize = int(sys.argv[-4])
-    maxBlockSize = int(sys.argv[-3])
+    LinBox = int(sys.argv[-5])
+    L = int(sys.argv[-4])
+    parallel = bool(int(sys.argv[-3]))
     cores = int(sys.argv[-2])
     slurm = bool(int(sys.argv[-1]))
-except:
-    L = 3
-    LinBox=True
     sparse = False
+except:
+    LinBox = True
+    L = 3
     parallel = False
-    minBlockSize = 32
-    maxBlockSize = 64
-    cores = 2
+    cores = True
     slurm = False
+    sparse = False
+
 
 pyximport.install()
 
-M = IC.construct(L, sparse, parallel, minBlockSize, maxBlockSize, cores)
+M = IC.construct(L, parallel, cores, LinBox)
 
-TESTS = [L, sparse, parallel, minBlockSize, maxBlockSize, cores]
-WIDTHS = [5, 10, 10, 5, 5, 5]
+TESTS = [L, parallel, cores, LinBox]
+WIDTHS = [8, 8, 8, 8]
 DESC = [str(int(thing)).ljust(width) for thing, width in zip(TESTS, WIDTHS)]
 DESC = " ".join(DESC)
+DESC = ("      "+DESC).ljust(10)
+
 
 cProfile.runctx("IC.chain(M, DESC)", globals(), locals(), "Profile.prof")
 

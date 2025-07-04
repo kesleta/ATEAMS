@@ -1,26 +1,33 @@
 #!/bin/zsh
 
+autoload colors; colors
 start="${1:-3}"
 stop="${2:-4}"
-minBlockSize="${3:-32}"
-maxBlockSize="${4:-64}"
-cores="${5:-2}"
+cores="${3:-2}"
 
 echo "___________________________"
 echo "| PROFILE INVADED-CLUSTER | ➭➭➭ results in profiles/InvadedCluster"
 echo "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾"
 
-printf "%-5s %-10s %-10s %-5s %-5s %-5s %s" "SIZE" "SPARSE" "PARALLEL" "MIN" "MAX" "CORES"
+printf "%-5s %-8s %-8s %-8s %-8s %s" "     " "SCALE" "PARALLEL" "CORES" "LINBOX"
 echo
 
 for ((L=$start; L<$stop; L++)); do
-	for ((sparse=0; sparse<2; sparse++)); do
-		for ((parallel=0; parallel<2; parallel++)); do
-			python profile.models.IC.py $L $sparse $parallel $minBlockSize $maxBlockSize $cores 0 &
+	for ((parallel=0; parallel<2; parallel++)); do
+		for ((LinBox=0; LinBox<2; LinBox++)); do
+			python profile.models.IC.py $LinBox $L $(($parallel & $(($LinBox < 1)))) $cores 0 &
 			wait $!
+			
+			if [ $? != 0 ]; then
+				echo -e "\033[F$fg[red]FAIL$reset_color"
+			else
+				echo -e "\033[F$fg[green]PASS$reset_color"
+			fi
 		done
 	done
+	echo
 done
 
+echo
 echo
 echo
