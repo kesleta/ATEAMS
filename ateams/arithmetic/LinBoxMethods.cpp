@@ -138,15 +138,9 @@ BoundaryMatrix FillBoundaryMatrix(Vector boundary, Field F, int L) {
 }
 
 
-int dim(int index, Vector breaks) {
-	// Looks up the dimension of a cell based on the breaks.
-	int i = 0;
-
-	for (; i < breaks.size()-1; i++) {
-		if (index < breaks[i+1]) { return i; }
-	}
-
-	return i;
+int Mod2youngestOf(Set column) {
+	// Gets the "youngest" (largest-indexed) cell in the column.
+	return *column.rbegin();
 }
 
 
@@ -154,12 +148,6 @@ template <typename BalancedStorage>
 int youngestOf(BalancedStorage column) {
 	// Gets the "youngest" (largest-indexed) cell in the column.
 	return column.rbegin()->first;
-}
-
-
-int Mod2youngestOf(Set column) {
-	// Gets the "youngest" (largest-indexed) cell in the column.
-	return *column.rbegin();
 }
 
 
