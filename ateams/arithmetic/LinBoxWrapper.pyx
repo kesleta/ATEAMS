@@ -86,7 +86,7 @@ cpdef Vector[int] LanczosKernelSample(
 	return _LanczosKernelSample(submatrix, zeros.shape[0], columns, field, maxTries);
 
 
-cpdef Set[int] ComputePercolationEvents(INDEXFLAT boundary, INDEXFLAT filtration, int homology, int p, INDEXFLAT breaks):
+cpdef Set[int] ComputePercolationEvents(INDEXFLAT boundary, INDEXFLAT filtration, int homology, int p, INDEXFLAT breaks) noexcept:
 	cdef Vector[int] _boundary = Vectorize(boundary);
 	cdef Vector[int] _filtration = Vectorize(filtration);
 	cdef Vector[int] _breaks = Vectorize(breaks);

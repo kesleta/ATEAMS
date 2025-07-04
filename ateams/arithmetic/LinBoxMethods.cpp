@@ -70,15 +70,17 @@ Vector LanczosKernelSample(Vector coboundary, int M, int N, int p, int maxTries)
 	FieldMatrix A = FieldFill(coboundary, M, N, F);
 	FieldVector X(F, A.coldim()), b(F, A.rowdim());
 
+	// Use the sparse Lanczos solver; if there are more rows than columns, we can
+	// precondition the matrix.
+	LinBox::Method::Lanczos LANC;
+	if (A.rowdim() > A.coldim()) LANC.preconditioner = LinBox::Preconditioner::PartialDiagonal;
+
 	// Re-sample until we get something other than the zero vector (up to four
 	// tries).
 	int t = 0;
-	size_t rank;
 
 	while (!containsNonzero(X) and t < maxTries) {
-		LinBox::Method::Lanczos LANK;
-		LANK.preconditioner = LinBox::Preconditioner::FullDiagonal;
-		solve(X, A, b, LANK);
+		solve(X, A, b, LANC);
 		t++;
 	}
 
@@ -89,6 +91,7 @@ Vector LanczosKernelSample(Vector coboundary, int M, int N, int p, int maxTries)
 typedef set<int> Set;
 typedef map<int, Field::Element> Column;
 typedef map<int,int> Map;
+typedef map<int,Column> ColumnMap;
 typedef vector<Column> BoundaryMatrix;
 
 
@@ -98,16 +101,16 @@ BoundaryMatrix FillBoundaryMatrix(Vector boundary, Field F, int L) {
 	// are self-balancing on removals); take integer indices to Givaro modular
 	// integers.
 	BoundaryMatrix B(L);
+	Field::Element q;
+	int row, column;
 
 	for (int t = 0; t < boundary.size(); t += 3) {
-		Field::Element q;
-		int i, j;
 
-		i = boundary[t];
-		j = boundary[t+1];
+		row = boundary[t];
+		column = boundary[t+1];
 		F.init(q, boundary[t+2]);
 		
-		if (q > 0) B[j][i] = q;
+		if (q > 0) { B[column][row] = q; }
 	}
 
 	return B;
@@ -119,7 +122,7 @@ int dim(int index, Vector breaks) {
 	int i = 0;
 
 	for (; i < breaks.size()-1; i++) {
-		if (index < breaks[i+1]) return i;
+		if (index < breaks[i+1]) { return i; }
 	}
 
 	return i;
@@ -167,6 +170,42 @@ void printBoundary(Vector boundary) {
 }
 
 
+Vector ReindexBoundaryMatrix(Vector &boundary, Vector filtration, int homology, Vector breaks) {
+	// Decide when we should be editing rows or columns.
+	int cellCount = filtration.size();
+	int low = breaks[homology];
+	int high = breaks[homology+1];
+	int higher = (homology+2 >= breaks.size() ? cellCount : breaks[homology+2]);
+	int row, column;
+
+	// Reindex the boundary matrix in-place so we don't have to do it in Python.
+	// Eugh.
+	Map IndexMap = Map();
+
+	for (int t=low; t < higher; t++) {
+		IndexMap[filtration[t]] = t;
+	}
+
+	for (int i=0; i < boundary.size(); i+=3) {
+		row = boundary[i];
+		column = boundary[i+1];
+
+		if (low <= column && column < high) {
+			// In this situation, we're editing the *column* --- for example,
+			// if the (usual) 9th element was placed 10th, then we have to change
+			// the 9th column to the 10th one.
+			boundary[i+1] = IndexMap[column];
+		} else if (high <= column && column < higher) {
+			// Here, we're editing the *row* --- since we're in a higher-dimensional
+			// cell, we need to point toward the correct (re-indexed) row.
+			boundary[i] = IndexMap[row];
+		}
+	}
+	
+	return boundary;
+}
+
+
 Set ComputePercolationEvents(
 		Vector boundary, Vector filtration, int homology, int p,
 		Vector breaks
@@ -182,96 +221,73 @@ Set ComputePercolationEvents(
 	// elements for fast arithmetic.
 	int cellCount = filtration.size();
 	int topDimension = (homology < breaks.size() ? homology+1 : breaks.size());
-	int row, j, high;
 
 	Field F(p);
-	BoundaryMatrix Boundary = FillBoundaryMatrix(boundary, F, cellCount);
-	Vector nextColumn = Vector(cellCount, 0);
-	Column column, younger;
-	Set erase, skip, marked;
+	Vector _boundary = ReindexBoundaryMatrix(boundary, filtration, homology, breaks);
+	BoundaryMatrix Boundary = FillBoundaryMatrix(_boundary, F, cellCount);
 
-	// Initialize some things.
-	// TODO: PRE-MARK THINGS WE KNOW WILL BE MARKED EVENTUALLY
+	Vector nextCell = Vector(cellCount, 0);
+	Column cell, youngest;
+	Set erase, marked;
+	int face, high, numBreaks = breaks.size();
+
 	Field::Element q, r, s, inv, prod, result;
 	F.init(inv);
 	F.init(prod);
 	F.init(result);
 
-	// TODO: dimensionality lookup; should probably be done with breaks/tranches
-	// but we can figure that out later.
+	marked = Set();
+
 	for (int d = topDimension; d > homology-1; d--) {
-		// Since we know the cells will always be added in order of dimension,
-		// we know specifically which range to search (saving us a lot of time).
-		high = (d+2 >= breaks.size() ? cellCount : breaks[d+2]);
-		for (int j = breaks[d-1]; j < high; j++) {
-			// If we aren't of the right dimension, don't do anything; I think
-			// we can probably improve the efficiency here, since we know when
-			// cells of whatever dimension will be placed in the filtration.
-			// That should cut down on time quite a bit!
-			if (dim(j, breaks) != d) continue;
+		high = (d+1 >= numBreaks ? cellCount : breaks[d+1]);
+		for (int j = breaks[homology]; j < high; j++) {
+			// If we're of the wrong dimension, keep going.
+			if (dim(j, breaks) != d) { continue; }
+			cell = Boundary[j];
 
-			// Otherwise, while the current column isn't zero, do some column
-			// reduction.
-			column = Boundary[j];
-
-			while (!column.empty() && nextColumn[youngestOf(column)] != 0) {
-				younger = Boundary[nextColumn[youngestOf(column)]];
-				q = younger[youngestOf(column)];
-
+			while (!cell.empty() && nextCell[youngestOf(cell)] != 0) {
+				// Keep track of keys to erase.
 				erase = Set();
-				skip = Set();
 
-				// Row arithmetic. TODO: put this in an actual separate function
-				// so it's easier to debug. If this is faster than my old stuff,
-				// I'm going to shit myself.
-				for (auto it = column.begin(); it != column.end(); ++it) {
-					// Hedge that, most of the time, we won't actually be doing
-					// that much arithmetic.
-					row = it->first;
-					r = it->second;
+				// Get the "youngest" cell in the boundary and subtract it from
+				// the current cell.
+				youngest = Boundary[nextCell[youngestOf(cell)]];
 
-					// If we share a row, compute the result; if the result is
-					// nonzero, overwrite whatever's in there already.
-					if (younger.count(row) > 0) {
-						s = younger[row];
-						
-						F.inv(inv, q);
-						F.mul(prod, inv, s);
-						F.sub(result, r, prod);
-						column[row] = result;
+				// Get the multiplicative inverse of the coefficient and do
+				// arithmetic over the row.
+				q = youngest[youngestOf(cell)];
+				F.inv(inv, q);
 
-						if (result == 0) erase.insert(row);
-
-						skip.insert(row);
-					}
-				}
-
-				// Go through and erase the rows that were zeroed out.
-				for (auto it = erase.begin(); it != erase.end(); ++it) column.erase(*it);
-
-				// Go through and eliminate the remaining rows, skipping ones
-				// we've already computed.
-				for (auto it = younger.begin(); it != younger.end(); ++it) {
-					row = it->first;
+				for (auto it=youngest.begin(); it != youngest.end(); ++it) {
+					face = it->first;
 					s = it->second;
 
-					if (skip.count(row) > 0) continue;
-
-					F.inv(inv, q);
+					// Take the product of inv(q) with the entry of this row;
+					// if this is row youngestOf(cell), then this product is 1
+					// (it's a pivot). If the current cell shares this face, do
+					// the subtraction; otherwise, just add a new coefficient.
 					F.mul(prod, inv, s);
-					F.neg(result, prod);
-					column[row] = result;
+
+					if (cell.count(face) > 0) {
+						F.sub(result, cell[face], prod);
+
+						if (F.isZero(result)) {
+							cell.erase(face);
+						} else {
+							cell[face] = result;
+						}
+					} else {
+						F.neg(result, prod);
+						cell[face] = result;
+					}
 				}
 			}
-
-			// If there is no younger column to add and the column is nonempty,
-			// then we've found a pivot column. On the other hand, if there's no
-			// younger column to add and the column is empty, then this column
-			// (corresponding to the boundary of the jth cell) is in the basis
-			// of the kernel --- congrats, it's a cycle!
-			if (!column.empty()) {
-				nextColumn[youngestOf(column)] = j;
-				Boundary[youngestOf(column)] = Column();
+			// Check whether we've eliminated the column. For some god damn reason
+			// we have to re-set the entry of the Boundary??? Why??????
+			if (!cell.empty()) {
+				Boundary[j] = cell;
+				nextCell[youngestOf(cell)] = j;
+				Boundary[youngestOf(cell)] = Column();
 			} else {
 				marked.insert(j);
 			}
@@ -281,11 +297,11 @@ Set ComputePercolationEvents(
 	// Find the essential birth times by checking whether the column is marked
 	// (i.e. is a cycle) and has no younger columns to add. (For some reason,
 	// 0 gets left out here. Not sure why...)
-	Set essential = Set();
+	Set essential = Set(), lows = Set();
 	essential.insert(0);
-	
+
 	for (auto it = marked.begin(); it != marked.end(); it++) {
-		if (nextColumn[*it] == 0) essential.insert(*it);
+		if (nextCell[*it] == 0) essential.insert(*it);
 	}
 
 	return essential;

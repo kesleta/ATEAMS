@@ -35,6 +35,11 @@ class Cubical:
 		return self
 	
 
+	@staticmethod
+	def _fullBoundaryMatrix(flattened, coefficients):
+		return np.array(fullBoundaryMatrix(flattened, coefficients))
+	
+
 	def _construct(
 			self, corners, periodic, field, data=None
 		):
@@ -62,7 +67,7 @@ class Cubical:
 		self.matrices.boundary = flatBoundary
 		self.matrices.coboundary = flatCoboundary
 
-		coefficients = { d: np.tile([-1,1], d*2).astype(MINT) for d in range(1, self.dimension+1) }
+		self.orientations = coefficients = { d: np.tile([-1,1], d*2).astype(MINT) for d in range(1, self.dimension+1) }
 		self.matrices.full = np.array(fullBoundaryMatrix(self.flattened, coefficients), dtype=MINT)
 
 		# Get index ranges. (This may turn out to be vestigial; who knows?)

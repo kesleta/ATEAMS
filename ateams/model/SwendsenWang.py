@@ -1,9 +1,9 @@
 
 import numpy as np
-from functools import partial
+import warnings
 
 from ..arithmetic import LanczosKernelSample, KernelSample, MatrixReduction
-from ..common import MINT, FINT, Matrices
+from ..common import MINT, FINT, Matrices, TooSmallWarning
 from ..stats import constant
 from .Model import Model
 
@@ -41,6 +41,7 @@ class SwendsenWang(Model):
 		self.temperature = temperature
 		self.dimension = dimension
 
+
 		# Force-recompute the matrices for a different dimension; creates
 		# a set of orientations for fast elementwise products.
 		self.matrices = Matrices()
@@ -50,10 +51,19 @@ class SwendsenWang(Model):
 		self.matrices.boundary = boundary
 		self.matrices.coboundary = coboundary
 
+
 		# Useful values to have later.
 		self.cells = len(self.complex.Boundary[self.dimension])
 		self.faces = len(self.complex.Boundary[self.dimension-1])
 		self.orientations = np.tile([-1,1], self.dimension).astype(FINT)
+
+
+		# Check the dimensions of the boundary/coboundary matrices by comparing
+		# the number of cells. LinBox is really sensitive to smaller-size matrices,
+		# but can easily handle large ones.
+		if self.cells*self.faces < 10000:
+			warnings.warn(f"complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.", TooSmallWarning, stacklevel=2)
+
 
 		# Seed the random number generator.
 		self.RNG = np.random.default_rng()
@@ -92,7 +102,7 @@ class SwendsenWang(Model):
 			def sample(zeros):
 				return KernelSample(Reducer, coboundary.take(zeros, axis=0)).astype(FINT)
 			
-		self.SampleFromKernel = sample
+		self.sample = sample
 
 
 
@@ -139,7 +149,7 @@ class SwendsenWang(Model):
 		satisfied[zeros] = 1
 
 		# Sample from the kernel of the coboundary matrix.
-		spins = self.SampleFromKernel(zeros)
+		spins = self.sample(zeros)
 
 		return spins, satisfied
 	
