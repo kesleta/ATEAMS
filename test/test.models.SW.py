@@ -1,16 +1,13 @@
 
-import numpy as np
-import dateutil.relativedelta, time, datetime, json, pathlib, sys, platform
-from ateams.complex import Cubical
-from ateams.model import SwendsenWang
-from ateams.stats import constant, critical
-from ateams import Chain, Tape, _version
-import sys
+from ateams.complexes import Cubical
+from ateams.models import SwendsenWang
+from ateams.statistics import constant
+from ateams import Chain
 
-L = Cubical().fromCorners([12,12,12,12], field=3)
+L = Cubical().fromCorners([8]*4, field=3)
 
-SW = SwendsenWang(L, temperature=constant(-0.585), LinBox=True)
-N = 10
+SW = SwendsenWang(L, dimension=2, temperature=constant(-0.585))
+N = 1000
 M = Chain(SW, steps=N)
 
 for (spins, occupied) in M.progress():

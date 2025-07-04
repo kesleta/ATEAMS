@@ -1,12 +1,8 @@
 
-import numpy as np
-from ateams.complex import Cubical
-from ateams.stats import constant, critical
-from ateams import Chain, Tape, _version
-import sys
+from ateams.complexes import Cubical
 
-L = Cubical().fromCorners([3,3], field=3)
-L.toFile("lattice.json")
+L = Cubical().fromCorners([3,3,3,3], dimension=2, field=3)
+print(L.matrices.boundary)
 
-M = Cubical()
-M.fromFile("lattice.json")
+L.recomputeBoundaryMatrices(1)
+print(L.matrices.boundary)

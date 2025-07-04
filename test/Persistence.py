@@ -1,6 +1,6 @@
 
 from ateams.arithmetic import computeGiantCyclePairs, FINT, MINT, boundaryMatrix, Persistence
-from ateams.complex import Lattice
+from ateams.complexes import Lattice
 from math import comb
 from functools import partial
 import json

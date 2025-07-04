@@ -1,7 +1,7 @@
 
-from ateams.complex import Lattice
-from ateams.model import SwendsenWang, Nienhuis
-from ateams.stats import constant, critical
+from ateams.complexes import Lattice
+from ateams.models import SwendsenWang, Nienhuis
+from ateams.statistics import constant, critical
 from ateams import Chain
 import json
 
