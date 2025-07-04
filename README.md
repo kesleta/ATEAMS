@@ -29,7 +29,7 @@ for (spins, occupied, satisfied) in Chain(IC, steps=10):
     <do whatever>
 ```
 
-and the $2$-dimensional plaquette Swendsen-Wang algorithm at criticality on a scale $12$ cubical $4$-torus with coefficients in $\mathbb F_5$ looks like
+and the $2$-dimensional plaquette Swendsen-Wang algorithm at criticality on a scale $10$ cubical $4$-torus with coefficients in $\mathbb F_5$ looks like
 
 ```python
 from ateams.complexes import Cubical
@@ -37,12 +37,14 @@ from ateams.models import SwendsenWang
 from ateams.statistics import critical
 from ateams import Chain
 
-complex = Cubical().fromCorners([12]*4, field=5)
+complex = Cubical().fromCorners([10]*4, field=5)
 SW = SwendsenWang(complex, dimension=2, temperature=critical(complex.field))
 
-for (spins, occupied, satisfied) in Chain(SW, steps=10):
+for (spins, occupied, satisfied) in Chain(SW, steps=1000):
     <do whatever>
 ```
+The plaquette Swendsen-Wang is, besides Glauber, the most efficient implementation in this library; the above chain (excluding the time required to construct the lattice) runs in ~10 seconds using LinBox on an Apple M2. There are ${\approx}2.4 \times 10^9$ total entries in the boundary matrix for this particular $4$-torus, but only ${\approx}2.4 \times 10^5$ are nonzero, for a density of ${\approx}0.01\%$; the LinBox features _immensely_ reduce the time required to perform the matrix-reduction computations.
+
 
 You can turn on a progress bar for your simulation using the
 

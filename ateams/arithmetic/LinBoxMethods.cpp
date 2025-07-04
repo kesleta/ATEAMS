@@ -5,8 +5,6 @@
 #include <linbox/ring/modular.h>
 
 #include <iostream>
-#include <chrono>
-#include <thread>
 
 #include "LinBoxMethods.h"
 
