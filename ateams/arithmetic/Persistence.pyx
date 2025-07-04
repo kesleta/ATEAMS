@@ -186,6 +186,7 @@ cdef class Persistence:
 		self.marked = Set[int]();
 		if premark: self.marked.insert(self.premarked.begin(), self.premarked.end());
 		self.markedIterable = Vector[int](self.cellCount);
+		self.nextColumnAdded = Vector[int](self.cellCount, 0);
 
 
 	cdef Vector[Vector[int]] ReorderBoundary(self, INDEXFLAT filtration) noexcept:
@@ -433,6 +434,10 @@ cdef class Persistence:
 		return outer;
 
 
+	cdef int youngestOf(self, OrderedSet[int] column) noexcept:
+		return dereference(column.rbegin());
+
+	
 	cdef OrderedSet[int] Eliminate(self, int youngest, OrderedSet[int] faces, Map[int,FFINT] &faceCoefficients) noexcept:
 		"""
 		Performs Gaussian elimination on the row specified by `faceCoefficients`
@@ -535,7 +540,7 @@ cdef class Persistence:
 		while not faces.empty():
 			# Get the face of `cell` of maximum degree (i.e. the one added latest
 			# to the complex).
-			youngest = dereference(faces.rbegin());
+			youngest = self.youngestOf(faces);
 			youngestColumnEntries = self.columnEntries[youngest];
 
 			# If the column's empty, we've found a pivot, and we're done.
@@ -600,7 +605,7 @@ cdef class Persistence:
 
 			# Otherwise, store the row in the appropriate locations.
 			else:
-				youngest = dereference(faces.rbegin());
+				youngest = self.youngestOf(faces);
 				facesIterable = Vector[int]();
 				facesIterable.insert(facesIterable.begin(), faces.begin(), faces.end());
 
@@ -617,6 +622,195 @@ cdef class Persistence:
 
 			unmarked = self.columnEntries[cell];
 			if unmarked.empty(): events.insert(degree[cell]);
+		
+		return events
+
+
+	cdef OrderedSet[int] TwistEliminate(self, int youngest, OrderedSet[int] &faces, Map[int,FFINT] &faceCoefficients) noexcept:
+		"""
+		Performs Gaussian elimination on the row specified by `faceCoefficients`
+		and the row with a pivot in column `youngest`.
+
+		.. WARNING: Cannot be called from Python; internal only.
+
+		Args:
+			youngest (int): Pivot column.
+			faces (std::set): Ordered set of faces.
+			faceCoefficients (&std::unordered_map[int,FFINT]): Unordered map taking
+				indices to coefficients; this represents a row in the matrix.
+
+		Returns:
+			`std::set` of remaining faces.
+		"""
+		cdef Vector[int] entriesIterable;
+		cdef int i, entry, N, nextAdded;
+		cdef FFINT _q, inverse, q, entryCoefficient, faceCoefficient, mul, add;
+
+		nextAdded = self.nextColumnAdded[youngest];
+
+		# Get the coefficient of the pivot entry, then eliminate the row.
+		_q = self.columnEntriesCoefficients[nextAdded][youngest];
+		inverse = self.inverse[_q];
+
+		entriesIterable = self.columnEntriesIterable[nextAdded];
+		N = entriesIterable.size();
+
+		# Eliminate.
+		for i in range(N):
+			# `entry` is the index of the row (column?) we're trying to eliminate.
+			entry = entriesIterable[i];
+			entryCoefficient = self.columnEntriesCoefficients[nextAdded][entry];
+			mul = self.multiplication[inverse,entryCoefficient];
+			q = self.negation[mul];
+
+			# If `add` is 0, we don't care about tracking it anymore; throw it
+			# out of the faces (and remove it from the dict, if it were in there
+			# in the first place?).
+			if faces.contains(entry):
+				faceCoefficient = faceCoefficients[entry];
+				add = self.addition[faceCoefficient,q];
+			else:
+				add = q;
+
+			if add < 1:
+				faces.erase(entry);
+				faceCoefficients.erase(entry);
+			else:
+				faces.insert(entry);
+				faceCoefficients[entry] = add;
+			
+		return faces
+
+
+	cdef OrderedSet[int] TwistBuildFace(self, int cell, OrderedSet[int] &faces, Map[int,FFINT] &faceCoefficients) noexcept:
+		"""
+		Build the face. Here, we don't delete "unmarked" cells, since the column
+		deletion does that for us.
+
+		Args:
+			int (cell): The most recent cell added to the filtration.
+
+		Returns:
+			An `OrderedSet` of `int`s corresponding to (indices of!) pivot
+			entries in the boundary of cell `cell`.
+		"""
+		cdef int i, face, parity, N;
+		N = self.boundary[cell].size();
+
+		for i in range(N):
+			face = self.boundary[cell][i];
+			faces.insert(face);
+
+			if (i%2) < 1: faceCoefficients[face] = self.negation[1];
+			else: faceCoefficients[face] = self.negation[self.characteristic-1];
+		
+		return faces;
+	
+
+	cdef OrderedSet[int] TwistReducePivotRow(self, int cell, OrderedSet[int] &faces, Map[int,FFINT] &faceCoefficients) noexcept:
+		"""
+		Reduces the pivot row corresponding to cell `cell`.
+
+		Args:
+			cell (int): The most recent cell added to the filtration.
+
+		Returns:
+			An ordered set of indices corresponding to nonzero entries in the
+			of the pivot column.
+		"""
+		cdef OrderedSet[int] youngestColumnEntries;
+		cdef int youngest;
+		cdef FFINT _q, q;
+
+		faces = self.TwistBuildFace(cell, faces, faceCoefficients);
+
+		while not faces.empty() and self.nextColumnAdded[self.youngestOf(faces)] != 0:
+			# Get the face of `cell` of maximum degree (i.e. the one added latest
+			# to the complex).
+			youngest = self.youngestOf(faces);
+
+			# Otherwise, eliminate.
+			faces = self.TwistEliminate(youngest, faces, faceCoefficients);
+		
+		return faces;
+
+
+	cpdef OrderedSet[int] TwistComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
+		"""
+		Computes the times of homological percolation events given a filtration
+		and a boundary matrix. Uses a modified version of the twist_reduce
+		algorithm introduced by Chen and Kerber (2011) and the one used in PHAT
+		(2017).
+
+		Args:
+			filtration (np.array): Order in which cells are added.
+
+		Returns:
+			A `set` of times at which homological percolation occurs.
+		"""
+		# Flush the set of marked indices, adding premarked ones.
+		self.__flushDataStructures();
+		cdef OrderedSet[int] events = OrderedSet[int]();
+
+		# Construct the boundary matrix for this filtration; variables for
+		# objects.
+		cdef Vector[Vector[int]] boundary = self.ReindexBoundary(filtration);
+		cdef Vector[int] facesIterable, degree = Vector[int](self.cellCount);
+		cdef OrderedSet[int] faces;
+		cdef Map[int,FFINT] faceCoefficients;
+		cdef int t, j, dim, cell, dimension, time, tagged, youngest;
+
+		tagged = 0;
+		dim = self.homology+1;
+
+		# Go backwards, according to dimension.
+		while (dim > self.homology-1):
+			for t in range(self._tranches[dim][0], self._tranches[dim][1]):
+				# Since our filtrations are discrete (i.e. we add exactly one simplex
+				# at each time-step), the "degree" of the cell is the same as the time
+				# at which it was added.
+				cell = t;
+
+				# Create buckets for indices and coefficients; these are created and
+				# stored ONCE, but accessed many times.
+				faces = OrderedSet[int]();
+				faceCoefficients = Map[int,FFINT]();
+
+				# Eliminate.
+				faces = self.TwistReducePivotRow(cell, faces, faceCoefficients);
+				
+				# If we end up with no faces, we've found a pivot row.
+				if faces.empty():
+					# Mark the face, but only add it to the marked iterable if it's
+					# of the right dimension.
+					self.marked.insert(cell);
+					degree[cell] = t;
+
+					if self._dimensions[cell] == self.homology:
+						self.markedIterable[tagged] = cell;
+						tagged = tagged + 1;
+
+				# Otherwise, we can just zero out the youngest column.
+				else:
+					facesIterable = Vector[int]();
+					facesIterable.insert(facesIterable.begin(), faces.begin(), faces.end());
+					self.columnEntries[t] = faces;
+					self.columnEntriesIterable[t] = facesIterable;
+					self.columnEntriesCoefficients[t] = faceCoefficients;
+
+					youngest = self.youngestOf(faces);
+					self.nextColumnAdded[youngest] = t;
+
+					self.columnEntries[youngest] = OrderedSet[int]();
+					self.columnEntriesIterable[youngest] = Vector[int]();
+					self.columnEntriesCoefficients[youngest] = Map[int,FFINT]();
+
+			dim = dim-1;
+
+		for j in range(tagged):
+			cell = self.markedIterable[j];
+
+			if self.nextColumnAdded[cell] == 0: events.insert(cell);
 		
 		return events
 
@@ -674,7 +868,7 @@ cdef class Persistence:
 
 			# Otherwise, store the row in the appropriate locations.
 			else:
-				youngest = dereference(faces.rbegin());
+				youngest = self.youngestOf(faces);
 				facesIterable = Vector[int]();
 				facesIterable.insert(facesIterable.begin(), faces.begin(), faces.end());
 
@@ -745,7 +939,7 @@ cdef class Persistence:
 
 			# Otherwise, store the row in the appropriate locations.
 			else:
-				youngest = dereference(faces.rbegin());
+				youngest = self.youngestOf(faces);
 				facesIterable = Vector[int]();
 				facesIterable.insert(facesIterable.begin(), faces.begin(), faces.end());
 

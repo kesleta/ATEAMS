@@ -87,6 +87,20 @@ cpdef Vector[int] LanczosKernelSample(
 
 
 cpdef Set[int] ComputePercolationEvents(INDEXFLAT boundary, INDEXFLAT filtration, int homology, int p, INDEXFLAT breaks) noexcept:
+	"""
+	Uses a variant of the Chen/Kerber (2011) and PHAT (2017) twist_reduce algorithm
+	to compute the persistent homology of the complex specified by the flat boundary
+	matrix and the filtration, over the field Z/pZ.
+
+	Args:
+		boundary: Full boundary matrix (i.e. `Cubical.matrices.full`).
+		filtration: A list of indices specifying the order in which the cells
+			in the complex will be added. The assumed order is adding cells
+			in order of dimension.
+		homology: The homology group for which persistence is computed.
+		p: Characteristic of the field \(\mathbb{Z}/p\mathbb{Z}\).
+		breaks: Index locations for cells of each degree (i.e. `Cubical.breaks`).
+	"""
 	cdef Vector[int] _boundary = Vectorize(boundary);
 	cdef Vector[int] _filtration = Vectorize(filtration);
 	cdef Vector[int] _breaks = Vectorize(breaks);

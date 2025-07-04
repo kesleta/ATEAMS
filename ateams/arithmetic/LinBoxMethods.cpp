@@ -93,6 +93,27 @@ typedef map<int, Field::Element> Column;
 typedef map<int,int> Map;
 typedef map<int,Column> ColumnMap;
 typedef vector<Column> BoundaryMatrix;
+typedef vector<Set> Mod2BoundaryMatrix;
+
+Mod2BoundaryMatrix Mod2FillBoundaryMatrix(Vector boundary, int L) {
+	// Fills a sparse representation of a boundary matrix. Uses standard maps,
+	// since they're red-black trees that allow for fast min/max lookups (and
+	// are self-balancing on removals); take integer indices to Givaro modular
+	// integers.
+	Mod2BoundaryMatrix B(L);
+	int row, column, q;
+
+	for (int t = 0; t < boundary.size(); t += 3) {
+		row = boundary[t];
+		column = boundary[t+1];
+		q = boundary[t+2];
+
+		// Just a check to exclude vertices.
+		if (q != 0) { B[column].insert(row); }
+	}
+
+	return B;
+}
 
 
 BoundaryMatrix FillBoundaryMatrix(Vector boundary, Field F, int L) {
@@ -128,10 +149,15 @@ int dim(int index, Vector breaks) {
 	return i;
 }
 
-
-int youngestOf(Column column) {
+template <typename BalancedStorage>
+int youngestOf(BalancedStorage column) {
 	// Gets the "youngest" (largest-indexed) cell in the column.
 	return column.rbegin()->first;
+}
+
+int Mod2youngestOf(Set column) {
+	// Gets the "youngest" (largest-indexed) cell in the column.
+	return *column.rbegin();
 }
 
 
@@ -206,10 +232,79 @@ Vector ReindexBoundaryMatrix(Vector &boundary, Vector filtration, int homology, 
 }
 
 
-Set ComputePercolationEvents(
-		Vector boundary, Vector filtration, int homology, int p,
-		Vector breaks
+Set Mod2ComputePercolationEvents(
+		Vector boundary, Vector filtration, int homology, Vector breaks
 	) {
+	// Construct the finite field and build the boundary matrix. Similarly to Chen and
+	// Kerber (2011), we store each column of the boundary matrix as a balanced
+	// binary search tree (as implemented by the C++ standard library). Chen
+	// and Kerber (and their successors at PHAT) take advantage of the fact that
+	// they are computing coefficients over Z/2Z and need only store the indices
+	// of the nonzero entries in each column, because those entries are only ever
+	// 1. Here, we have to store the entries as well. For that, we use the standard
+	// C++ map, which takes column indices to Givaro::Modular<int> finite field
+	// elements for fast arithmetic.
+	int cellCount = filtration.size();
+	int topDimension = (homology < breaks.size() ? homology+1 : breaks.size());
+
+	Vector _boundary = ReindexBoundaryMatrix(boundary, filtration, homology, breaks);
+	Mod2BoundaryMatrix Boundary = Mod2FillBoundaryMatrix(_boundary, cellCount);
+
+	Vector nextColumnAdded = Vector(cellCount, 0);
+	Set cell, youngest, sym, marked;
+
+	int face, high, numBreaks = breaks.size();
+	marked = Set();
+
+	for (int d = topDimension; d > homology-1; d--) {
+
+		high = (d+1 >= numBreaks ? cellCount : breaks[d+1]);
+
+		for (int j = breaks[homology]; j < high; j++) {
+			// If we're of the wrong dimension, keep going.
+			if (dim(j, breaks) != d) { continue; }
+			cell = Boundary[j];
+
+			while (!cell.empty() && nextColumnAdded[Mod2youngestOf(cell)] != 0) {
+				// Get the "youngest" cell in the boundary and subtract it from
+				// the current cell.
+				sym = Set();
+				youngest = Boundary[nextColumnAdded[Mod2youngestOf(cell)]];
+				std::set_symmetric_difference(cell.begin(), cell.end(), youngest.begin(), youngest.end(), std::inserter(sym, sym.begin()));
+				cell = sym;
+			}
+			// Check whether we've eliminated the column. For some god damn reason
+			// we have to re-set the entry of the Boundary??? Why?????? Scope??? wtf
+			if (!cell.empty()) {
+				Boundary[j] = cell;
+				nextColumnAdded[Mod2youngestOf(cell)] = j;
+				Boundary[Mod2youngestOf(cell)] = Set();
+			} else {
+				marked.insert(j);
+			}
+		}
+	}
+
+	// Find the essential birth times by checking whether the column is marked
+	// (i.e. is a cycle) and has no younger columns to add. (For some reason,
+	// 0 gets left out here. Not sure why...)
+	Set essential = Set();
+	essential.insert(0);
+
+	for (auto it = marked.begin(); it != marked.end(); it++) {
+		if (nextColumnAdded[*it] == 0) essential.insert(*it);
+	}
+
+	return essential;
+}
+
+
+Set ComputePercolationEvents(
+		Vector boundary, Vector filtration, int homology, int p, Vector breaks
+	) {
+	if (p == 2) { return Mod2ComputePercolationEvents(boundary, filtration, homology, breaks); }
+
+	// Before we do *anything*, check whether p is 2.
 	// Construct the finite field and build the boundary matrix. Similarly to Chen and
 	// Kerber (2011), we store each column of the boundary matrix as a balanced
 	// binary search tree (as implemented by the C++ standard library). Chen
@@ -226,7 +321,7 @@ Set ComputePercolationEvents(
 	Vector _boundary = ReindexBoundaryMatrix(boundary, filtration, homology, breaks);
 	BoundaryMatrix Boundary = FillBoundaryMatrix(_boundary, F, cellCount);
 
-	Vector nextCell = Vector(cellCount, 0);
+	Vector nextColumnAdded = Vector(cellCount, 0);
 	Column cell, youngest;
 	Set erase, marked;
 	int face, high, numBreaks = breaks.size();
@@ -239,19 +334,21 @@ Set ComputePercolationEvents(
 	marked = Set();
 
 	for (int d = topDimension; d > homology-1; d--) {
+
 		high = (d+1 >= numBreaks ? cellCount : breaks[d+1]);
+
 		for (int j = breaks[homology]; j < high; j++) {
 			// If we're of the wrong dimension, keep going.
 			if (dim(j, breaks) != d) { continue; }
 			cell = Boundary[j];
 
-			while (!cell.empty() && nextCell[youngestOf(cell)] != 0) {
+			while (!cell.empty() && nextColumnAdded[youngestOf(cell)] != 0) {
 				// Keep track of keys to erase.
 				erase = Set();
 
 				// Get the "youngest" cell in the boundary and subtract it from
 				// the current cell.
-				youngest = Boundary[nextCell[youngestOf(cell)]];
+				youngest = Boundary[nextColumnAdded[youngestOf(cell)]];
 
 				// Get the multiplicative inverse of the coefficient and do
 				// arithmetic over the row.
@@ -283,10 +380,10 @@ Set ComputePercolationEvents(
 				}
 			}
 			// Check whether we've eliminated the column. For some god damn reason
-			// we have to re-set the entry of the Boundary??? Why??????
+			// we have to re-set the entry of the Boundary??? Why?????? Scope??? wtf
 			if (!cell.empty()) {
 				Boundary[j] = cell;
-				nextCell[youngestOf(cell)] = j;
+				nextColumnAdded[youngestOf(cell)] = j;
 				Boundary[youngestOf(cell)] = Column();
 			} else {
 				marked.insert(j);
@@ -297,11 +394,11 @@ Set ComputePercolationEvents(
 	// Find the essential birth times by checking whether the column is marked
 	// (i.e. is a cycle) and has no younger columns to add. (For some reason,
 	// 0 gets left out here. Not sure why...)
-	Set essential = Set(), lows = Set();
+	Set essential = Set();
 	essential.insert(0);
 
 	for (auto it = marked.begin(); it != marked.end(); it++) {
-		if (nextCell[*it] == 0) essential.insert(*it);
+		if (nextColumnAdded[*it] == 0) essential.insert(*it);
 	}
 
 	return essential;

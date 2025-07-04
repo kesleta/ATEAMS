@@ -1,11 +1,14 @@
 
 import numpy as np
+import phat
 import warnings
+from functools import partial
+
 from math import comb
 
 from ..arithmetic import (
 	ComputePercolationEvents, LanczosKernelSample, MatrixReduction,
-	Persistence, FINT
+	Persistence, KernelSample, FINT
 )
 from ..common import Matrices, TooSmallWarning
 from .Model import Model
@@ -67,7 +70,7 @@ class InvadedCluster(Model):
 		# Check the dimensions of the boundary/coboundary matrices by comparing
 		# the number of cells. LinBox is really sensitive to smaller-size matrices,
 		# but can easily handle large ones.
-		if self.cells*self.faces < 10000:
+		if self.cells*self.faces < 10000 and LinBox:
 			warnings.warn(f"complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.", TooSmallWarning, stacklevel=2)
 
 
@@ -95,12 +98,10 @@ class InvadedCluster(Model):
 			low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
 
 			def sample(zeros):
-				z = np.array(LanczosKernelSample(
+				return np.array(LanczosKernelSample(
 					self.matrices.coboundary, zeros, 2*self.dimension,
 					self.faces, self.complex.field
 				), dtype=FINT)
-
-				return z
 			
 			def persist(filtration):
 				essential = ComputePercolationEvents(
@@ -112,6 +113,59 @@ class InvadedCluster(Model):
 				essential.sort()
 				
 				return essential[(essential >= low) & (essential < high)]
+			
+		else:
+			# If we can't/don't want to use LinBox, use inbuilt methods.
+			Reducer = MatrixReduction(self.complex.field, parallel, minBlockSize, maxBlockSize, cores)
+			Persistencer = Persistence(self.complex.field, self.complex.flattened, self.dimension)
+
+			coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
+			rows = self.matrices.coboundary[::3]
+			cols = self.matrices.coboundary[1::3]
+			entries = (self.matrices.coboundary[2::3]%self.complex.field).astype(FINT)
+
+			coboundary[rows,cols] = entries
+			
+			def persist(filtration):
+				return Persistencer.TwistComputePercolationEvents(filtration)
+			
+			def sample(zeros):
+				return KernelSample(Reducer, coboundary.take(zeros, axis=0)).astype(FINT)
+			
+		
+		# If p == 2, then we want to use PHAT for persistence only. We have to some
+		# unfortunately stupid computations though.
+		if self.complex.field < 3:
+			Persistencer = Persistence(self.complex.field, self.complex.flattened, self.dimension)
+			t = self.complex.tranches
+
+			# Indices of each cell and dimensions.
+			dimensions = np.array(sum([
+				[d]*(t[d,1]-t[d,0]) for d in range(len(t)) if d < self.dimension+2
+			],[]), dtype=FINT)
+			times = np.array(range(t[1][0], len(dimensions))).astype(FINT)
+
+			def phattified(phatBoundary, dimensions, times, filtration):
+				flattened = Persistencer.ReindexBoundary(filtration)
+				
+				dimensionalFlattened = [
+					(d, sorted(f)) if d > 0 else (d, [])
+					for d, f in zip(dimensions, flattened)
+				]
+
+				phatBoundary.columns = dimensionalFlattened
+				_births, _deaths = zip(*phatBoundary.compute_persistence_pairs())
+				births = set(_births)
+				deaths = set(_deaths)
+
+				return set(
+					e for e in times-(births|deaths)
+					if t[self.dimension][0] <= e < t[self.dimension][1]
+				)
+
+			def persist(filtration):
+				return phattified(phat.boundary_matrix(), dimensions, set(times), filtration)
+
 
 		self.sample = sample
 		self.persist = persist
@@ -158,6 +212,16 @@ class InvadedCluster(Model):
 	
 
 	def proposal(self, time):
+		"""
+		Proposal scheme for generalized invaded-cluster evolution on the
+		random-cluster model.
+
+		Args:
+			time (int): Step in the chain.
+
+		Returns:
+			A numpy array representing a vector of spin assignments.
+		"""
 		# Construct the filtration and find the essential cycles.
 		filtration, shuffledIndices, satisfiedIndices = self.filtrate(self.spins)
 		essential = self.persist(filtration)
