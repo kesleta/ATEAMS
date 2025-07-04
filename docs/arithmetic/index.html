@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.3">
+<title>ateams.arithmetic API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script type="text/x-mathjax-config">MathJax.Hub.Config({ tex2jax: { inlineMath: [ ['$','$'], ["\\(","\\)"] ], processEscapes: true } });</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>ateams.arithmetic</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="ateams.arithmetic.BuiltinWrapper" href="BuiltinWrapper.html">ateams.arithmetic.BuiltinWrapper</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="ateams.arithmetic.LinBoxWrapper" href="LinBoxWrapper.html">ateams.arithmetic.LinBoxWrapper</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="ateams.arithmetic.ComputePercolationEvents"><code class="name flex">
+<span>def <span class="ident">ComputePercolationEvents</span></span>(<span>boundary, filtration, homology, p, breaks)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Uses a variant of the Chen/Kerber (2011) and PHAT (2017) twist_reduce algorithm
+to compute the persistent homology of the complex specified by the flat boundary
+matrix and the filtration, over the field <span><span class="MathJax_Preview">\mathbb{Z}/p\mathbb{Z}</span><script type="math/tex">\mathbb{Z}/p\mathbb{Z}</script></span>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>boundary</code></strong></dt>
+<dd>Full boundary matrix (i.e. <code>Cubical.matrices.full</code>).</dd>
+<dt><strong><code>filtration</code></strong></dt>
+<dd>A list of indices specifying the order in which the cells
+in the complex will be added. The assumed order is adding cells
+in order of dimension.</dd>
+<dt><strong><code>homology</code></strong></dt>
+<dd>The homology group for which persistence is computed.</dd>
+<dt><strong><code>p</code></strong></dt>
+<dd>Characteristic of the field <span><span class="MathJax_Preview">\mathbb{Z}/p\mathbb{Z}</span><script type="math/tex">\mathbb{Z}/p\mathbb{Z}</script></span>.</dd>
+<dt><strong><code>breaks</code></strong></dt>
+<dd>Index locations for cells of each degree (i.e. <code>Cubical.breaks</code>).</dd>
+</dl></div>
+</dd>
+<dt id="ateams.arithmetic.Kernel"><code class="name flex">
+<span>def <span class="ident">Kernel</span></span>(<span>M, A)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a basis for the kernel of <code>A</code>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>M</code></strong> :&ensp;<code><a title="ateams.arithmetic.MatrixReduction" href="#ateams.arithmetic.MatrixReduction">MatrixReduction</a></code></dt>
+<dd>A <code><a title="ateams.arithmetic.MatrixReduction" href="#ateams.arithmetic.MatrixReduction">MatrixReduction</a></code> object.</dd>
+<dt><strong><code>A</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>A 2D <code>NumPy</code> array to be reduced.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A 2D <code>NumPy</code> array representing the reduced basis of <span><span class="MathJax_Preview">\mathrm{ker}(A)</span><script type="math/tex">\mathrm{ker}(A)</script></span>.</p></div>
+</dd>
+<dt id="ateams.arithmetic.KernelSample"><code class="name flex">
+<span>def <span class="ident">KernelSample</span></span>(<span>M, A)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Draws a uniform random sample from the kernel of <code>A</code> using the <code><a title="ateams.arithmetic.MatrixReduction" href="#ateams.arithmetic.MatrixReduction">MatrixReduction</a></code>
+object <code>M</code>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>M</code></strong> :&ensp;<code><a title="ateams.arithmetic.MatrixReduction" href="#ateams.arithmetic.MatrixReduction">MatrixReduction</a></code></dt>
+<dd>Contains the RREF form of a matrix.</dd>
+<dt><strong><code>A</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>2D <code>NumPy</code> array whose kernel is computed and sampled
+from.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A vector sampled at uniform random from the kernel of the matrix stored in
+<code>M</code>.</p></div>
+</dd>
+<dt id="ateams.arithmetic.LanczosKernelSample"><code class="name flex">
+<span>def <span class="ident">LanczosKernelSample</span></span>(<span>coboundary, zeros, faces, columns, field, maxTries=16)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Uses the LinBox (Block?) Lanczos black-box solver to get a uniform
+random element of the kernel of the coboundary.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>coboundary</code></strong></dt>
+<dd>Memory-contiguous one-dimensional coboundary array,
+like that of the <code>Cubical</code> Complex object.</dd>
+<dt><strong><code>zeros</code></strong></dt>
+<dd>Memory-contiguous array of row indices that will be included
+in the coboundary submatrix.</dd>
+<dt><strong><code>faces</code></strong></dt>
+<dd>The number of faces per plaquette.</dd>
+<dt><strong><code>columns</code></strong></dt>
+<dd>Integer representing the number of columns in the coboundary
+submatrix; should be the total number of faces in the complex.</dd>
+<dt><strong><code>field</code></strong></dt>
+<dd>Integer representing the characteristic of the finite field
+over which computations are done.</dd>
+<dt><strong><code>maxTries</code></strong></dt>
+<dd>How many times do we try to get a nonzero solution from
+the black-box solver? Default is 16.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A C++ <code>std::vector</code> with spin assignments.</p></div>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="ateams.arithmetic.MatrixReduction"><code class="flex name class">
+<span>class <span class="ident">MatrixReduction</span></span>
+<span>(</span><span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class for putting matrices over finite fields into reduced row echelon form
+(RREF); works faster than comparable method in the <code>galois</code> library, accelerated
+by sparse matrix methods and cached finite field arithmetic.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>characteristic</code></strong> :&ensp;<code>int</code></dt>
+<dd>Characteristic of the finite field.</dd>
+<dt><strong><code>parallel</code></strong> :&ensp;<code>bool=False</code></dt>
+<dd>Should computations be done in parallel?
+Defaults to <code>False</code>.</dd>
+<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
+<dd>Smallest number of columns reduced by a
+single thread at one time.</dd>
+<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
+<dd>Largest number of columns reduced by a
+single thread at one time.</dd>
+<dt><strong><code>cores</code></strong> :&ensp;<code>int=2</code></dt>
+<dd>Number of cores/threads available for use at run-time.</dd>
+</dl>
+<p>Suppose we need to compute a basis for the kernel of an <span><span class="MathJax_Preview">m \times n</span><script type="math/tex">m \times n</script></span> matrix <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>
+with entries in the finite field <span><span class="MathJax_Preview">\mathbb F_3</span><script type="math/tex">\mathbb F_3</script></span>. The standard algorithm
+for kernel computation is as follows:</p>
+<ol>
+<li>create an augmented matrix <span><span class="MathJax_Preview">C</span><script type="math/tex">C</script></span> by adjoining the identity matrix <span><span class="MathJax_Preview">I_n</span><script type="math/tex">I_n</script></span> on the right of <span><span class="MathJax_Preview">A^\top</span><script type="math/tex">A^\top</script></span>, so <span><span class="MathJax_Preview">C= \left[ A^\top \mid I_n \right]</span><script type="math/tex">C= \left[ A^\top \mid I_n \right]</script></span>;</li>
+<li>put <span><span class="MathJax_Preview">C</span><script type="math/tex">C</script></span> in RREF, so <span><span class="MathJax_Preview">C = \left[ P \mid K \right]</span><script type="math/tex">C = \left[ P \mid K \right]</script></span>;</li>
+<li>the rows of <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span> corresponding to zero rows of <span><span class="MathJax_Preview">P</span><script type="math/tex">P</script></span> form a basis for the kernel of <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>.</li>
+</ol>
+<p>Code to perform these computations looks like</p>
+<pre><code>    import numpy as np
+    from ateams.arithmetic import MatrixReduction, FINT, Kernel
+
+    F = 3
+    m, n = 50, 60
+    A = np.random.randint(0, F, size=(m,n))
+    I = np.identity(n)
+    C = np.concatenate([A.T, I], axis=1, dtype=FINT)
+
+    M = MatrixReduction(F)
+    M.RREF(C, m)
+
+    high = M.HighestZeroRow(m)
+    reduced = M.ToArray()[:,:m]
+    basis = reduced[high:]
+</code></pre>
+<p>But can be shortened to</p>
+<pre><code>    import numpy as np
+    from ateams.arithmetic import MatrixReduction, FINT, Kernel
+
+    F = 3
+    m, n = 50, 60
+    A = np.random.randint(0, F, size=(m,n), dtype=FINT)
+
+    M = MatrixReduction(F)
+    basis = Kernel(M, A)
+</code></pre>
+<p>Using the <code><a title="ateams.arithmetic.Kernel" href="#ateams.arithmetic.Kernel">Kernel()</a></code> convenience method.</p></div>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.arithmetic.MatrixReduction.HighestZeroRow"><code class="name flex">
+<span>def <span class="ident">HighestZeroRow</span></span>(<span>self, AUGMENT=-1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Report the first lowest-indexed zero row; if no such row exists,
+report -1. If nonnegative AUGMENT is passed, we check for the first row
+with AUGMENT leading zeros.</p></div>
+</dd>
+<dt id="ateams.arithmetic.MatrixReduction.RREF"><code class="name flex">
+<span>def <span class="ident">RREF</span></span>(<span>self, A, AUGMENT=-1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the RREF of the matrix <code>A</code>, assuming all pivots are in columns
+of index less than <code>AUGMENT</code>; if <code>AUGMENT</code> is not provided, all columns
+may contain pivots.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>A</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>A 2D <code>NumPy</code> array.</dd>
+<dt><strong><code>AUGMENT</code></strong> :&ensp;<code>int=-1</code></dt>
+<dd>All pivot columns are to the left of this column;
+if <code>-1</code>, all columns are processed.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A typed <code>MemoryView</code> containing the RREF of <code>A</code>.</p></div>
+</dd>
+<dt id="ateams.arithmetic.MatrixReduction.ToArray"><code class="name flex">
+<span>def <span class="ident">ToArray</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the matrix stored in <code>self.data</code>.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="ateams.arithmetic.Persistence"><code class="flex name class">
+<span>class <span class="ident">Persistence</span></span>
+<span>(</span><span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the persistent homology of a complex with coefficients
+in an arbitrary finite field.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>characteristic</code></strong> :&ensp;<code>int</code></dt>
+<dd>Characteristic of the finite field over which
+we do computations.</dd>
+<dt><strong><code>flattened</code></strong> :&ensp;<code>list</code></dt>
+<dd>List-of-lists representing the <em>original</em> flattened
+boundary matrix for the complex.</dd>
+<dt><strong><code>homology</code></strong> :&ensp;<code>int=-1</code></dt>
+<dd>Degree of homology observed for homological percolation events;
+if not specified, the homology of the codimension-1 skeleton is
+reported.</dd>
+</dl>
+<p>The <code><a title="ateams.arithmetic.Persistence.ComputePercolationEvents" href="#ateams.arithmetic.Persistence.ComputePercolationEvents">Persistence.ComputePercolationEvents()</a></code> method computes the birth
+times of giant cycles given a complete filtration — that is, a filtration
+where the terminal element is the entire cubical complex. For example,
+the code below finds the birth times of giant cycles on the default
+<span><span class="MathJax_Preview">3 \times 3</span><script type="math/tex">3 \times 3</script></span> cubical torus: the filtration stored in <code>filtration</code>
+adds each cube to the cubical complex in order of construction. At
+completion, <code>events</code> contains the times <code>{17, 21}</code> which correspond to
+crossings of the meridian and equator of the torus, respectively.</p>
+<pre><code>    from ateams.arithmetic import Persistence
+    from ateams.structures import Lattice
+
+    L = Lattice().fromCorners([3,3], field=3)
+    P = Persistence(L.field.characteristic, L.flattened, homology=1)
+
+    filtration = np.arange(len(L.flattened))
+    events = P.ComputePercolationEvents(filtration)
+</code></pre>
+<p>The <code><a title="ateams.arithmetic.Persistence.ComputeBettiNumbers" href="#ateams.arithmetic.Persistence.ComputeBettiNumbers">Persistence.ComputeBettiNumbers()</a></code> method provides functionality to compute the
+Betti numbers for an entire subcomplex. The subcomplex is specified by
+a list of indices corresponding to the cells included in the subcomplex.
+Initializing the <code><a title="ateams.arithmetic.Persistence" href="#ateams.arithmetic.Persistence">Persistence</a></code> object as before, we can get the Betti
+numbers of the <span><span class="MathJax_Preview">2</span><script type="math/tex">2</script></span>-torus encoded by the <code>Lattice</code> above by passing a
+list of all cells' indices in the flattened boundary matrix: since there
+are <span><span class="MathJax_Preview">36</span><script type="math/tex">36</script></span> cells (including vertices, edges, and squares), the <code>subcomplex</code>
+is just the range of integers <span><span class="MathJax_Preview">0-36</span><script type="math/tex">0-36</script></span>:</p>
+<pre><code>    from ateams.arithmetic import Persistence
+    from ateams.structures import Lattice
+
+    L = Lattice().fromCorners([3,3], field=3)
+    P = Persistence(L.field.characteristic, L.flattened)
+
+    subcomplex = np.arange(len(L.flattened))
+
+    bettis = P.ComputeBettiNumbers(subcomplex)
+</code></pre>
+<p>The result in <code>bettis</code> is the list <code>[1,2,1]</code>. By deleting an edge, we
+reduce the number of squares by two, so we should expect the homology
+of a one-edge-deleted <span><span class="MathJax_Preview">2</span><script type="math/tex">2</script></span>-torus to have betti numbers <code>[1,2,0]</code>. To
+access the indices of the flattened boundary matrix corresponding to
+cells of each dimension, we can use the <code>Lattice.tranches</code> property
+which maps an integer dimension to a (start, stop) pair: for example,
+<code>L.tranches[1]</code> is <code>[9, 27]</code> in the lattice above, so we know that all
+entries in the flattened boundary matrix between indices <span><span class="MathJax_Preview">9</span><script type="math/tex">9</script></span> and <span><span class="MathJax_Preview">27</span><script type="math/tex">27</script></span>
+(<em>right-exclusive</em>) correspond to edges. To test our theory, we
+construct a subcomplex by deleting the first edge added:</p>
+<pre><code>    from ateams.arithmetic import Persistence
+    from ateams.structures import Lattice
+
+    L = Lattice().fromCorners([3,3], field=3)
+    P = Persistence(L.field.characteristic, L.flattened)
+
+    subcomplex = np.arange(len(L.flattened))
+    firstEdge = L.tranches[1][0]
+    subcomplex = np.concatenate([subcomplex[:firstEdge], subcomplex[firstEdge+1:]])
+
+    bettis = P.ComputeBettiNumbers(subcomplex)
+</code></pre>
+<p>The result in <code>bettis</code> is the list <code>[1,2,0]</code>, as expected. Note that we
+only need to pass a <code>homology</code> parameter to the <code><a title="ateams.arithmetic.Persistence" href="#ateams.arithmetic.Persistence">Persistence</a></code> constructor
+if we call <code><a title="ateams.arithmetic.Persistence.ComputePercolationEvents" href="#ateams.arithmetic.Persistence.ComputePercolationEvents">Persistence.ComputePercolationEvents()</a></code>.</p></div>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.arithmetic.Persistence.ComputeBettiNumbers"><code class="name flex">
+<span>def <span class="ident">ComputeBettiNumbers</span></span>(<span>self, subcomplex)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the <em>Betti numbers</em> — the ranks of the homology groups — of the
+subcomplex specified.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>subcomplex</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>Indices of cells of the <em>full</em> (flattened)
+boundary matrix to include in the complex.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A C++ <code>Vector[int]</code> where the <span><span class="MathJax_Preview">i</span><script type="math/tex">i</script></span>th entry is the <span><span class="MathJax_Preview">i</span><script type="math/tex">i</script></span>th Betti number.</p></div>
+</dd>
+<dt id="ateams.arithmetic.Persistence.ComputeGiantCycles"><code class="name flex">
+<span>def <span class="ident">ComputeGiantCycles</span></span>(<span>self, filtration)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the times of homological percolation events given a filtration
+and a boundary matrix.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filtration</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>Order in which cells are added.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A <code>set</code> of times at which homological percolation occurs.</p></div>
+</dd>
+<dt id="ateams.arithmetic.Persistence.ComputePercolationEvents"><code class="name flex">
+<span>def <span class="ident">ComputePercolationEvents</span></span>(<span>self, filtration)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the times of homological percolation events given a filtration
+and a boundary matrix.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filtration</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>Order in which cells are added.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A <code>set</code> of times at which homological percolation occurs.</p></div>
+</dd>
+<dt id="ateams.arithmetic.Persistence.ReindexBoundary"><code class="name flex">
+<span>def <span class="ident">ReindexBoundary</span></span>(<span>self, filtration)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Re-indexes the boundary matrix according to the given filtration.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filtration</code></strong> :&ensp;<code>np.array</code></dt>
+<dd><code>NumPy</code> array specifying the order in which
+cells from the complex are added.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A C++ <code>std::vector</code> (cast as a <code>NumPy</code> array) containing the reindexed
+boundary matrix.</p></div>
+</dd>
+<dt id="ateams.arithmetic.Persistence.TwistComputePercolationEvents"><code class="name flex">
+<span>def <span class="ident">TwistComputePercolationEvents</span></span>(<span>self, filtration)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the times of homological percolation events given a filtration
+and a boundary matrix. Uses a modified version of the twist_reduce
+algorithm introduced by Chen and Kerber (2011) and the one used in PHAT
+(2017).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filtration</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>Order in which cells are added.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A <code>set</code> of times at which homological percolation occurs.</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<!-- include a script for adding stuff to the end of proofs. -->
+<script>
+// Get all the proofs in the document.
+proofs = document.getElementsByClassName("proof");
+// For each of the proofs, attach a floating child element in the bottom-right
+// corner.
+for (var proof of proofs) {
+// Create a proof-ending tombstone.
+square = document.createElement("div");
+square.className = "tombstone";
+square.innerHTML = "◼️";
+// Attach the tombstone to the proof.
+proof.appendChild(square);
+}
+</script>
+<header>
+<a class="homelink" rel="home" title="ATEAM" href="https://github.com/apizzimenti/ateam">
+<style>
+header > h1 { display: none; }
+img.resize {
+min-width: 15vw;
+max-width: 23vw;
+display: block;
+margin: 0 auto;
+}
+div.proof {
+border: 1px solid black;
+padding: 0em 1em;
+width: 90%;
+margin: 1em auto;
+}
+.tombstone {
+margin-top: -2em;
+float: right;
+}
+#section-intro {
+text-align: justify;
+}
+#index .two-column {
+column-count: 1 !important;
+}
+#ateams {
+margin-top: 0;
+}
+#content {
+text-align: justify;
+}
+</style>
+<img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
+</a>
+</header>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="ateams" href="../index.html">ateams</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="ateams.arithmetic.BuiltinWrapper" href="BuiltinWrapper.html">ateams.arithmetic.BuiltinWrapper</a></code></li>
+<li><code><a title="ateams.arithmetic.LinBoxWrapper" href="LinBoxWrapper.html">ateams.arithmetic.LinBoxWrapper</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="ateams.arithmetic.ComputePercolationEvents" href="#ateams.arithmetic.ComputePercolationEvents">ComputePercolationEvents</a></code></li>
+<li><code><a title="ateams.arithmetic.Kernel" href="#ateams.arithmetic.Kernel">Kernel</a></code></li>
+<li><code><a title="ateams.arithmetic.KernelSample" href="#ateams.arithmetic.KernelSample">KernelSample</a></code></li>
+<li><code><a title="ateams.arithmetic.LanczosKernelSample" href="#ateams.arithmetic.LanczosKernelSample">LanczosKernelSample</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="ateams.arithmetic.MatrixReduction" href="#ateams.arithmetic.MatrixReduction">MatrixReduction</a></code></h4>
+<ul class="">
+<li><code><a title="ateams.arithmetic.MatrixReduction.HighestZeroRow" href="#ateams.arithmetic.MatrixReduction.HighestZeroRow">HighestZeroRow</a></code></li>
+<li><code><a title="ateams.arithmetic.MatrixReduction.RREF" href="#ateams.arithmetic.MatrixReduction.RREF">RREF</a></code></li>
+<li><code><a title="ateams.arithmetic.MatrixReduction.ToArray" href="#ateams.arithmetic.MatrixReduction.ToArray">ToArray</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ateams.arithmetic.Persistence" href="#ateams.arithmetic.Persistence">Persistence</a></code></h4>
+<ul class="">
+<li><code><a title="ateams.arithmetic.Persistence.ComputeBettiNumbers" href="#ateams.arithmetic.Persistence.ComputeBettiNumbers">ComputeBettiNumbers</a></code></li>
+<li><code><a title="ateams.arithmetic.Persistence.ComputeGiantCycles" href="#ateams.arithmetic.Persistence.ComputeGiantCycles">ComputeGiantCycles</a></code></li>
+<li><code><a title="ateams.arithmetic.Persistence.ComputePercolationEvents" href="#ateams.arithmetic.Persistence.ComputePercolationEvents">ComputePercolationEvents</a></code></li>
+<li><code><a title="ateams.arithmetic.Persistence.ReindexBoundary" href="#ateams.arithmetic.Persistence.ReindexBoundary">ReindexBoundary</a></code></li>
+<li><code><a title="ateams.arithmetic.Persistence.TwistComputePercolationEvents" href="#ateams.arithmetic.Persistence.TwistComputePercolationEvents">TwistComputePercolationEvents</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.3</a>.</p>
+</footer>
+</body>
+</html>

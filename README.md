@@ -18,7 +18,7 @@ Clone this repository by `git clone https://github.com/apizzimenti/ateams.git`, 
 Simulating the $1$-dimensional plaquette random cluster model on a $ 10 \times 10 \times 10 $ cubical $3$-torus with coefficients in the finite field $\mathbb F_3$ looks like:
 
 ```python
-from ateams.structures import Lattice
+from ateams.complexes import Cubical
 from ateams.models import InvadedCluster
 from ateams import Chain
 
@@ -55,7 +55,7 @@ pattern.
     title={{ATEAMS: Algebraic Topology-Enabled AlgorithMs for Spin systems}},
     author={Duncan, Paul and Pizzimenti, Anthony E. and Schweinhart, Benjamin},
     url={https://github.com/apizzimenti/ATEAMS},
-    version={1.0.3},
+    version={2.0.0},
     doi={10.5281/zenodo.14284172}
 }
 ```

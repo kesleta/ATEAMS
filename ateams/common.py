@@ -1,6 +1,5 @@
 
 import numpy as np
-import warnings
 
 MINT = np.int64
 """Global "machine integer" data type; this is equivalent to the C `int` data type."""
@@ -13,7 +12,6 @@ FINT = np.int16
 
 
 class TooSmallWarning(UserWarning): pass
-
 
 
 class Matrices:

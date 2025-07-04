@@ -90,7 +90,7 @@ cpdef Set[int] ComputePercolationEvents(INDEXFLAT boundary, INDEXFLAT filtration
 	"""
 	Uses a variant of the Chen/Kerber (2011) and PHAT (2017) twist_reduce algorithm
 	to compute the persistent homology of the complex specified by the flat boundary
-	matrix and the filtration, over the field Z/pZ.
+	matrix and the filtration, over the field \(\mathbb{Z}/p\mathbb{Z}\).
 
 	Args:
 		boundary: Full boundary matrix (i.e. `Cubical.matrices.full`).

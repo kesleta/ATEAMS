@@ -1,0 +1,917 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.3">
+<title>ateams.model API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script type="text/x-mathjax-config">MathJax.Hub.Config({ tex2jax: { inlineMath: [ ['$','$'], ["\\(","\\)"] ], processEscapes: true } });</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>ateams.model</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="ateams.model.Model" href="Model.html">ateams.model.Model</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="ateams.model.Glauber"><code class="flex name class">
+<span>class <span class="ident">Glauber</span></span>
+<span>(</span><span>C, temperature=&lt;function constant.&lt;locals&gt;._&gt;, initial=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initializes Glauber dynamics on the Potts model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>C</code></strong></dt>
+<dd>The <code>Lattice</code> object on which we'll be running experiments.</dd>
+<dt><strong><code>temperature</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A temperature schedule function which
+takes a single positive integer argument <code>t</code>, and returns the
+scheduled temperature at time <code>t</code>.</dd>
+<dt><strong><code>initial</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>A vector of spin assignments to components.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Glauber(Model):
+        name = &#34;Glauber&#34;
+        
+        def __init__(
+                        self, C, temperature=constant(-0.6), initial=None
+                ):
+                &#34;&#34;&#34;
+                Initializes Glauber dynamics on the Potts model.
+
+                Args:
+                        C: The `Lattice` object on which we&#39;ll be running experiments.
+                        temperature (Callable): A temperature schedule function which
+                                takes a single positive integer argument `t`, and returns the
+                                scheduled temperature at time `t`.
+                        initial (np.ndarray): A vector of spin assignments to components.
+                &#34;&#34;&#34;
+                self.complex = C
+                self.temperature = temperature
+
+                # Useful values to have later.
+                self.cells = len(self.complex.Boundary[self.complex.dimension])
+                self.faces = len(self.complex.Boundary[self.complex.dimension-1])
+                self.orientations = np.tile([-1,1], self.complex.dimension).astype(FINT)
+                self.closed = 1
+
+                # Seed the random number generator.
+                self.RNG = np.random.default_rng()
+
+                # If no initial spin configuration is passed, initialize.
+                if not initial: self.spins = self.initial()
+                else: self.spins = (initial%self.lattice.field).astype(FINT)
+        
+
+        def initial(self):
+                &#34;&#34;&#34;
+                Computes an initial state for the model&#39;s Lattice.
+
+                Returns:
+                        A Galois `Array` representing a vector of spin assignments.
+                &#34;&#34;&#34;
+                return self.RNG.integers(
+                        0, high=self.complex.field, dtype=MINT, size=self.faces
+                )
+        
+
+        def proposal(self, time):
+                &#34;&#34;&#34;
+                Proposal scheme for generalized Glauber dynamics on the Potts model:
+                uniformly randomly chooses a face in the complex, flips the face&#39;s spin,
+                and returns the corresponding cocycle.
+
+                Args:
+                        time (int): Step in the chain.
+
+                Returns:
+                        A NumPy array representing a vector of spin assignments.
+                &#34;&#34;&#34;
+                # Flip.
+                spins = self.spins[::]
+                flip = self.RNG.integers(self.faces)
+                spins[flip] = (self.RNG.integers(self.complex.field, dtype=FINT))
+
+                boundary = self.complex.Boundary[self.complex.dimension]
+                q = self.complex.field
+
+                # Evaluate the current spin assignment (cochain).
+                coefficients = (spins[boundary]*self.orientations)%q
+                sums = coefficients.sum(axis=1)%q
+                opens = np.nonzero(sums == 0)[0]
+                closed = -(self.faces-len(opens))
+
+                # If we don&#39;t know how many &#34;closed&#34; faces there are, compute it.
+                if self.closed &gt; 0:
+                        coefficients = (self.spins[boundary]*self.orientations)%q
+                        sums = coefficients.sum(axis=1)%q
+                        opens = np.nonzero(sums == 0)[0]
+                        self.closed = -(self.faces-len(opens))
+
+                # Compute the energy and decide if this is an acceptable transition.
+                energy = np.exp(self.temperature(time)*(self.closed-closed))
+
+                if self.RNG.uniform() &lt; min(1, energy):
+                        self.closed = closed
+                        self.open = opens
+                        self.spins = spins
+
+                satisfied = np.zeros(self.faces, dtype=FINT)
+                satisfied[self.open] = 1
+
+                return self.spins, satisfied
+        
+
+        def assign(self, cochain):
+                &#34;&#34;&#34;
+                Updates mappings from faces to spins and cubes to occupations.
+                
+                Args:
+                        cochain (galois.FieldArray): Cochain on the lattice.
+                
+                Returns:
+                        None.
+                &#34;&#34;&#34;
+                self.spins = cochain</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ateams.model.Model.Model" href="Model.html#ateams.model.Model.Model">Model</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ateams.model.Glauber.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.model.Glauber.assign"><code class="name flex">
+<span>def <span class="ident">assign</span></span>(<span>self, cochain)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>cochain</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dd>Cochain on the lattice.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+</dd>
+<dt id="ateams.model.Glauber.initial"><code class="name flex">
+<span>def <span class="ident">initial</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes an initial state for the model's Lattice.</p>
+<h2 id="returns">Returns</h2>
+<p>A Galois <code>Array</code> representing a vector of spin assignments.</p></div>
+</dd>
+<dt id="ateams.model.Glauber.proposal"><code class="name flex">
+<span>def <span class="ident">proposal</span></span>(<span>self, time)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Proposal scheme for generalized Glauber dynamics on the Potts model:
+uniformly randomly chooses a face in the complex, flips the face's spin,
+and returns the corresponding cocycle.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>time</code></strong> :&ensp;<code>int</code></dt>
+<dd>Step in the chain.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A NumPy array representing a vector of spin assignments.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="ateams.model.InvadedCluster"><code class="flex name class">
+<span>class <span class="ident">InvadedCluster</span></span>
+<span>(</span><span>C,<br>dimension=1,<br>initial=None,<br>stop=&lt;function InvadedCluster.&lt;lambda&gt;&gt;,<br>LinBox=True,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initializes the plaquette invaded-cluster algorithm on the provided
+integer lattice, detecting percolation in the <code>homology</code>-th homology
+group.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>C</code></strong> :&ensp;<code>Complex</code></dt>
+<dd>The <code>Complex</code> object on which we'll be running experiments.</dd>
+<dt><strong><code>dimension</code></strong> :&ensp;<code>int=1</code></dt>
+<dd>The dimension of cells on which we're percolating.</dd>
+<dt><strong><code>initial</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>A vector of spin assignments to components.</dd>
+<dt><strong><code>stop</code></strong> :&ensp;<code>function</code></dt>
+<dd>A function that returns the number of essential cycles
+found before sampling the next configuration.</dd>
+<dt><strong><code>LinBox</code></strong> :&ensp;<code>bool=True</code></dt>
+<dd>Uses fast LinBox routines instead of slow inbuilt
+ones. WARNING: using inbuilt methods may dramatically increase
+computation time.</dd>
+<dt><strong><code>sparse</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrices be formatted sparsely? (Uses C/C++).</dd>
+<dt><strong><code>parallel</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
+<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the smallest
+number of columns processed in parallel.</dd>
+<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the largest
+number of columns processed in parallel.</dd>
+<dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
+<dd>Number of available CPUs/cores/threads on the machine.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class InvadedCluster(Model):
+        name = &#34;InvadedCluster&#34;
+        
+        def __init__(
+                        self, C, dimension=1, initial=None, stop=lambda: 1, LinBox=True, sparse=True,
+                        parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
+                ):
+                &#34;&#34;&#34;
+                Initializes the plaquette invaded-cluster algorithm on the provided
+                integer lattice, detecting percolation in the `homology`-th homology
+                group.
+
+                Args:
+                        C (Complex): The `Complex` object on which we&#39;ll be running experiments.
+                        dimension (int=1): The dimension of cells on which we&#39;re percolating.
+                        initial (np.array): A vector of spin assignments to components.
+                        stop (function): A function that returns the number of essential cycles
+                                found before sampling the next configuration.
+                        LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
+                                ones. WARNING: using inbuilt methods may dramatically increase
+                                computation time.
+                        sparse (boolean): Should matrices be formatted sparsely? (Uses C/C++).
+                        parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
+                        minBlockSize (int=32): If `parallel` is truthy, this is the smallest
+                                number of columns processed in parallel.
+                        maxBlockSize (int=64): If `parallel` is truthy, this is the largest
+                                number of columns processed in parallel.
+                        cores (int=4): Number of available CPUs/cores/threads on the machine.
+                &#34;&#34;&#34;
+                # Object access.
+                self.complex = C
+                self.dimension = dimension
+                self.stop = stop
+
+
+                # Force-recompute the matrices for a different dimension; creates
+                # a set of orientations for fast elementwise products.
+                self.matrices = Matrices()
+                self.matrices.full = self.complex.matrices.full
+
+                boundary, coboundary = self.complex.recomputeBoundaryMatrices(dimension)
+                self.matrices.boundary = boundary
+                self.matrices.coboundary = coboundary
+
+
+                # Useful values to have later.
+                self.cellCount = len(self.complex.flattened)
+                self.cells = len(self.complex.Boundary[self.dimension])
+                self.faces = len(self.complex.Boundary[self.dimension-1])
+                self.orientations = np.tile([-1,1], self.dimension).astype(FINT)
+                self.target = np.arange(self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1])
+
+
+                # Check the dimensions of the boundary/coboundary matrices by comparing
+                # the number of cells. LinBox is really sensitive to smaller-size matrices,
+                # but can easily handle large ones.
+                if self.cells*self.faces &lt; 10000 and LinBox:
+                        warnings.warn(f&#34;complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.&#34;, TooSmallWarning, stacklevel=2)
+
+
+                # Premake the &#34;occupied cells&#34; array; change the dimension of the lattice
+                # to correspond to the provided dimension.
+                self.rank = comb(len(self.complex.corners), self.dimension)
+                self.nullity = len(self.complex.Boundary[self.dimension])
+
+
+                # Delegates computation for persistence and cocycle sampling.
+                self._delegateComputation(LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores)
+
+
+                # Seed the random number generator.
+                self.RNG = np.random.default_rng()
+
+
+                # If no initial spin configuration is passed, initialize.
+                if not initial: self.spins = self.initial()
+                else: self.spins = (initial%self.complex.field).astype(FINT)
+
+        
+        def _delegateComputation(self, LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores):
+                if LinBox:
+                        low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
+
+                        def sample(zeros):
+                                return np.array(LanczosKernelSample(
+                                        self.matrices.coboundary, zeros, 2*self.dimension,
+                                        self.faces, self.complex.field
+                                ), dtype=FINT)
+                        
+                        def persist(filtration):
+                                essential = ComputePercolationEvents(
+                                        self.matrices.full, filtration, self.dimension,
+                                        self.complex.field, self.complex.breaks
+                                )
+
+                                essential = np.array(list(essential))
+                                essential.sort()
+                                
+                                return essential[(essential &gt;= low) &amp; (essential &lt; high)]
+                        
+                else:
+                        # If we can&#39;t/don&#39;t want to use LinBox, use inbuilt methods.
+                        Reducer = MatrixReduction(self.complex.field, parallel, minBlockSize, maxBlockSize, cores)
+                        Persistencer = Persistence(self.complex.field, self.complex.flattened, self.dimension)
+
+                        coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
+                        rows = self.matrices.coboundary[::3]
+                        cols = self.matrices.coboundary[1::3]
+                        entries = (self.matrices.coboundary[2::3]%self.complex.field).astype(FINT)
+
+                        coboundary[rows,cols] = entries
+                        
+                        def persist(filtration):
+                                return Persistencer.TwistComputePercolationEvents(filtration)
+                        
+                        def sample(zeros):
+                                return KernelSample(Reducer, coboundary.take(zeros, axis=0)).astype(FINT)
+                        
+                
+                # If p == 2, then we want to use PHAT for persistence only. We have to some
+                # unfortunately stupid computations though.
+                if self.complex.field &lt; 3:
+                        Persistencer = Persistence(self.complex.field, self.complex.flattened, self.dimension)
+                        t = self.complex.tranches
+
+                        # Indices of each cell and dimensions.
+                        dimensions = np.array(sum([
+                                [d]*(t[d,1]-t[d,0]) for d in range(len(t)) if d &lt; self.dimension+2
+                        ],[]), dtype=FINT)
+                        times = np.array(range(t[1][0], len(dimensions))).astype(FINT)
+
+                        def phattified(phatBoundary, dimensions, times, filtration):
+                                flattened = Persistencer.ReindexBoundary(filtration)
+                                
+                                dimensionalFlattened = [
+                                        (d, sorted(f)) if d &gt; 0 else (d, [])
+                                        for d, f in zip(dimensions, flattened)
+                                ]
+
+                                phatBoundary.columns = dimensionalFlattened
+                                _births, _deaths = zip(*phatBoundary.compute_persistence_pairs())
+                                births = set(_births)
+                                deaths = set(_deaths)
+
+                                return set(
+                                        e for e in times-(births|deaths)
+                                        if t[self.dimension][0] &lt;= e &lt; t[self.dimension][1]
+                                )
+
+                        def persist(filtration):
+                                return phattified(phat.boundary_matrix(), dimensions, set(times), filtration)
+
+
+                self.sample = sample
+                self.persist = persist
+
+
+        def filtrate(self, cochain):
+                &#34;&#34;&#34;
+                Constructs a filtration based on the evaluation of the cochain.
+                &#34;&#34;&#34;
+                # Find which cubes get zeroed out (i.e. are sent to zero by the cocycle).
+                boundary = self.complex.Boundary[self.dimension]
+                q = self.complex.field
+
+                coefficients = (cochain[boundary]*self.orientations)%q
+                sums = coefficients.sum(axis=1)%q
+
+                # POSSIBLY INEFFICIENT!! TAKE A LOOK DUMMY
+                satisfied = np.nonzero(sums==0)[0]
+                unsatisfied = np.nonzero(sums&gt;0)[0]
+                m = satisfied.shape[0]
+
+                # Construct the filtration.
+                filtration = np.arange(self.cellCount)
+                low = self.complex.breaks[self.dimension]
+                high = self.complex.breaks[self.dimension+1]
+
+                shuffled = np.random.permutation(satisfied)
+                filtration[low:low+m] = self.target[shuffled]
+                filtration[low+m:high] = self.target[unsatisfied]
+
+                return filtration, shuffled, satisfied
+
+
+        def initial(self):
+                &#34;&#34;&#34;
+                Computes an initial state for the model&#39;s Lattice.
+
+                Returns:
+                        A Galois `Array` representing a vector of spin assignments.
+                &#34;&#34;&#34;
+                return self.RNG.integers(
+                        0, high=self.complex.field, dtype=FINT, size=self.faces
+                )
+        
+
+        def proposal(self, time):
+                &#34;&#34;&#34;
+                Proposal scheme for generalized invaded-cluster evolution on the
+                random-cluster model.
+
+                Args:
+                        time (int): Step in the chain.
+
+                Returns:
+                        A numpy array representing a vector of spin assignments.
+                &#34;&#34;&#34;
+                # Construct the filtration and find the essential cycles.
+                filtration, shuffledIndices, satisfiedIndices = self.filtrate(self.spins)
+                essential = self.persist(filtration)
+
+                j = 0
+                low = self.complex.breaks[self.dimension]
+
+                stop = self.stop()
+                occupied = np.zeros((self.rank, self.nullity))
+                satisfied = np.zeros(self.nullity)
+
+                for t in essential:
+                        occupiedIndices = shuffledIndices[:t-low]
+                        occupied[j,occupiedIndices] = 1
+
+                        if (j+1) == stop: spins = self.sample(occupiedIndices)
+
+                        j += 1
+
+                satisfied[satisfiedIndices] = 1
+
+                return spins, occupied, satisfied
+        
+
+        def assign(self, cocycle):
+                &#34;&#34;&#34;
+                Updates mappings from faces to spins and cubes to occupations.
+
+                Args:
+                        cocycle (galois.FieldArray): Cocycle on the sublattice.
+                
+                Returns:
+                        Nothing.
+                &#34;&#34;&#34;
+                self.spins = cocycle</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ateams.model.Model.Model" href="Model.html#ateams.model.Model.Model">Model</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ateams.model.InvadedCluster.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.model.InvadedCluster.assign"><code class="name flex">
+<span>def <span class="ident">assign</span></span>(<span>self, cocycle)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>cocycle</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dd>Cocycle on the sublattice.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Nothing.</p></div>
+</dd>
+<dt id="ateams.model.InvadedCluster.filtrate"><code class="name flex">
+<span>def <span class="ident">filtrate</span></span>(<span>self, cochain)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Constructs a filtration based on the evaluation of the cochain.</p></div>
+</dd>
+<dt id="ateams.model.InvadedCluster.initial"><code class="name flex">
+<span>def <span class="ident">initial</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes an initial state for the model's Lattice.</p>
+<h2 id="returns">Returns</h2>
+<p>A Galois <code>Array</code> representing a vector of spin assignments.</p></div>
+</dd>
+<dt id="ateams.model.InvadedCluster.proposal"><code class="name flex">
+<span>def <span class="ident">proposal</span></span>(<span>self, time)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Proposal scheme for generalized invaded-cluster evolution on the
+random-cluster model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>time</code></strong> :&ensp;<code>int</code></dt>
+<dd>Step in the chain.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy array representing a vector of spin assignments.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="ateams.model.SwendsenWang"><code class="flex name class">
+<span>class <span class="ident">SwendsenWang</span></span>
+<span>(</span><span>C,<br>dimension=1,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>LinBox=True,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initializes Swendsen-Wang evolution on the Potts model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>C</code></strong> :&ensp;<code>Complex</code></dt>
+<dd>The <code>Complex</code> object on which we'll be running experiments.</dd>
+<dt><strong><code>dimension</code></strong> :&ensp;<code>int=1</code></dt>
+<dd>The dimension of cells on which we're percolating.</dd>
+<dt><strong><code>temperature</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A temperature schedule function which
+takes a single positive integer argument <code>t</code>, and returns the
+scheduled temperature at time <code>t</code>.</dd>
+<dt><strong><code>initial</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>A vector of spin assignments to components.</dd>
+<dt><strong><code>LinBox</code></strong> :&ensp;<code>bool=True</code></dt>
+<dd>Uses fast LinBox routines instead of slow inbuilt
+ones. WARNING: using inbuilt methods may dramatically increase
+computation time.</dd>
+<dt><strong><code>sparse</code></strong> :&ensp;<code>bool=True</code></dt>
+<dd>Should matrices be formatted sparsely? (Uses C/C++).</dd>
+<dt><strong><code>parallel</code></strong> :&ensp;<code>bool=False</code></dt>
+<dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
+<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the smallest
+number of columns processed in parallel.</dd>
+<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the largest
+number of columns processed in parallel.</dd>
+<dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
+<dd>Number of available CPUs/cores/threads on the machine.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SwendsenWang(Model):
+        name = &#34;SwendsenWang&#34;
+
+        def __init__(
+                        self, C, dimension=1, temperature=constant(-0.6), initial=None, LinBox=True,
+                        sparse=True, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
+                ):
+                &#34;&#34;&#34;
+                Initializes Swendsen-Wang evolution on the Potts model.
+
+                Args:
+                        C (Complex): The `Complex` object on which we&#39;ll be running experiments.
+                        dimension (int=1): The dimension of cells on which we&#39;re percolating.
+                        temperature (Callable): A temperature schedule function which
+                                takes a single positive integer argument `t`, and returns the
+                                scheduled temperature at time `t`.
+                        initial (np.array): A vector of spin assignments to components.
+                        LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
+                                ones. WARNING: using inbuilt methods may dramatically increase
+                                computation time.
+                        sparse (bool=True): Should matrices be formatted sparsely? (Uses C/C++).
+                        parallel (bool=False): Should matrix computations be done in parallel? (Uses C/C++).
+                        minBlockSize (int=32): If `parallel` is truthy, this is the smallest
+                                number of columns processed in parallel.
+                        maxBlockSize (int=64): If `parallel` is truthy, this is the largest
+                                number of columns processed in parallel.
+                        cores (int=4): Number of available CPUs/cores/threads on the machine.
+                &#34;&#34;&#34;
+                # Object access.
+                self.complex = C
+                self.temperature = temperature
+                self.dimension = dimension
+
+
+                # Force-recompute the matrices for a different dimension; creates
+                # a set of orientations for fast elementwise products.
+                self.matrices = Matrices()
+                self.matrices.full = self.complex.matrices.full
+
+                boundary, coboundary = self.complex.recomputeBoundaryMatrices(dimension)
+                self.matrices.boundary = boundary
+                self.matrices.coboundary = coboundary
+
+
+                # Useful values to have later.
+                self.cells = len(self.complex.Boundary[self.dimension])
+                self.faces = len(self.complex.Boundary[self.dimension-1])
+                self.orientations = np.tile([-1,1], self.dimension).astype(FINT)
+
+
+                # Check the dimensions of the boundary/coboundary matrices by comparing
+                # the number of cells. LinBox is really sensitive to smaller-size matrices,
+                # but can easily handle large ones.
+                if self.cells*self.faces &lt; 10000:
+                        warnings.warn(f&#34;complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.&#34;, TooSmallWarning, stacklevel=2)
+
+
+                # Seed the random number generator.
+                self.RNG = np.random.default_rng()
+
+                # If no initial spin configuration is passed, initialize.
+                if not initial: self.spins = self.initial()
+                else: self.spins = (initial%self.complex.field).astype(FINT)
+
+                # Delegate computation.
+                self._delegateComputation(LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores)
+
+        
+        def _delegateComputation(self, LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores):
+                # If we use LinBox, keep everything as-is.
+                if LinBox:
+                        def sample(zeros):
+                                if zeros.shape[0] &lt; 1: return self.spins;
+                                
+                                return np.array(LanczosKernelSample(
+                                        self.matrices.coboundary, zeros, 2*self.dimension,
+                                        self.faces, self.complex.field
+                                ), dtype=FINT)
+                
+                # If we use inbuilt routines, we need to actually construct the matrix
+                # form of the coboundary matrix, which is extremely sparse (and really big).
+                # Makes things slow.
+                else:
+                        coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
+                        rows = self.matrices.coboundary[::3]
+                        cols = self.matrices.coboundary[1::3]
+                        entries = (self.matrices.coboundary[2::3]%self.complex.field).astype(FINT)
+
+                        coboundary[rows,cols] = entries
+                        Reducer = MatrixReduction(self.complex.field, parallel, minBlockSize, maxBlockSize, cores)
+
+                        def sample(zeros):
+                                return KernelSample(Reducer, coboundary.take(zeros, axis=0)).astype(FINT)
+                        
+                self.sample = sample
+
+
+
+        def initial(self):
+                &#34;&#34;&#34;
+                Computes an initial state for the model&#39;s Lattice.
+
+                Returns:
+                        A Galois `Array` representing a vector of spin assignments.
+                &#34;&#34;&#34;
+                return self.RNG.integers(
+                        0, high=self.complex.field, dtype=FINT, size=self.faces
+                )
+        
+
+        def proposal(self, time):
+                &#34;&#34;&#34;
+                Proposal scheme for generalized Swendsen-Wang evolution on the Potts model.
+
+                Args:
+                        time (int): Step in the chain.
+
+                Returns:
+                        A numpy array representing a vector of spin assignments.
+                &#34;&#34;&#34;
+                # Compute the probability of choosing any individual cube in the complex.
+                T = self.temperature(time)
+                p = 1-np.exp(T)
+                assert 0 &lt;= p &lt;= 1
+
+                # Choose cubes to include.
+                uniform = self.RNG.uniform(size=self.cells)
+                include = np.nonzero(uniform &lt; p)[0]
+                boundary = self.complex.Boundary[self.dimension]
+                q = self.complex.field
+
+                # Evaluate the current spin assignment (cochain).
+                coefficients = (self.spins[boundary[include]]*self.orientations)%q
+                sums = coefficients.sum(axis=1)%q
+                zeros = np.nonzero(sums == 0)[0]
+
+                # Create output vectors.
+                satisfied = np.zeros(self.cells, dtype=FINT)
+                satisfied[zeros] = 1
+
+                # Sample from the kernel of the coboundary matrix.
+                spins = self.sample(zeros)
+
+                return spins, satisfied
+        
+
+        def assign(self, cocycle):
+                &#34;&#34;&#34;
+                Updates mappings from faces to spins and cubes to occupations.
+
+                Args:
+                        cocycle (galois.FieldArray): Cocycle on the sublattice.
+                
+                Returns:
+                        None.
+                &#34;&#34;&#34;
+                self.spins = cocycle</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ateams.model.Model.Model" href="Model.html#ateams.model.Model.Model">Model</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ateams.model.SwendsenWang.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.model.SwendsenWang.assign"><code class="name flex">
+<span>def <span class="ident">assign</span></span>(<span>self, cocycle)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>cocycle</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dd>Cocycle on the sublattice.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+</dd>
+<dt id="ateams.model.SwendsenWang.initial"><code class="name flex">
+<span>def <span class="ident">initial</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes an initial state for the model's Lattice.</p>
+<h2 id="returns">Returns</h2>
+<p>A Galois <code>Array</code> representing a vector of spin assignments.</p></div>
+</dd>
+<dt id="ateams.model.SwendsenWang.proposal"><code class="name flex">
+<span>def <span class="ident">proposal</span></span>(<span>self, time)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Proposal scheme for generalized Swendsen-Wang evolution on the Potts model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>time</code></strong> :&ensp;<code>int</code></dt>
+<dd>Step in the chain.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy array representing a vector of spin assignments.</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<!-- include a script for adding stuff to the end of proofs. -->
+<script>
+// Get all the proofs in the document.
+proofs = document.getElementsByClassName("proof");
+// For each of the proofs, attach a floating child element in the bottom-right
+// corner.
+for (var proof of proofs) {
+// Create a proof-ending tombstone.
+square = document.createElement("div");
+square.className = "tombstone";
+square.innerHTML = "◼️";
+// Attach the tombstone to the proof.
+proof.appendChild(square);
+}
+</script>
+<header>
+<a class="homelink" rel="home" title="ATEAM" href="https://github.com/apizzimenti/ateam">
+<style>
+header > h1 { display: none; }
+img.resize {
+min-width: 15vw;
+max-width: 23vw;
+display: block;
+margin: 0 auto;
+}
+div.proof {
+border: 1px solid black;
+padding: 0em 1em;
+width: 90%;
+margin: 1em auto;
+}
+.tombstone {
+margin-top: -2em;
+float: right;
+}
+#section-intro {
+text-align: justify;
+}
+#index .two-column {
+column-count: 1 !important;
+}
+#ateams {
+margin-top: 0;
+}
+#content {
+text-align: justify;
+}
+</style>
+<img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
+</a>
+</header>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="ateams" href="../index.html">ateams</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="ateams.model.Model" href="Model.html">ateams.model.Model</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="ateams.model.Glauber" href="#ateams.model.Glauber">Glauber</a></code></h4>
+<ul class="">
+<li><code><a title="ateams.model.Glauber.assign" href="#ateams.model.Glauber.assign">assign</a></code></li>
+<li><code><a title="ateams.model.Glauber.initial" href="#ateams.model.Glauber.initial">initial</a></code></li>
+<li><code><a title="ateams.model.Glauber.name" href="#ateams.model.Glauber.name">name</a></code></li>
+<li><code><a title="ateams.model.Glauber.proposal" href="#ateams.model.Glauber.proposal">proposal</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ateams.model.InvadedCluster" href="#ateams.model.InvadedCluster">InvadedCluster</a></code></h4>
+<ul class="">
+<li><code><a title="ateams.model.InvadedCluster.assign" href="#ateams.model.InvadedCluster.assign">assign</a></code></li>
+<li><code><a title="ateams.model.InvadedCluster.filtrate" href="#ateams.model.InvadedCluster.filtrate">filtrate</a></code></li>
+<li><code><a title="ateams.model.InvadedCluster.initial" href="#ateams.model.InvadedCluster.initial">initial</a></code></li>
+<li><code><a title="ateams.model.InvadedCluster.name" href="#ateams.model.InvadedCluster.name">name</a></code></li>
+<li><code><a title="ateams.model.InvadedCluster.proposal" href="#ateams.model.InvadedCluster.proposal">proposal</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ateams.model.SwendsenWang" href="#ateams.model.SwendsenWang">SwendsenWang</a></code></h4>
+<ul class="">
+<li><code><a title="ateams.model.SwendsenWang.assign" href="#ateams.model.SwendsenWang.assign">assign</a></code></li>
+<li><code><a title="ateams.model.SwendsenWang.initial" href="#ateams.model.SwendsenWang.initial">initial</a></code></li>
+<li><code><a title="ateams.model.SwendsenWang.name" href="#ateams.model.SwendsenWang.name">name</a></code></li>
+<li><code><a title="ateams.model.SwendsenWang.proposal" href="#ateams.model.SwendsenWang.proposal">proposal</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.3</a>.</p>
+</footer>
+</body>
+</html>

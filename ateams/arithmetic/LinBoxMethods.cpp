@@ -302,9 +302,9 @@ Set Mod2ComputePercolationEvents(
 Set ComputePercolationEvents(
 		Vector boundary, Vector filtration, int homology, int p, Vector breaks
 	) {
-	if (p == 2) { return Mod2ComputePercolationEvents(boundary, filtration, homology, breaks); }
+	// Disable the Z/2Z check for now.	
+	// if (p == 2) { return Mod2ComputePercolationEvents(boundary, filtration, homology, breaks); }
 
-	// Before we do *anything*, check whether p is 2.
 	// Construct the finite field and build the boundary matrix. Similarly to Chen and
 	// Kerber (2011), we store each column of the boundary matrix as a balanced
 	// binary search tree (as implemented by the C++ standard library). Chen
@@ -337,9 +337,9 @@ Set ComputePercolationEvents(
 
 		high = (d+1 >= numBreaks ? cellCount : breaks[d+1]);
 
-		for (int j = breaks[homology]; j < high; j++) {
+		for (int j = breaks[d]; j < high; j++) {
 			// If we're of the wrong dimension, keep going.
-			if (dim(j, breaks) != d) { continue; }
+			// if (dim(j, breaks) != d) { continue; }
 			cell = Boundary[j];
 
 			while (!cell.empty() && nextColumnAdded[youngestOf(cell)] != 0) {
