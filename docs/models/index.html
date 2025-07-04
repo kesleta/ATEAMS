@@ -553,6 +553,270 @@ random-cluster model.</p>
 </dd>
 </dl>
 </dd>
+<dt id="ateams.models.Nienhuis"><code class="flex name class">
+<span>class <span class="ident">Nienhuis</span></span>
+<span>(</span><span>C,<br>q1,<br>q2,<br>dimension=2,<br>initial=None,<br>LinBox=True,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initializes the self-dual Nienhuis model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>C</code></strong> :&ensp;<code>Complex</code></dt>
+<dd>The <code>Complex</code> object on which we'll be running experiments.
+Here, the dimension is assumed to be 2.</dd>
+<dt><strong><code>q1</code></strong> :&ensp;<code>float</code></dt>
+<dd>Edge coupling parameter.</dd>
+<dt><strong><code>q2</code></strong> :&ensp;<code>float</code></dt>
+<dd>Face (i.e. cell) coupling parameter.</dd>
+<dt><strong><code>dimension</code></strong> :&ensp;<code>int</code></dt>
+<dd>Dimension targeted by the model.</dd>
+<dt><strong><code>initial</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>A vector of spin assignments to components.</dd>
+<dt><strong><code>LinBox</code></strong> :&ensp;<code>bool=True</code></dt>
+<dd>Uses fast LinBox routines instead of slow inbuilt
+ones. WARNING: using inbuilt methods may dramatically increase
+computation time.</dd>
+<dt><strong><code>sparse</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrices be formatted sparsely? (Uses C/C++).</dd>
+<dt><strong><code>parallel</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
+<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the smallest
+number of columns processed in parallel.</dd>
+<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
+<dd>If <code>parallel</code> is truthy, this is the largest
+number of columns processed in parallel.</dd>
+<dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
+<dd>Number of available CPUs/cores/threads on the machine.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Nienhuis(Model):
+        name = &#34;SwendsenWang&#34;
+
+        def __init__(
+                        self, C, q1, q2, dimension=2, initial=None, LinBox=True,
+                        sparse=True, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
+                ):
+                &#34;&#34;&#34;
+                Initializes the self-dual Nienhuis model.
+
+                Args:
+                        C (Complex): The `Complex` object on which we&#39;ll be running experiments.
+                                Here, the dimension is assumed to be 2.
+                        q1 (float): Edge coupling parameter.
+                        q2 (float): Face (i.e. cell) coupling parameter.
+                        dimension (int): Dimension targeted by the model.
+                        initial (np.array): A vector of spin assignments to components.
+                        LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
+                                ones. WARNING: using inbuilt methods may dramatically increase
+                                computation time.
+                        sparse (boolean): Should matrices be formatted sparsely? (Uses C/C++).
+                        parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
+                        minBlockSize (int=32): If `parallel` is truthy, this is the smallest
+                                number of columns processed in parallel.
+                        maxBlockSize (int=64): If `parallel` is truthy, this is the largest
+                                number of columns processed in parallel.
+                        cores (int=4): Number of available CPUs/cores/threads on the machine.
+                &#34;&#34;&#34;
+                # Object access.
+                self.complex = C
+                self.dimension = dimension
+
+                # Force-recompute the matrices for a different dimension; creates
+                # a set of orientations for fast elementwise products. Here, the dimension
+                # is implicitly assumed to be 2.
+                self.matrices = Matrices()
+                self.matrices.full = self.complex.matrices.full
+
+                boundary, coboundary = self.complex.recomputeBoundaryMatrices(self.dimension)
+                self.matrices.boundary = boundary
+                self.matrices.coboundary = coboundary
+
+                # Useful values to have later.
+                self.cells = len(self.complex.Boundary[self.dimension])
+                self.faces = len(self.complex.Boundary[self.dimension-1])
+                self.faceIndices = np.arange(self.faces)
+
+                self.orientations = Bunch()
+                self.orientations.cells = np.tile([-1,1], self.dimension).astype(FINT)
+                self.orientations.faces = np.tile([-1,1], self.dimension-1).astype(FINT)
+
+                # Coupling parameters.
+                self.coupling = Bunch()
+                self.coupling.face = q1
+                self.coupling.cell = q2
+
+                self.prob = Bunch()
+                self.prob.face = self.coupling.face/(1+self.coupling.face)
+                self.prob.cell = self.coupling.cell/(1+self.coupling.cell)
+
+
+                # Check the dimensions of the boundary/coboundary matrices by comparing
+                # the number of cells. LinBox is really sensitive to smaller-size matrices,
+                # but can easily handle large ones.
+                if self.cells*self.faces &lt; 10000 and LinBox:
+                        warnings.warn(f&#34;complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.&#34;, TooSmallWarning, stacklevel=2)
+
+                # Seed the random number generator.
+                self.RNG = np.random.default_rng()
+
+                # If no initial spin configuration is passed, initialize.
+                if not initial: self.spins = self.initial()
+                else: self.spins = (initial%self.complex.field).astype(FINT)
+
+                # Delegate computation.
+                self._delegateComputation(LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores)
+
+
+        def _delegateComputation(self, LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores):
+                # If we use LinBox, keep everything as-is.
+                if LinBox:
+                        def sample(faceZeros, cellZeros):
+                                if faceZeros.shape[0] &lt; 1 or cellZeros.shape[0] &lt; 1: return self.spins;
+                                
+                                return np.array(SubLanczosKernelSample(
+                                        self.matrices.coboundary, cellZeros, faceZeros, self.complex.field
+                                ), dtype=FINT)
+                
+                # If we use inbuilt routines, we need to actually construct the matrix
+                # form of the coboundary matrix, which is extremely sparse (and really big).
+                # Makes things slow.
+                else:
+                        coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
+                        rows = self.matrices.coboundary[::3]
+                        cols = self.matrices.coboundary[1::3]
+                        entries = (self.matrices.coboundary[2::3]%self.complex.field).astype(FINT)
+
+                        coboundary[rows,cols] = entries
+                        Reducer = MatrixReduction(self.complex.field, parallel, minBlockSize, maxBlockSize, cores)
+
+                        def sample(faceZeros, cellZeros):
+                                subbasis = coboundary.take(cellZeros, axis=0).take(faceZeros, axis=1)
+                                return KernelSample(Reducer, subbasis).astype(FINT)
+                        
+                self.sample = sample
+
+
+        def initial(self):
+                &#34;&#34;&#34;
+                Computes an initial state for the model&#39;s Lattice.
+
+                Returns:
+                        A numpy array of spin assignments (mod p).
+                &#34;&#34;&#34;
+                return self.RNG.integers(
+                        0, high=self.complex.field, dtype=FINT, size=self.faces
+                )
+        
+
+        def proposal(self, time):
+                &#34;&#34;&#34;
+                Proposal scheme for the Nienhuis model.
+
+                Args:
+                        time (int): Step in the chain.
+
+                Returns:
+                        A numpy array of spin assignments (mod p).
+                &#34;&#34;&#34;
+                # Choose which cells and faces to include.
+                cells = self.RNG.uniform(size=self.cells)
+                faces = self.RNG.uniform(size=self.faces)
+                threshCells = (cells &lt; self.prob.cell).nonzero()[0]
+                threshFaces = (faces &lt; self.prob.face).nonzero()[0]
+                q = self.complex.field
+
+                # Evaluate the current spin configuration (cochain) on the boundary
+                # of our chosen cells, and find which to include.
+                cellBoundary = self.complex.Boundary[self.dimension]
+                cellCoefficients = (self.spins[cellBoundary]*self.orientations.cells)%q
+                cellSums = (cellCoefficients.sum(axis=1))[threshCells]%q
+                cellZeros = np.nonzero(cellSums == 0)[0]
+
+                # Decide which faces (by default, edges) to include, take a submatrix
+                # of the coboundary matrix by including only the rows corresponding to
+                # included cells and columns corresponding to included faces, then
+                # sample new spins.
+                faceCoefficients = np.intersect1d((self.spins==0).nonzero()[0], threshFaces)
+                faceZeros = np.setdiff1d(self.faceIndices, threshFaces)
+                subspins = self.sample(faceZeros, cellZeros)
+
+                # Organize spin data.
+                spins = self.spins.copy()
+                spins[faceZeros] = subspins
+                spins[faceCoefficients] = 0
+
+                # Compute energies.
+                faceEnergy = (self.faces - np.count_nonzero(spins==0))/self.faces
+                cellEnergy = (self.cells - np.count_nonzero(cellCoefficients==0))/self.cells
+
+                return spins, faceEnergy, cellEnergy
+
+
+        def assign(self, cocycle):
+                &#34;&#34;&#34;
+                Updates mappings from faces to spins and cubes to occupations.
+
+                Args:
+                        cocycle (galois.FieldArray): Cocycle on the sublattice.
+                
+                Returns:
+                        None.
+                &#34;&#34;&#34;
+                self.spins = cocycle</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>ateams.models.Model.Model</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ateams.models.Nienhuis.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.models.Nienhuis.assign"><code class="name flex">
+<span>def <span class="ident">assign</span></span>(<span>self, cocycle)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>cocycle</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dd>Cocycle on the sublattice.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+</dd>
+<dt id="ateams.models.Nienhuis.initial"><code class="name flex">
+<span>def <span class="ident">initial</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes an initial state for the model's Lattice.</p>
+<h2 id="returns">Returns</h2>
+<p>A numpy array of spin assignments (mod p).</p></div>
+</dd>
+<dt id="ateams.models.Nienhuis.proposal"><code class="name flex">
+<span>def <span class="ident">proposal</span></span>(<span>self, time)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Proposal scheme for the Nienhuis model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>time</code></strong> :&ensp;<code>int</code></dt>
+<dd>Step in the chain.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy array of spin assignments (mod p).</p></div>
+</dd>
+</dl>
+</dd>
 <dt id="ateams.models.SwendsenWang"><code class="flex name class">
 <span>class <span class="ident">SwendsenWang</span></span>
 <span>(</span><span>C,<br>dimension=1,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>LinBox=True,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
@@ -625,7 +889,6 @@ number of columns processed in parallel.</dd>
                 self.temperature = temperature
                 self.dimension = dimension
 
-
                 # Force-recompute the matrices for a different dimension; creates
                 # a set of orientations for fast elementwise products.
                 self.matrices = Matrices()
@@ -635,19 +898,16 @@ number of columns processed in parallel.</dd>
                 self.matrices.boundary = boundary
                 self.matrices.coboundary = coboundary
 
-
                 # Useful values to have later.
                 self.cells = len(self.complex.Boundary[self.dimension])
                 self.faces = len(self.complex.Boundary[self.dimension-1])
                 self.orientations = np.tile([-1,1], self.dimension).astype(FINT)
 
-
                 # Check the dimensions of the boundary/coboundary matrices by comparing
                 # the number of cells. LinBox is really sensitive to smaller-size matrices,
                 # but can easily handle large ones.
-                if self.cells*self.faces and LinBox &lt; 10000:
+                if self.cells*self.faces &lt; 10000 and LinBox:
                         warnings.warn(f&#34;complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.&#34;, TooSmallWarning, stacklevel=2)
-
 
                 # Seed the random number generator.
                 self.RNG = np.random.default_rng()
@@ -882,6 +1142,15 @@ text-align: justify;
 <li><code><a title="ateams.models.InvadedCluster.initial" href="#ateams.models.InvadedCluster.initial">initial</a></code></li>
 <li><code><a title="ateams.models.InvadedCluster.name" href="#ateams.models.InvadedCluster.name">name</a></code></li>
 <li><code><a title="ateams.models.InvadedCluster.proposal" href="#ateams.models.InvadedCluster.proposal">proposal</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ateams.models.Nienhuis" href="#ateams.models.Nienhuis">Nienhuis</a></code></h4>
+<ul class="">
+<li><code><a title="ateams.models.Nienhuis.assign" href="#ateams.models.Nienhuis.assign">assign</a></code></li>
+<li><code><a title="ateams.models.Nienhuis.initial" href="#ateams.models.Nienhuis.initial">initial</a></code></li>
+<li><code><a title="ateams.models.Nienhuis.name" href="#ateams.models.Nienhuis.name">name</a></code></li>
+<li><code><a title="ateams.models.Nienhuis.proposal" href="#ateams.models.Nienhuis.proposal">proposal</a></code></li>
 </ul>
 </li>
 <li>

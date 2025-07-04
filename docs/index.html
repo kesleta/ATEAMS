@@ -29,17 +29,10 @@ hljs.highlightAll();
 <section id="section-intro">
 <h2 id="ateams">ATEAMS</h2>
 <p>The <strong>A</strong>lgebraic <strong>t</strong>opology-<strong>e</strong>nabled <strong>a</strong>lgorith<strong>m</strong>s for <strong>s</strong>pin systems(<strong>ATEAMS</strong>) library is a high-performance software suite for conducting experiments on lattice spin models. The main attractions are the <em>plaquette <a href="http://arxiv.org/abs/cond-mat/9605103">invaded-cluster</a></em> and <em>plaquette <a href="https://link.aps.org/doi/10.1103/PhysRevLett.58.86">Swendsen-Wang</a></em> algorithms for simulating Markov chains on cubical lattices of any dimension.</p>
-<p><a href="https://doi.org/10.5281/zenodo.14284172"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.14284172.svg"></a></p>
-<p>ATEAMS is designed for high-performance simulation of the <em>Potts</em> and <em>random-cluster</em> models in cubical complexes of arbitrary dimension and scale. The linear algebra subroutines supporting these programs are tailored to this application — matrix reduction over finite fields — and are implemented in C/C++ using cached 16-bit integer arithmetic.</p>
-<h2 id="installation">Installation</h2>
-<p>Clone this repository by <code>git clone https://github.com/apizzimenti/ateams.git</code>, navigate into the project's root, and run <code>make install</code> in your favorite terminal. This installs the <code><a title="ateams" href="#ateams">ateams</a></code> package (and its dependencies) globally in development mode, so any changes you make to the source are reflected system-wide.</p>
-<h3 id="notes">Notes:</h3>
-<ul>
-<li><strong>Read the installation note in <code>setup.py</code> to ensure PHAT is correctly installed on your system.</strong></li>
-<li><strong>Use the Clang/LLVM compiler family, as some features break when using GCC compilers.</strong></li>
-<li><strong>Before performing sparse/parallel computations, run <code>make profile</code> to determine whether sparse/parallel computations make sense for your machine.</strong></li>
-<li>For C++ support, you must install GMP, OpenBLAS (or another BLAS library), Givaro, fflas-ffpack, and LinBox. In general, the auto-installation tools provided by LinBox do not work, so these installations will have to be done manually. It is horrible.</li>
-</ul>
+<p><a href="https://doi.org/10.5281/zenodo.14284172"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.14284172.svg"></a>
+<a href="https://apizzimenti.github.io/ATEAMS/"><img alt="docs" src="https://img.shields.io/badge/%E2%93%98-Documentation-%230099cd"></a> </p>
+<p>ATEAMS is designed for high-performance simulation of the <em>Potts</em> and <em>random-cluster</em> models in cubical complexes of arbitrary dimension and scale. The linear algebra subroutines supporting these programs are tailored to this application — matrix reduction over finite fields — using <a href="https://github.com/linbox-team/linbox">LinBox</a>.</p>
+<p><a href="https://apizzimenti.github.io/ATEAMS/"><strong>Documentation</strong></a> • <a href="#installing-ateams"><strong>Install ATEAMS</strong></a> • <a href="#dependencies"><strong>Install dependencies</strong></a> • <a href="#contributing"><strong>Contributing</strong></a> • <a href="#citing"><strong>Citing</strong></a></p>
 <h2 id="example-use">Example Use</h2>
 <p>Simulating the $1$-dimensional plaquette random cluster model on a $10 \times 10 \times 10$ cubical $3$-torus with coefficients in the finite field $\mathbb F_3$ looks like:</p>
 <pre><code class="language-python">from ateams.complexes import Cubical
@@ -71,6 +64,162 @@ for (spins, occupied, satisfied) in Chain(HP, steps=10).progress():
     &lt;do whatever&gt;
 </code></pre>
 <p>pattern.</p>
+<h2 id="installation">Installation</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ol>
+<li>Patience. </li>
+<li>Python $\geq$ 3.10. To manage different versions of Python on your machine, we recommend <a href="https://github.com/pyenv/pyenv">pyenv</a>.</li>
+<li>A C/C++ compiler. Clang is recommended, as some dependencies break with GCC.</li>
+<li><a href="https://www.gnu.org/software/make/">GNU Make</a> (or a Windows variant&hellip;) to build and install the library, and to build any changes you might make. <em>(This is optional for Windows users, as these commands can be run manually when using raw Windows. If that's undesirable, the Linux Subsystem for Windows is a useful workaround.)</em></li>
+<li>Standard tools (pkg-config, autoconf, libtool, etc.) for building and maintaining C++ libraries. For Windows, the Visual Studio BuildTools (which include Clang/LLVM) may be required.</li>
+<li>If you want to keep your sanity, a computer running macOS or a flavor of Linux.</li>
+</ol>
+<h3 id="installing-ateams">Installing ATEAMS</h3>
+<ol>
+<li><a href="#dependencies">Install all dependencies</a>.</li>
+<li>Clone this repository.</li>
+<li>Navigate into the ATEAMS directory.</li>
+<li>Run <code>make install</code>.</li>
+</ol>
+<p>Clone this repository by <code>git clone https://github.com/apizzimenti/ateams.git</code>, navigate into the project's root, and run <code>make install</code> in your favorite terminal. This installs the <code><a title="ateams" href="#ateams">ateams</a></code> package (and its dependencies) globally in development mode, so any changes you make to the source are reflected system-wide.</p>
+<h3 id="dependencies">Dependencies</h3>
+<p>ATEAMS relies on <a href="https://github.com/apizzimenti/linbox">LinBox</a> — this link goes to our GitHub fork of LinBox, which addresses a small matrix preconditioning bug; otherwise, the library is unchanged from <a href="https://github.com/linbox-team/linbox">its original source</a>. LinBox relies on <a href="https://github.com/linbox-team/fflas-ffpack">fflas-ffpack</a>, <a href="https://github.com/linbox-team/givaro">Givaro</a>, <a href="https://github.com/OpenMathLib/OpenBLAS">OpenBLAS</a>, and <a href="https://gmplib.org/">GMP</a>. <strong>It is recommended that you install these dependencies to make sure you get the most out of this toolkit.</strong></p>
+<h4 id="installing-gmp">Installing GMP</h4>
+<ol>
+<li><a href="https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz">Download GMP 6.3.0 from here</a>.</li>
+<li>Follow the <a href="https://gmplib.org/manual/Installing-GMP">installation instructions here</a>, passing the <code>--enable-cxx</code> flag to the <code>./configure</code> script and setting the install prefix to <code>/usr/local</code> (or wherever you'd like). In summary, the installation looks like</li>
+</ol>
+<pre><code>$ ./configure --prefix=/usr/local --enable-cxx
+  ...
+
+$ make; make check; sudo make install
+$ pkg-config --libs gmp gmpxx
+  -L/usr/local/lib -lgmpxx -lgmp
+</code></pre>
+<h4 id="installing-openblas">Installing OpenBLAS</h4>
+<p>In general, follow the <a href="http://www.openmathlib.org/OpenBLAS/docs/install/">installation instructions here</a>. In particular,</p>
+<ul>
+<li>for macOS users, <a href="https://formulae.brew.sh/formula/openblas">the openblas formula on homebrew</a> is recommended. It will be installed wherever formulae are typically installed on your computer (e.g. <code>/opt/homebrew/Cellar/openblas/0.3.29/lib</code>). <em>If you choose this option, you are done installing OpenBLAS.</em></li>
+<li>for Linux (e.g. Ubuntu), it's recommended to build OpenBLAS from source. The latest version known to work with all following dependencies is 0.3.29, <a href="https://github.com/OpenMathLib/OpenBLAS/releases/tag/v0.3.29">which can be found here</a>. After downloading and decompressing the tarball, navigate into the directory and run <code>make</code>.</li>
+</ul>
+<p>Regardless of how you install, OpenBLAS should register with <code>pkg-config</code>:</p>
+<pre><code>$ pkg-config --libs openblas
+  -L/opt/homebrew/Cellar/openblas/0.3.29/lib -lopenblas
+</code></pre>
+<p>or </p>
+<pre><code>$ pkg-config --libs openblas
+  -L/usr/local/lib -lopenblas
+</code></pre>
+<h4 id="installing-givaro">Installing Givaro</h4>
+<p>To stave off bugs, we recommend cloning <a href="https://github.com/linbox-team/givaro">the current main branch of Givaro</a> and building from source.</p>
+<ol>
+<li>Clone the Givaro repository.</li>
+<li>Navigate into the Givaro directory and run the <code>autogen</code> script, passing your preferred install prefix as argument.</li>
+<li>Run <code>make</code> and <code>sudo make install</code>.</li>
+</ol>
+<p>In summary,</p>
+<pre><code>$ git clone https://github.com/linbox-team/givaro.git
+  Cloning into 'givaro'...
+  remote: Enumerating objects: 18294, done.
+  remote: Counting objects: 100% (1329/1329), done.
+  remote: Compressing objects: 100% (473/473), done.
+  remote: Total 18294 (delta 914), reused 1188 (delta 854), pack-reused 16965 (from 1)
+  Receiving objects: 100% (18294/18294), 5.94 MiB | 43.46 MiB/s, done.
+  Resolving deltas: 100% (14499/14499), done.
+
+$ cd givaro
+$ ./autogen.sh --prefix=/usr/local
+  ...
+
+$ make; sudo make install
+$ pkg-config --libs givaro
+  -L/usr/local/lib -lgivaro -lgmpxx -lgmp
+</code></pre>
+<h4 id="installing-fflas-ffpack">Installing fflas-ffpack</h4>
+<p>This package can be slightly trickier, and may need some convincing that the previous dependencies actually exist on your system. As with Givaro, we recommend cloning <a href="https://github.com/linbox-team/fflas-ffpack">the current main branch of fflas-ffpack</a> and building from source.</p>
+<ol>
+<li>Clone the fflas-ffpack repository.</li>
+<li>Navigate into the fflas-ffpack directory and run the <code>autogen</code> script with the following options:<ul>
+<li>Ubuntu, Debian, Mint, etc.<ul>
+<li><code>--prefix=/usr/local</code></li>
+<li><code>--with-blas-libs="`pkg-config --libs openblas`"</code></li>
+<li><code>--with-blas-cflags="`pkg-config --cflags openblas`"</code></li>
+</ul>
+</li>
+<li>macOS:<ul>
+<li><code>--prefix=/usr/local</code></li>
+<li><code>--with-blas-libs="-framework Accelerate"</code></li>
+<li>(it's possible to use the <code>pkg-config</code> arguments to <code>--with-blas-libs</code> and <code>--with-blas-cflags</code> here, but the LinBox team reccomends using the Accelerate framework.)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Run <code>make</code>.</li>
+<li><em>Optionally</em>, run <code>make autotune</code>. This takes a really long time, but can help speed things up on your machine.</li>
+<li>Run <code>sudo make install; make check</code>.</li>
+<li>If/when things go wrong, check <a href="https://github.com/linbox-team/fflas-ffpack/blob/master/INSTALL">the fflas-ffpack installation notes</a>.</li>
+</ol>
+<p>In summary,</p>
+<pre><code>$ git clone https://github.com/linbox-team/fflas-ffpack.git
+  Cloning into 'fflas-ffpack'...
+  remote: Enumerating objects: 20678, done.
+  remote: Counting objects: 100% (454/454), done.
+  remote: Compressing objects: 100% (181/181), done.
+  remote: Total 20678 (delta 357), reused 306 (delta 273), pack-reused 20224 (from 4)
+  Receiving objects: 100% (20678/20678), 10.29 MiB | 40.70 MiB/s, done.
+  Resolving deltas: 100% (16729/16729), done.
+
+$ cd fflas-ffpack
+$ ./autogen.sh --prefix=/usr/local --with-blas-libs=&lt;libs&gt; --with-blas-cflags=&lt;cflags&gt;
+  ...
+
+$ make; make autotune
+  ...
+
+$ sudo make install; make check
+  ...
+
+$ pkg-config --libs fflas-ffpack
+  -L/&lt;path-to-openblas&gt; -lopenblas -L/usr/local/lib -lgivaro -lgmpxx -lgmp
+</code></pre>
+<h4 id="installing-linbox">Installing LinBox</h4>
+<p>The end is in sight! Here, we recommend cloning <a href="https://github.com/apizzimenti/linbox.git">the <code>bug/bad-checks</code> branch of our forked LinBox repository</a> and building from source.</p>
+<ol>
+<li>Clone LinBox.</li>
+<li>Navigate into the LinBox directory and run the <code>autogen</code> script specifying the install prefix.</li>
+<li>Run <code>make</code> and <code>sudo make install</code>.</li>
+</ol>
+<p>In summary,</p>
+<pre><code>$ git clone https://github.com/apizzimenti/linbox.git
+  Cloning into 'linbox'...
+  remote: Enumerating objects: 79797, done.
+  remote: Counting objects: 100% (417/417), done.
+  remote: Compressing objects: 100% (176/176), done.
+  remote: Total 79797 (delta 286), reused 250 (delta 241), pack-reused 79380 (from 2)
+  Receiving objects: 100% (79797/79797), 223.82 MiB | 59.50 MiB/s, done.
+  Resolving deltas: 100% (63484/63484), done.
+
+$ cd linbox
+$ git checkout bug/bad-checks
+$ ./autogen.sh --prefix=/usr/local
+  ...
+
+$ make; sudo make install
+  ...
+
+$ pkg-config --libs linbox
+  -L/usr/local/lib -llinbox -L/&lt;path-to-openblas&gt; -lopenblas -lgivaro -lgmpxx -lgmp
+</code></pre>
+<h4 id="installing-phat">Installing PHAT</h4>
+<p>The <a href="https://bitbucket.org/phat-code/phat">Persistent Homology Algorithms Toolbox (PHAT)</a> provides Python bindings, which ATEAMS uses when computing over the finite field $\mathbb Z / 2\mathbb Z$. The bindings are built with PyBind11, and are distributed using an older version of pip. To build PHAT,</p>
+<ol>
+<li>Install PyBind11, wheel, and setuptools.</li>
+<li>Pip install with a deprecated dependency resolver.</li>
+</ol>
+<p>In summary,</p>
+<pre><code>$ pip install PyBind11 wheel setuptools
+$ pip install --use-deprecated=legacy-resolver --no-binary :all: phat
+</code></pre>
 <h2 id="contributing">Contributing</h2>
 <ul>
 <li><strong>Do not push directly to this repository: use the pull request model.</strong></li>
@@ -174,11 +323,21 @@ text-align: justify;
 <div class="toc">
 <ul>
 <li><a href="#ateams">ATEAMS</a></li>
+<li><a href="#example-use">Example Use</a></li>
 <li><a href="#installation">Installation</a><ul>
-<li><a href="#notes">Notes:</a></li>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#installing-ateams">Installing ATEAMS</a></li>
+<li><a href="#dependencies">Dependencies</a><ul>
+<li><a href="#installing-gmp">Installing GMP</a></li>
+<li><a href="#installing-openblas">Installing OpenBLAS</a></li>
+<li><a href="#installing-givaro">Installing Givaro</a></li>
+<li><a href="#installing-fflas-ffpack">Installing fflas-ffpack</a></li>
+<li><a href="#installing-linbox">Installing LinBox</a></li>
+<li><a href="#installing-phat">Installing PHAT</a></li>
 </ul>
 </li>
-<li><a href="#example-use">Example Use</a></li>
+</ul>
+</li>
 <li><a href="#contributing">Contributing</a></li>
 <li><a href="#citing">Citing</a><ul>
 <li><a href="#bibtex">BibTeX</a></li>
