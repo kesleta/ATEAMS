@@ -148,7 +148,7 @@ class Cubical:
 
 			# Construct indices, boundary matrix, and graph.
 			return self._construct(
-				corners, dimension, periodic, field, data
+				corners, periodic, field, data
 			)
 
 
