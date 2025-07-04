@@ -149,50 +149,17 @@ int dim(int index, Vector breaks) {
 	return i;
 }
 
+
 template <typename BalancedStorage>
 int youngestOf(BalancedStorage column) {
 	// Gets the "youngest" (largest-indexed) cell in the column.
 	return column.rbegin()->first;
 }
 
+
 int Mod2youngestOf(Set column) {
 	// Gets the "youngest" (largest-indexed) cell in the column.
 	return *column.rbegin();
-}
-
-
-void printMap(Map column) {
-	cout << "{" << endl;
-	for (auto it = column.begin(); it != column.end(); ++it) {
-		cout << "\t" << it->first << ": " << it->second << endl;
-	}
-	cout << "}" << endl;
-}
-
-
-void printColumn(Column column) {
-	cout << "{" << endl;
-	for (auto it = column.begin(); it != column.end(); ++it) {
-		cout << "\t" << it->first << ": " << it->second << endl;
-	}
-	cout << "}" << endl;
-}
-
-void printSet(Set S) {
-	cout << "{";
-	for (auto it = S.begin(); it != S.end(); ++it) {
-		cout << *it << ", ";
-	}
-	cout << "}" << endl;
-}
-
-
-void printBoundary(Vector boundary) {
-	cout << "[" << endl;
-	for (int i=0; i < boundary.size(); i+=3) {
-		cout << "  [ " << boundary[i] << " " << boundary[i+1] << " " << boundary[i+2] << " ]" << endl;
-	}
-	cout << "]" << endl;
 }
 
 
@@ -260,9 +227,9 @@ Set Mod2ComputePercolationEvents(
 
 		high = (d+1 >= numBreaks ? cellCount : breaks[d+1]);
 
-		for (int j = breaks[homology]; j < high; j++) {
+		for (int j = breaks[d]; j < high; j++) {
 			// If we're of the wrong dimension, keep going.
-			if (dim(j, breaks) != d) { continue; }
+			// if (dim(j, breaks) != d) { continue; }
 			cell = Boundary[j];
 
 			while (!cell.empty() && nextColumnAdded[Mod2youngestOf(cell)] != 0) {
