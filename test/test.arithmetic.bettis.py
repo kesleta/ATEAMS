@@ -1,6 +1,6 @@
 
 from ateams.arithmetic import Persistence, FINT
-from ateams.complex import Lattice
+from ateams.complexes import Cubical
 from galois import GF
 from math import comb as combinations
 from random import choice
@@ -13,7 +13,7 @@ F = 3
 # Number of trials.
 SCALE = 4
 DIMENSION = 4
-LATTICES = [Lattice().fromCorners([SCALE]*d, field=F) for d in range(2, DIMENSION+1)]
+LATTICES = [Cubical().fromCorners([SCALE]*d, field=F) for d in range(2, DIMENSION+1)]
 SUBCOMPLEXES = 20
 
 DESC = (f"          SPARSE, SERIAL").ljust(30)

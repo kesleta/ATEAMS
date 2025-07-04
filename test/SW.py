@@ -1,7 +1,7 @@
 
-from ateams.complex import Lattice
-from ateams.model import SwendsenWang
-from ateams.stats import constant, critical
+from ateams.complexes import Cubical
+from ateams.models import SwendsenWang
+from ateams.statistics import constant, critical
 from ateams import Chain
 import json
 
@@ -9,11 +9,11 @@ import json
 def construct(L, sparse, parallel, minBlockSize, maxBlockSize, cores, LinBox):
 	# Construct lattice object.
 	field = 3
-	L = Lattice().fromCorners([L]*4, dimension=2, field=field)
+	L = Cubical().fromCorners([L]*4, field=field)
 
 	# Set up Model and Chain.
-	T = critical(L.field.characteristic)
-	SW = SwendsenWang(L, temperatureFunction=lambda t: -T(t), sparse=sparse, parallel=parallel, minBlockSize=minBlockSize, maxBlockSize=maxBlockSize, cores=cores, LinBox=LinBox)
+	T = critical(L.field)
+	SW = SwendsenWang(L, dimension=2, temperature=lambda t: -T(t))
 	N = 20
 	M = Chain(SW, steps=N)
 

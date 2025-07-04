@@ -1,6 +1,6 @@
 
-from ateams.complex import Lattice
-from ateams.model import InvadedCluster
+from ateams.complexes import Cubical
+from ateams.models import InvadedCluster
 from ateams import Chain
 import json
 
@@ -8,11 +8,11 @@ import json
 def construct(L, sparse, parallel, minBlockSize, maxBlockSize, cores):
 	# Construct lattice object.
 	field = 3
-	L = Lattice().fromCorners([L]*4, dimension=3, field=field)
+	L = Cubical().fromCorners([L]*4, field=field)
 
 	# Set up Model and Chain.
 	homology = 2
-	SW = InvadedCluster(L, homology=homology, sparse=sparse, parallel=parallel, minBlockSize=minBlockSize, maxBlockSize=maxBlockSize, cores=cores)
+	SW = InvadedCluster(L, dimension=homology)
 	N = 20
 	M = Chain(SW, steps=N)
 

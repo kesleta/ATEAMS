@@ -18,6 +18,7 @@ try:
     slurm = bool(int(sys.argv[-1]))
 except:
     L = 3
+    LinBox=True
     sparse = False
     parallel = False
     minBlockSize = 32

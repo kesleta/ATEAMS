@@ -15,7 +15,7 @@ Clone this repository by `git clone https://github.com/apizzimenti/ateams.git`, 
 
 ## Example Use
 
-Simulating the $1$-dimensional plaquette random cluster model on a $ 10 \times 10 \times 10 $ cubical $3$-torus with coefficients in the finite field $\mathbb F_3$ looks like:
+Simulating the $1$-dimensional plaquette random cluster model on a $10 \times 10 \times 10$ cubical $3$-torus with coefficients in the finite field $\mathbb F_3$ looks like:
 
 ```python
 from ateams.complexes import Cubical
@@ -29,7 +29,7 @@ for (spins, occupied, satisfied) in Chain(IC, steps=10):
     <do whatever>
 ```
 
-and the $2$-dimensional plaquette Swendsen-Wang algorithm at criticality on a scale-$12$ cubical $4$-torus with coefficients in $\mathbb F_5$ looks like
+and the $2$-dimensional plaquette Swendsen-Wang algorithm at criticality on a scale $12$ cubical $4$-torus with coefficients in $\mathbb F_5$ looks like
 
 ```python
 from ateams.complexes import Cubical

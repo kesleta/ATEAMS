@@ -41,7 +41,7 @@ hljs.highlightAll();
 <li>For C++ support, you must install GMP, OpenBLAS (or another BLAS library), Givaro, fflas-ffpack, and LinBox. In general, the auto-installation tools provided by LinBox do not work, so these installations will have to be done manually. It is horrible.</li>
 </ul>
 <h2 id="example-use">Example Use</h2>
-<p>Simulating the $1$-dimensional plaquette random cluster model on a $ 10 \times 10 \times 10 $ cubical $3$-torus with coefficients in the finite field $\mathbb F_3$ looks like:</p>
+<p>Simulating the $1$-dimensional plaquette random cluster model on a $10 \times 10 \times 10$ cubical $3$-torus with coefficients in the finite field $\mathbb F_3$ looks like:</p>
 <pre><code class="language-python">from ateams.complexes import Cubical
 from ateams.models import InvadedCluster
 from ateams import Chain
@@ -52,7 +52,7 @@ IC = InvadedCluster(complex, dimension=1)
 for (spins, occupied, satisfied) in Chain(IC, steps=10):
     &lt;do whatever&gt;
 </code></pre>
-<p>and the $2$-dimensional plaquette Swendsen-Wang algorithm at criticality on a scale-$12$ cubical $4$-torus with coefficients in $\mathbb F_5$ looks like</p>
+<p>and the $2$-dimensional plaquette Swendsen-Wang algorithm at criticality on a scale $12$ cubical $4$-torus with coefficients in $\mathbb F_5$ looks like</p>
 <pre><code class="language-python">from ateams.complexes import Cubical
 from ateams.models import SwendsenWang
 from ateams.statistics import critical

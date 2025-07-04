@@ -18,7 +18,7 @@ try:
     cores = int(sys.argv[-2])
     slurm = bool(int(sys.argv[-1]))
 except:
-    LinBox = False
+    LinBox = True
     L = 5
     sparse = False
     parallel = False
