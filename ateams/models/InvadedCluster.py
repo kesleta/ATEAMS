@@ -204,7 +204,7 @@ class InvadedCluster(Model):
 		Computes an initial state for the model's Lattice.
 
 		Returns:
-			A Galois `Array` representing a vector of spin assignments.
+			A numpy `np.array` representing a vector of spin assignments.
 		"""
 		return self.RNG.integers(
 			0, high=self.complex.field, dtype=FINT, size=self.faces
@@ -251,7 +251,7 @@ class InvadedCluster(Model):
 		Updates mappings from faces to spins and cubes to occupations.
 
 		Args:
-			cocycle (galois.FieldArray): Cocycle on the sublattice.
+			cocycle (np.array): Cocycle on the sublattice.
 		
 		Returns:
 			Nothing.

@@ -175,7 +175,7 @@ class Nienhuis(Model):
 		Updates mappings from faces to spins and cubes to occupations.
 
 		Args:
-			cocycle (galois.FieldArray): Cocycle on the sublattice.
+			cocycle (np.array): Cocycle on the sublattice.
 		
 		Returns:
 			None.

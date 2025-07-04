@@ -39,7 +39,7 @@ hljs.highlightAll();
 <dl>
 <dt id="ateams.models.Glauber"><code class="flex name class">
 <span>class <span class="ident">Glauber</span></span>
-<span>(</span><span>C, temperature=&lt;function constant.&lt;locals&gt;._&gt;, initial=None)</span>
+<span>(</span><span>C,<br>dimension=1,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes Glauber dynamics on the Potts model.</p>
@@ -47,6 +47,8 @@ hljs.highlightAll();
 <dl>
 <dt><strong><code>C</code></strong></dt>
 <dd>The <code>Lattice</code> object on which we'll be running experiments.</dd>
+<dt><strong><code>dimension</code></strong> :&ensp;<code>int=1</code></dt>
+<dd>Dimension on which we'll be building experiments.</dd>
 <dt><strong><code>temperature</code></strong> :&ensp;<code>Callable</code></dt>
 <dd>A temperature schedule function which
 takes a single positive integer argument <code>t</code>, and returns the
@@ -62,25 +64,27 @@ scheduled temperature at time <code>t</code>.</dd>
         name = &#34;Glauber&#34;
         
         def __init__(
-                        self, C, temperature=constant(-0.6), initial=None
+                        self, C, dimension=1, temperature=constant(-0.6), initial=None
                 ):
                 &#34;&#34;&#34;
                 Initializes Glauber dynamics on the Potts model.
 
                 Args:
                         C: The `Lattice` object on which we&#39;ll be running experiments.
+                        dimension (int=1): Dimension on which we&#39;ll be building experiments.
                         temperature (Callable): A temperature schedule function which
                                 takes a single positive integer argument `t`, and returns the
                                 scheduled temperature at time `t`.
                         initial (np.ndarray): A vector of spin assignments to components.
                 &#34;&#34;&#34;
                 self.complex = C
+                self.dimension = dimension
                 self.temperature = temperature
 
                 # Useful values to have later.
-                self.cells = len(self.complex.Boundary[self.complex.dimension])
-                self.faces = len(self.complex.Boundary[self.complex.dimension-1])
-                self.orientations = np.tile([-1,1], self.complex.dimension).astype(FINT)
+                self.cells = len(self.complex.Boundary[self.dimension])
+                self.faces = len(self.complex.Boundary[self.dimension-1])
+                self.orientations = np.tile([-1,1], self.dimension).astype(FINT)
                 self.closed = 1
 
                 # Seed the random number generator.
@@ -96,7 +100,7 @@ scheduled temperature at time <code>t</code>.</dd>
                 Computes an initial state for the model&#39;s Lattice.
 
                 Returns:
-                        A Galois `Array` representing a vector of spin assignments.
+                        A numpy `np.array` representing a vector of spin assignments.
                 &#34;&#34;&#34;
                 return self.RNG.integers(
                         0, high=self.complex.field, dtype=MINT, size=self.faces
@@ -120,7 +124,7 @@ scheduled temperature at time <code>t</code>.</dd>
                 flip = self.RNG.integers(self.faces)
                 spins[flip] = (self.RNG.integers(self.complex.field, dtype=FINT))
 
-                boundary = self.complex.Boundary[self.complex.dimension]
+                boundary = self.complex.Boundary[self.dimension]
                 q = self.complex.field
 
                 # Evaluate the current spin assignment (cochain).
@@ -144,7 +148,7 @@ scheduled temperature at time <code>t</code>.</dd>
                         self.open = opens
                         self.spins = spins
 
-                satisfied = np.zeros(self.faces, dtype=FINT)
+                satisfied = np.zeros(self.cells, dtype=FINT)
                 satisfied[self.open] = 1
 
                 return self.spins, satisfied
@@ -155,7 +159,7 @@ scheduled temperature at time <code>t</code>.</dd>
                 Updates mappings from faces to spins and cubes to occupations.
                 
                 Args:
-                        cochain (galois.FieldArray): Cochain on the lattice.
+                        cochain (np.array): Cochain on the lattice.
                 
                 Returns:
                         None.
@@ -182,7 +186,7 @@ scheduled temperature at time <code>t</code>.</dd>
 <div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>cochain</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dt><strong><code>cochain</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>Cochain on the lattice.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -194,7 +198,7 @@ scheduled temperature at time <code>t</code>.</dd>
 <dd>
 <div class="desc"><p>Computes an initial state for the model's Lattice.</p>
 <h2 id="returns">Returns</h2>
-<p>A Galois <code>Array</code> representing a vector of spin assignments.</p></div>
+<p>A numpy <code>np.array</code> representing a vector of spin assignments.</p></div>
 </dd>
 <dt id="ateams.models.Glauber.proposal"><code class="name flex">
 <span>def <span class="ident">proposal</span></span>(<span>self, time)</span>
@@ -443,7 +447,7 @@ number of columns processed in parallel.</dd>
                 Computes an initial state for the model&#39;s Lattice.
 
                 Returns:
-                        A Galois `Array` representing a vector of spin assignments.
+                        A numpy `np.array` representing a vector of spin assignments.
                 &#34;&#34;&#34;
                 return self.RNG.integers(
                         0, high=self.complex.field, dtype=FINT, size=self.faces
@@ -490,7 +494,7 @@ number of columns processed in parallel.</dd>
                 Updates mappings from faces to spins and cubes to occupations.
 
                 Args:
-                        cocycle (galois.FieldArray): Cocycle on the sublattice.
+                        cocycle (np.array): Cocycle on the sublattice.
                 
                 Returns:
                         Nothing.
@@ -517,7 +521,7 @@ number of columns processed in parallel.</dd>
 <div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>cocycle</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dt><strong><code>cocycle</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>Cocycle on the sublattice.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -535,7 +539,7 @@ number of columns processed in parallel.</dd>
 <dd>
 <div class="desc"><p>Computes an initial state for the model's Lattice.</p>
 <h2 id="returns">Returns</h2>
-<p>A Galois <code>Array</code> representing a vector of spin assignments.</p></div>
+<p>A numpy <code>np.array</code> representing a vector of spin assignments.</p></div>
 </dd>
 <dt id="ateams.models.InvadedCluster.proposal"><code class="name flex">
 <span>def <span class="ident">proposal</span></span>(<span>self, time)</span>
@@ -761,7 +765,7 @@ number of columns processed in parallel.</dd>
                 Updates mappings from faces to spins and cubes to occupations.
 
                 Args:
-                        cocycle (galois.FieldArray): Cocycle on the sublattice.
+                        cocycle (np.array): Cocycle on the sublattice.
                 
                 Returns:
                         None.
@@ -788,7 +792,7 @@ number of columns processed in parallel.</dd>
 <div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>cocycle</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dt><strong><code>cocycle</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>Cocycle on the sublattice.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -955,7 +959,7 @@ number of columns processed in parallel.</dd>
                 Computes an initial state for the model&#39;s Lattice.
 
                 Returns:
-                        A Galois `Array` representing a vector of spin assignments.
+                        A numpy `np.array` representing a vector of spin assignments.
                 &#34;&#34;&#34;
                 return self.RNG.integers(
                         0, high=self.complex.field, dtype=FINT, size=self.faces
@@ -1003,7 +1007,7 @@ number of columns processed in parallel.</dd>
                 Updates mappings from faces to spins and cubes to occupations.
 
                 Args:
-                        cocycle (galois.FieldArray): Cocycle on the sublattice.
+                        cocycle (np.array): Cocycle on the sublattice.
                 
                 Returns:
                         None.
@@ -1030,7 +1034,7 @@ number of columns processed in parallel.</dd>
 <div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>cocycle</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dt><strong><code>cocycle</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>Cocycle on the sublattice.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -1042,7 +1046,7 @@ number of columns processed in parallel.</dd>
 <dd>
 <div class="desc"><p>Computes an initial state for the model's Lattice.</p>
 <h2 id="returns">Returns</h2>
-<p>A Galois <code>Array</code> representing a vector of spin assignments.</p></div>
+<p>A numpy <code>np.array</code> representing a vector of spin assignments.</p></div>
 </dd>
 <dt id="ateams.models.SwendsenWang.proposal"><code class="name flex">
 <span>def <span class="ident">proposal</span></span>(<span>self, time)</span>
@@ -1083,8 +1087,8 @@ proof.appendChild(square);
 <style>
 header > h1 { display: none; }
 img.resize {
-min-width: 15vw;
-max-width: 23vw;
+min-width: 10vw;
+max-width: 15vw;
 display: block;
 margin: 0 auto;
 }
@@ -1109,6 +1113,11 @@ margin-top: 0;
 }
 #content {
 text-align: justify;
+}
+#sidebar {
+width: 20vw;
+font-size: 1rem;
+scrollbar-width: none;
 }
 </style>
 <img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">

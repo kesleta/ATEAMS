@@ -103,7 +103,7 @@ scheduled temperature at time <code>t</code>.</dd>
                 Computes an initial state for the model&#39;s Lattice.
 
                 Returns:
-                        A Galois `Array` representing a vector of spin assignments.
+                        A numpy `np.array` representing a vector of spin assignments.
                 &#34;&#34;&#34;
                 return self.RNG.integers(
                         0, high=self.complex.field, dtype=MINT, size=self.faces
@@ -162,7 +162,7 @@ scheduled temperature at time <code>t</code>.</dd>
                 Updates mappings from faces to spins and cubes to occupations.
                 
                 Args:
-                        cochain (galois.FieldArray): Cochain on the lattice.
+                        cochain (np.array): Cochain on the lattice.
                 
                 Returns:
                         None.
@@ -189,7 +189,7 @@ scheduled temperature at time <code>t</code>.</dd>
 <div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>cochain</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dt><strong><code>cochain</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>Cochain on the lattice.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -450,7 +450,7 @@ number of columns processed in parallel.</dd>
                 Computes an initial state for the model&#39;s Lattice.
 
                 Returns:
-                        A Galois `Array` representing a vector of spin assignments.
+                        A numpy `np.array` representing a vector of spin assignments.
                 &#34;&#34;&#34;
                 return self.RNG.integers(
                         0, high=self.complex.field, dtype=FINT, size=self.faces
@@ -497,7 +497,7 @@ number of columns processed in parallel.</dd>
                 Updates mappings from faces to spins and cubes to occupations.
 
                 Args:
-                        cocycle (galois.FieldArray): Cocycle on the sublattice.
+                        cocycle (np.array): Cocycle on the sublattice.
                 
                 Returns:
                         Nothing.
@@ -524,7 +524,7 @@ number of columns processed in parallel.</dd>
 <div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>cocycle</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dt><strong><code>cocycle</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>Cocycle on the sublattice.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -702,7 +702,7 @@ number of columns processed in parallel.</dd>
                 Computes an initial state for the model&#39;s Lattice.
 
                 Returns:
-                        A Galois `Array` representing a vector of spin assignments.
+                        A numpy `np.array` representing a vector of spin assignments.
                 &#34;&#34;&#34;
                 return self.RNG.integers(
                         0, high=self.complex.field, dtype=FINT, size=self.faces
@@ -750,7 +750,7 @@ number of columns processed in parallel.</dd>
                 Updates mappings from faces to spins and cubes to occupations.
 
                 Args:
-                        cocycle (galois.FieldArray): Cocycle on the sublattice.
+                        cocycle (np.array): Cocycle on the sublattice.
                 
                 Returns:
                         None.
@@ -777,7 +777,7 @@ number of columns processed in parallel.</dd>
 <div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>cocycle</code></strong> :&ensp;<code>galois.FieldArray</code></dt>
+<dt><strong><code>cocycle</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>Cocycle on the sublattice.</dd>
 </dl>
 <h2 id="returns">Returns</h2>

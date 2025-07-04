@@ -2,8 +2,6 @@
 from setuptools import setup, Extension
 from Cython.Build import cythonize
 from Cython.Compiler.Options import get_directive_defaults as GDD
-from Cython.Compiler import Options
-import os
 import numpy
 
 #########################

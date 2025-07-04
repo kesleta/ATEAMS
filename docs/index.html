@@ -81,7 +81,41 @@ for (spins, occupied, satisfied) in Chain(HP, steps=10).progress():
 <li>Navigate into the ATEAMS directory.</li>
 <li>Run <code>make install</code>.</li>
 </ol>
-<p>Clone this repository by <code>git clone https://github.com/apizzimenti/ateams.git</code>, navigate into the project's root, and run <code>make install</code> in your favorite terminal. This installs the <code><a title="ateams" href="#ateams">ateams</a></code> package (and its dependencies) globally in development mode, so any changes you make to the source are reflected system-wide.</p>
+<p>In summary,</p>
+<pre><code>$ git clone https://github.com/apizzimenti/ATEAMS.git
+  ...
+
+$ cd ATEAMS
+$ make install
+</code></pre>
+<p><strong>Should you run into errors,</strong> the <code>make install</code> recipe performs the following operations in the order they're listed:</p>
+<ol>
+<li>Attempts to compile the Python $\leftrightarrow$ Cython $\leftrightarrow$ LinBox C++ interface at <code>ATEAMS/ateams/arithmetic/LinBoxMethods.cpp</code>, building it as a shared library and storing it at <code>/usr/local/lib/libLinBoxMethods.so</code>.</li>
+<li>Attempts to compile the Cython components of ATEAMS.</li>
+<li>Attempts to install PHAT.</li>
+<li>Runs <code>setup.py</code> and installs the ATEAMS package as a local development package, so it is importable system-wide.</li>
+<li>Tests arithmetic and profiles the four main models of the library in varying configurations.</li>
+<li>Builds local documentation.</li>
+</ol>
+<p><strong>Done manually, these steps are:</strong></p>
+<pre><code>$ sudo clang++ `pkg-config --libs linbox` -shared -fPIC -std=c++17 -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp -v -O3 -ffast-math
+  ...
+
+$ python setup.py build_ext --inplace &gt; build.log 2&gt;&amp;1 
+$ pip install pybind11 wheel setuptools
+$ pip install --use-deprecated=legacy-resolver --no-binary :all: phat
+$ python setup.py develop
+  ...
+
+$ cd test &amp;&amp; ./test.arithmetic.matrices.sh
+$ cd test &amp;&amp; ./test.arithmetic.bettis.sh
+$ cd test &amp;&amp; ./profile.models.NH.sh 99 102 32 64 2
+$ cd test &amp;&amp; ./profile.models.SW.sh 7 11 32 64 2
+$ cd test &amp;&amp; ./profile.models.IC.sh 3 5 32 64 2
+  ...
+
+$ ./docs.sh
+</code></pre>
 <h3 id="dependencies">Dependencies</h3>
 <p>ATEAMS relies on <a href="https://github.com/apizzimenti/linbox">LinBox</a> — this link goes to our GitHub fork of LinBox, which addresses a small matrix preconditioning bug; otherwise, the library is unchanged from <a href="https://github.com/linbox-team/linbox">its original source</a>. LinBox relies on <a href="https://github.com/linbox-team/fflas-ffpack">fflas-ffpack</a>, <a href="https://github.com/linbox-team/givaro">Givaro</a>, <a href="https://github.com/OpenMathLib/OpenBLAS">OpenBLAS</a>, and <a href="https://gmplib.org/">GMP</a>. <strong>It is recommended that you install these dependencies to make sure you get the most out of this toolkit.</strong></p>
 <h4 id="installing-gmp">Installing GMP</h4>
@@ -149,7 +183,7 @@ $ pkg-config --libs givaro
 <li>macOS:<ul>
 <li><code>--prefix=/usr/local</code></li>
 <li><code>--with-blas-libs="-framework Accelerate"</code></li>
-<li>(it's possible to use the <code>pkg-config</code> arguments to <code>--with-blas-libs</code> and <code>--with-blas-cflags</code> here, but the LinBox team reccomends using the Accelerate framework.)</li>
+<li>(it's possible to use the <code>pkg-config</code> arguments to <code>--with-blas-libs</code> and <code>--with-blas-cflags</code> here, but the LinBox team recommends using the Accelerate framework.)</li>
 </ul>
 </li>
 </ul>
@@ -220,6 +254,7 @@ $ pkg-config --libs linbox
 <pre><code>$ pip install PyBind11 wheel setuptools
 $ pip install --use-deprecated=legacy-resolver --no-binary :all: phat
 </code></pre>
+<p><strong>ATEAMS attempts to install PHAT whenever <code>make install</code> is executed.</strong></p>
 <h2 id="contributing">Contributing</h2>
 <ul>
 <li><strong>Do not push directly to this repository: use the pull request model.</strong></li>
@@ -289,8 +324,8 @@ proof.appendChild(square);
 <style>
 header > h1 { display: none; }
 img.resize {
-min-width: 15vw;
-max-width: 23vw;
+min-width: 10vw;
+max-width: 15vw;
 display: block;
 margin: 0 auto;
 }
@@ -315,6 +350,11 @@ margin-top: 0;
 }
 #content {
 text-align: justify;
+}
+#sidebar {
+width: 20vw;
+font-size: 1rem;
+scrollbar-width: none;
 }
 </style>
 <img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">

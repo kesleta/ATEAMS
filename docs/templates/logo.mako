@@ -23,8 +23,8 @@
             header > h1 { display: none; }
 
             img.resize {
-                min-width: 15vw;
-                max-width: 23vw;
+                min-width: 10vw;
+                max-width: 15vw;
                 display: block;
                 margin: 0 auto;
             }
@@ -55,6 +55,12 @@
 
             #content {
                 text-align: justify;
+            }
+
+            #sidebar {
+                width: 20vw;
+                font-size: 1rem;
+                scrollbar-width: none;
             }
         </style>
         <img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">

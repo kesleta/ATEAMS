@@ -1,7 +1,7 @@
 
 import numpy as np
 
-from ..common import MINT, FINT
+from ..common import MINT, FINT, Matrices
 from ..statistics import constant
 from .Model import Model
 
@@ -10,25 +10,27 @@ class Glauber(Model):
 	name = "Glauber"
 	
 	def __init__(
-			self, C, temperature=constant(-0.6), initial=None
+			self, C, dimension=1, temperature=constant(-0.6), initial=None
 		):
 		"""
 		Initializes Glauber dynamics on the Potts model.
 
 		Args:
 			C: The `Lattice` object on which we'll be running experiments.
+			dimension (int=1): Dimension on which we'll be building experiments.
 			temperature (Callable): A temperature schedule function which
 				takes a single positive integer argument `t`, and returns the
 				scheduled temperature at time `t`.
 			initial (np.ndarray): A vector of spin assignments to components.
 		"""
 		self.complex = C
+		self.dimension = dimension
 		self.temperature = temperature
 
 		# Useful values to have later.
-		self.cells = len(self.complex.Boundary[self.complex.dimension])
-		self.faces = len(self.complex.Boundary[self.complex.dimension-1])
-		self.orientations = np.tile([-1,1], self.complex.dimension).astype(FINT)
+		self.cells = len(self.complex.Boundary[self.dimension])
+		self.faces = len(self.complex.Boundary[self.dimension-1])
+		self.orientations = np.tile([-1,1], self.dimension).astype(FINT)
 		self.closed = 1
 
 		# Seed the random number generator.
@@ -44,7 +46,7 @@ class Glauber(Model):
 		Computes an initial state for the model's Lattice.
 
 		Returns:
-			A Galois `Array` representing a vector of spin assignments.
+			A numpy `np.array` representing a vector of spin assignments.
 		"""
 		return self.RNG.integers(
 			0, high=self.complex.field, dtype=MINT, size=self.faces
@@ -68,7 +70,7 @@ class Glauber(Model):
 		flip = self.RNG.integers(self.faces)
 		spins[flip] = (self.RNG.integers(self.complex.field, dtype=FINT))
 
-		boundary = self.complex.Boundary[self.complex.dimension]
+		boundary = self.complex.Boundary[self.dimension]
 		q = self.complex.field
 
 		# Evaluate the current spin assignment (cochain).
@@ -92,7 +94,7 @@ class Glauber(Model):
 			self.open = opens
 			self.spins = spins
 
-		satisfied = np.zeros(self.faces, dtype=FINT)
+		satisfied = np.zeros(self.cells, dtype=FINT)
 		satisfied[self.open] = 1
 
 		return self.spins, satisfied
@@ -103,7 +105,7 @@ class Glauber(Model):
 		Updates mappings from faces to spins and cubes to occupations.
 		
 		Args:
-			cochain (galois.FieldArray): Cochain on the lattice.
+			cochain (np.array): Cochain on the lattice.
 		
 		Returns:
 			None.
