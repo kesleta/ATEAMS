@@ -4,7 +4,7 @@ import warnings
 
 from ..arithmetic import LanczosKernelSample, KernelSample, MatrixReduction
 from ..common import MINT, FINT, Matrices, TooSmallWarning
-from ..stats import constant
+from ..statistics import constant
 from .Model import Model
 
 

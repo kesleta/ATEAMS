@@ -6,8 +6,7 @@
 .. include:: ./../README.md
 """
 
-from .Chain import Chain
-from .Tape import Player, Recorder
+from .statistics.Chain import Chain, Player, Recorder
 
 __pdoc__ = {}
 __pdoc__["ateams.viz"] = False

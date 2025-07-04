@@ -2,7 +2,7 @@
 import numpy as np
 
 from ..common import MINT, FINT
-from ..stats import constant
+from ..statistics import constant
 from .Model import Model
 
 
