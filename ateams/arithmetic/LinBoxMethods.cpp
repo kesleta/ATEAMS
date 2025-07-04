@@ -18,17 +18,12 @@ typedef LinBox::DenseVector<Field> FieldVector;
 
 bool containsNonzero(FieldVector X) {
 	// Check whether there are nonzero elements in the VVector.
-	bool contains = false;
-	int t = 0;
 
-	for (FieldVector::const_iterator it = X.begin(); it != X.end(); ++it) {
-		if (*it > 0) {
-			contains = true;
-			break;
-		}
+	for (auto it = X.begin(); it != X.end(); ++it) {
+		if (*it > 0) { return true; }
 	}
 
-	return contains;
+	return false;
 }
 
 
