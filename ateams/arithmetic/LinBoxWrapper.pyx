@@ -58,6 +58,67 @@ cdef Vector[int] ZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeros, int faces, int colu
 	return submatrix
 
 
+cdef Vector[int] SubZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeroRows, INDEXFLAT zeroColumns):
+	cdef int i, t, L, M, N;
+	cdef int cell, face;
+	cdef Vector[int] submatrix;
+	cdef Set[MINT] zeroRowSet, zeroColumnSet;
+	cdef Map[MINT, MINT] zeroRowMap, zeroColumnMap;
+
+	# Initialize the set/map for zero rows.
+	L = zeroRows.shape[0];
+
+	for i in range(L):
+		zeroRowSet.insert(zeroRows[i]);
+		zeroRowMap[zeroRows[i]] = i;
+	
+	# Do the same for columns.
+	L = zeroColumns.shape[0];
+
+	for i in range(L):
+		zeroColumnSet.insert(zeroColumns[i]);
+		zeroColumnMap[zeroColumns[i]] = i;
+
+	# Create the submatrix. Maybe could do some better memory allocation on this
+	# but that's a chore for later Anthony.
+	submatrix = Vector[int]();
+
+	for i in range(0, A.shape[0], 3):
+		cell = A[i];
+		face = A[i+1]
+
+		if zeroRowSet.contains(cell) and zeroColumnSet.contains(face):
+			submatrix.push_back(zeroRowMap[cell]);
+			submatrix.push_back(zeroColumnMap[face]);
+			submatrix.push_back(A[i+2]);
+
+	return submatrix
+
+
+cpdef Vector[int] SubLanczosKernelSample(
+		INDEXFLAT coboundary, INDEXFLAT zeroRows, INDEXFLAT zeroColumns,
+		int p, int maxTries=16
+	) noexcept:
+	"""
+	Uses the LinBox (Block?) Lanczos black-box solver to get a uniform
+	random element of the kernel of the coboundary.
+
+	Args:
+		coboundary: Memory-contiguous one-dimensional coboundary array,
+			like that of the `Cubical` Complex object.
+		zeros: Memory-contiguous array of row indices that will be included
+			in the coboundary submatrix.
+		p: Characteristic of the field \(\mathbb Z/p\mathbb Z\).
+		maxTries: How many times do we try to get a nonzero solution from
+			the black-box solver? Default is 16.
+
+	Returns:
+		A C++ `std::vector` with spin assignments.
+	"""
+	cdef Vector[int] submatrix = SubZeroSubmatrix(coboundary, zeroRows, zeroColumns);
+	return _LanczosKernelSample(submatrix, zeroRows.shape[0], zeroColumns.shape[0], p, maxTries);
+
+
 cpdef Vector[int] LanczosKernelSample(
 		INDEXFLAT coboundary, INDEXFLAT zeros, int faces, int columns, int p,
 		int maxTries=16

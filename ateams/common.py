@@ -19,3 +19,9 @@ class Matrices:
     coboundary = None
     full = None
 
+
+class Bunch(dict):
+    def __init__(self, **kwds):
+        self.update(kwds)
+        self.__dict__ = self
+

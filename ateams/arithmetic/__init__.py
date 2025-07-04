@@ -3,7 +3,7 @@ from ..common import FINT, SFINT, MINT
 from .Persistence import Persistence
 from .MatrixReduction import MatrixReduction
 from .BuiltinWrapper import Kernel, KernelSample
-from .LinBoxWrapper import LanczosKernelSample, ComputePercolationEvents
+from .LinBoxWrapper import LanczosKernelSample, ComputePercolationEvents, SubLanczosKernelSample
 
 
 __pdoc__ = {}
