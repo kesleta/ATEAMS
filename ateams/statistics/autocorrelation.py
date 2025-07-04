@@ -17,6 +17,7 @@ def autocorrelation(data):
 	M = data.shape[0]
 
 	autocorrs = np.empty(M)
-	for t in range(M): autocorrs[t] = np.dot(normalized[:t], normalized[:M-t])*(1/M)
+	for t in range(M): autocorrs[t] = np.dot(normalized[t:], normalized[:M-t])*(1/M)
 
 	return autocorrs/autocorrs[0]
+
