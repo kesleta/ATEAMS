@@ -59,7 +59,7 @@ cdef Vector[int] ZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeros, int faces, int colu
 
 
 cpdef Vector[int] LanczosKernelSample(
-		INDEXFLAT coboundary, INDEXFLAT zeros, int faces, int columns, int field,
+		INDEXFLAT coboundary, INDEXFLAT zeros, int faces, int columns, int p,
 		int maxTries=16
 	) noexcept:
 	"""
@@ -74,8 +74,7 @@ cpdef Vector[int] LanczosKernelSample(
 		faces: The number of faces per plaquette.
 		columns: Integer representing the number of columns in the coboundary
 			submatrix; should be the total number of faces in the complex.
-		field: Integer representing the characteristic of the finite field
-			over which computations are done.
+		p: Characteristic of the field \(\mathbb Z/p\mathbb Z\).
 		maxTries: How many times do we try to get a nonzero solution from
 			the black-box solver? Default is 16.
 
@@ -83,14 +82,14 @@ cpdef Vector[int] LanczosKernelSample(
 		A C++ `std::vector` with spin assignments.
 	"""
 	cdef Vector[int] submatrix = ZeroSubmatrix(coboundary, zeros, faces, columns);
-	return _LanczosKernelSample(submatrix, zeros.shape[0], columns, field, maxTries);
+	return _LanczosKernelSample(submatrix, zeros.shape[0], columns, p, maxTries);
 
 
 cpdef Set[int] ComputePercolationEvents(INDEXFLAT boundary, INDEXFLAT filtration, int homology, int p, INDEXFLAT breaks) noexcept:
 	"""
 	Uses a variant of the Chen/Kerber (2011) and PHAT (2017) twist_reduce algorithm
 	to compute the persistent homology of the complex specified by the flat boundary
-	matrix and the filtration, over the field \(\mathbb{Z}/p\mathbb{Z}\).
+	matrix and the filtration over the field \(\mathbb{Z}/p\mathbb{Z}\).
 
 	Args:
 		boundary: Full boundary matrix (i.e. `Cubical.matrices.full`).

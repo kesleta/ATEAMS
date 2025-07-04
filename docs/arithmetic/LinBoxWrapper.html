@@ -41,7 +41,7 @@ hljs.highlightAll();
 <dd>
 <div class="desc"><p>Uses a variant of the Chen/Kerber (2011) and PHAT (2017) twist_reduce algorithm
 to compute the persistent homology of the complex specified by the flat boundary
-matrix and the filtration, over the field <span><span class="MathJax_Preview">\mathbb{Z}/p\mathbb{Z}</span><script type="math/tex">\mathbb{Z}/p\mathbb{Z}</script></span>.</p>
+matrix and the filtration over the field <span><span class="MathJax_Preview">\mathbb{Z}/p\mathbb{Z}</span><script type="math/tex">\mathbb{Z}/p\mathbb{Z}</script></span>.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>boundary</code></strong></dt>
@@ -59,7 +59,7 @@ in order of dimension.</dd>
 </dl></div>
 </dd>
 <dt id="ateams.arithmetic.LinBoxWrapper.LanczosKernelSample"><code class="name flex">
-<span>def <span class="ident">LanczosKernelSample</span></span>(<span>coboundary, zeros, faces, columns, field, maxTries=16)</span>
+<span>def <span class="ident">LanczosKernelSample</span></span>(<span>coboundary, zeros, faces, columns, p, maxTries=16)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Uses the LinBox (Block?) Lanczos black-box solver to get a uniform
@@ -77,9 +77,8 @@ in the coboundary submatrix.</dd>
 <dt><strong><code>columns</code></strong></dt>
 <dd>Integer representing the number of columns in the coboundary
 submatrix; should be the total number of faces in the complex.</dd>
-<dt><strong><code>field</code></strong></dt>
-<dd>Integer representing the characteristic of the finite field
-over which computations are done.</dd>
+<dt><strong><code>p</code></strong></dt>
+<dd>Characteristic of the field <span><span class="MathJax_Preview">\mathbb Z/p\mathbb Z</span><script type="math/tex">\mathbb Z/p\mathbb Z</script></span>.</dd>
 <dt><strong><code>maxTries</code></strong></dt>
 <dd>How many times do we try to get a nonzero solution from
 the black-box solver? Default is 16.</dd>

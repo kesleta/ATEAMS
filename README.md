@@ -22,10 +22,25 @@ from ateams.complexes import Cubical
 from ateams.models import InvadedCluster
 from ateams import Chain
 
-L = Lattice().fromCorners([10,10,10], field=3)
-HP = InvadedCluster(L, homology=1)
+complex = Cubical().fromCorners([10]*3, field=3)
+IC = InvadedCluster(complex, dimension=1)
 
-for (spins, occupied, satisfied) in Chain(HP, steps=10):
+for (spins, occupied, satisfied) in Chain(IC, steps=10):
+    <do whatever>
+```
+
+and the $2$-dimensional plaquette Swendsen-Wang algorithm at criticality on a scale-$12$ cubical $4$-torus with coefficients in $\mathbb F_5$ looks like
+
+```python
+from ateams.complexes import Cubical
+from ateams.models import SwendsenWang
+from ateams.statistics import critical
+from ateams import Chain
+
+complex = Cubical().fromCorners([12]*4, field=5)
+SW = SwendsenWang(complex, dimension=2, temperature=critical(complex.field))
+
+for (spins, occupied, satisfied) in Chain(SW, steps=10):
     <do whatever>
 ```
 
