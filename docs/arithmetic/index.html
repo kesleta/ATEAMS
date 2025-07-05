@@ -39,6 +39,10 @@ hljs.highlightAll();
 <dd>
 <div class="desc"></div>
 </dd>
+<dt><code class="name"><a title="ateams.arithmetic.PHATWrapper" href="PHATWrapper.html">ateams.arithmetic.PHATWrapper</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 </dl>
 </section>
 <section>
@@ -68,6 +72,31 @@ in order of dimension.</dd>
 <dt><strong><code>breaks</code></strong></dt>
 <dd>Index locations for cells of each degree (i.e. <code>Cubical.breaks</code>).</dd>
 </dl></div>
+</dd>
+<dt id="ateams.arithmetic.ComputePersistencePairs"><code class="name flex">
+<span>def <span class="ident">ComputePersistencePairs</span></span>(<span>boundary, filtration, homology, breaks)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the persistence pairs of the complex corresponding to the provided
+boundary matrix and filtration.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>boundary</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>Flattened boundary matrix given by <code>Complex.matrices.full</code>.</dd>
+<dt><strong><code>filtration</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>Permutation on the order of the columns of the
+boundary matrix. <strong>Here, we assume that only cells of dimension <code>homology</code>
+are being permuted. Shuffling the order of cells of different
+dimensions will result in incorrect computations.</strong></dd>
+<dt><strong><code>homology</code></strong> :&ensp;<code>int</code></dt>
+<dd>Homology group we're interested in; corresponds to the
+dimension of permuted cells.</dd>
+<dt><strong><code>breaks</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>Index ranges for cells by dimension, given by
+<code>Complex.breaks</code>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A list of [birth, death] pairs.</p></div>
 </dd>
 <dt id="ateams.arithmetic.Kernel"><code class="name flex">
 <span>def <span class="ident">Kernel</span></span>(<span>M, A)</span>
@@ -121,6 +150,29 @@ in the coboundary submatrix.</dd>
 <dt><strong><code>columns</code></strong></dt>
 <dd>Integer representing the number of columns in the coboundary
 submatrix; should be the total number of faces in the complex.</dd>
+<dt><strong><code>p</code></strong></dt>
+<dd>Characteristic of the field <span><span class="MathJax_Preview">\mathbb Z/p\mathbb Z</span><script type="math/tex">\mathbb Z/p\mathbb Z</script></span>.</dd>
+<dt><strong><code>maxTries</code></strong></dt>
+<dd>How many times do we try to get a nonzero solution from
+the black-box solver? Default is 16.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A C++ <code>std::vector</code> with spin assignments.</p></div>
+</dd>
+<dt id="ateams.arithmetic.SubLanczosKernelSample"><code class="name flex">
+<span>def <span class="ident">SubLanczosKernelSample</span></span>(<span>coboundary, zeroRows, zeroColumns, p, maxTries=16)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Uses the LinBox (Block?) Lanczos black-box solver to get a uniform
+random element of the kernel of the coboundary.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>coboundary</code></strong></dt>
+<dd>Memory-contiguous one-dimensional coboundary array,
+like that of the <code>Cubical</code> Complex object.</dd>
+<dt><strong><code>zeros</code></strong></dt>
+<dd>Memory-contiguous array of row indices that will be included
+in the coboundary submatrix.</dd>
 <dt><strong><code>p</code></strong></dt>
 <dd>Characteristic of the field <span><span class="MathJax_Preview">\mathbb Z/p\mathbb Z</span><script type="math/tex">\mathbb Z/p\mathbb Z</script></span>.</dd>
 <dt><strong><code>maxTries</code></strong></dt>
@@ -463,14 +515,17 @@ scrollbar-width: none;
 <ul>
 <li><code><a title="ateams.arithmetic.BuiltinWrapper" href="BuiltinWrapper.html">ateams.arithmetic.BuiltinWrapper</a></code></li>
 <li><code><a title="ateams.arithmetic.LinBoxWrapper" href="LinBoxWrapper.html">ateams.arithmetic.LinBoxWrapper</a></code></li>
+<li><code><a title="ateams.arithmetic.PHATWrapper" href="PHATWrapper.html">ateams.arithmetic.PHATWrapper</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="ateams.arithmetic.ComputePercolationEvents" href="#ateams.arithmetic.ComputePercolationEvents">ComputePercolationEvents</a></code></li>
+<li><code><a title="ateams.arithmetic.ComputePersistencePairs" href="#ateams.arithmetic.ComputePersistencePairs">ComputePersistencePairs</a></code></li>
 <li><code><a title="ateams.arithmetic.Kernel" href="#ateams.arithmetic.Kernel">Kernel</a></code></li>
 <li><code><a title="ateams.arithmetic.KernelSample" href="#ateams.arithmetic.KernelSample">KernelSample</a></code></li>
 <li><code><a title="ateams.arithmetic.LanczosKernelSample" href="#ateams.arithmetic.LanczosKernelSample">LanczosKernelSample</a></code></li>
+<li><code><a title="ateams.arithmetic.SubLanczosKernelSample" href="#ateams.arithmetic.SubLanczosKernelSample">SubLanczosKernelSample</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

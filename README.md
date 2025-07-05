@@ -255,19 +255,7 @@ $ pkg-config --libs linbox
 
 #### PHAT
 
-The [Persistent Homology Algorithms Toolbox (PHAT)](https://bitbucket.org/phat-code/phat) provides Python bindings, which ATEAMS uses when computing over the finite field $\mathbb Z / 2\mathbb Z$. The bindings are built with PyBind11, and are distributed using an older version of pip. To build PHAT,
-
-1. Install PyBind11, wheel, and setuptools.
-2. Pip install with a deprecated dependency resolver.
-
-In summary,
-
-```
-$ pip install PyBind11 wheel setuptools
-$ pip install --use-deprecated=legacy-resolver --no-binary :all: phat
-```
-
-**ATEAMS attempts to install PHAT whenever `make install` is executed.**
+We use the [Persistent Homology Algorithms Toolbox (PHAT)](https://bitbucket.org/phat-code/phat) to compute persistence over $\mathbb Z/2\mathbb Z$. Included in the `ATEAMS/ateams/arithmetic/include/PHAT` folder are all the header files for the PHAT library (as of writing) which will be copied to `/usr/local/include/phat` whenever `make install` (or `make PHAT`) is executed. We build an additional C++ interface in `PHATMethods.cpp`, which is linked against by the Cython compiler and made available to the Python modules in the library --- specifically, native PHAT lets us remarkably speed up persistence computation in the `Bernoulli` and `InvadedCluster` models.
 
 ## Contributing
 
