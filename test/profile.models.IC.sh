@@ -32,7 +32,7 @@ for ((L=$start; L<$stop; L++)); do
 	echo
 done
 
-echo -e "A test $fg[red]FAIL$reset_color typically results from small system size or small field characteristic."
+echo -e "A test $fg[red]FAIL$reset_color typically results from small system size, small field characteristic, or a poorly conditioned matrix."
 
 echo
 echo
