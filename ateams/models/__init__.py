@@ -1,4 +1,5 @@
 
+from .Bernoulli import Bernoulli
 from .SwendsenWang import SwendsenWang
 from .InvadedCluster import InvadedCluster
 from .Nienhuis import Nienhuis
@@ -9,5 +10,5 @@ __pdoc__ = {}
 __pdoc__["ateams.models.Model"] = False
 
 __all__ = [
-    "SwendsenWang", "InvadedCluster", "Glauber", "Nienhuis"
+    "SwendsenWang", "InvadedCluster", "Glauber", "Nienhuis", "Bernoulli"
 ]

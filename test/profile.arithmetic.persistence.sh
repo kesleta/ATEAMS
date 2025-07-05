@@ -11,7 +11,7 @@ for ((L=$start; L<$stop; L++)); do
 		for ((parallel=0; parallel<2; parallel++)); do
 			echo
 			echo
-			echo -e "executing lattice $L"
+			echo -e "executing complex $L"
 			echo -e "\tsparse? \t$sparse"
 			echo -e "\tparallel? \t$parallel"
 			echo -e "\tminBlockSize \t$minBlockSize"

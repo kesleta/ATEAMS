@@ -10,9 +10,9 @@ class Chain:
         Args:
             model (Model): An instantiated descendant of `Model` (e.g. `HomologicalPercolation`)
                 generating the Markov chain.
-            accept (Callable): A function which consumes the lattice, model, and
+            accept (Callable): A function which consumes the complex, model, and
                 state to determine whether we're going to a good place.
-            statistics (dict): A mapping of names to functions which take the lattice
+            statistics (dict): A mapping of names to functions which take the complex
                 as an argument. The Chain keeps track of these at each iteration
                 and stores whatever output is given.
             steps (int): The number of iterations in the chain.
@@ -93,7 +93,7 @@ class Recorder:
 
         Args:
             M (Chain): `potts.Chain` object to be recorded; `Recorder` needs
-                access to the `Model` and `Lattice` subobjects.
+                access to the `Model` and `Complex` subobjects.
             fp (str): Filename.
             outputs (dict): Dictionary mapping integer keys to initial states.
             compressed (bool): Do we want to compress our outputs? The answer

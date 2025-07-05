@@ -116,7 +116,7 @@ class Nienhuis(Model):
 
 	def initial(self):
 		"""
-		Computes an initial state for the model's Lattice.
+		Computes an initial state for the model's Complex.
 
 		Returns:
 			A numpy array of spin assignments (mod p).
@@ -146,9 +146,10 @@ class Nienhuis(Model):
 		# Evaluate the current spin configuration (cochain) on the boundary
 		# of our chosen cells, and find which to include.
 		cellBoundary = self.complex.Boundary[self.dimension]
-		cellCoefficients = (self.spins[cellBoundary]*self.orientations.cells)%q
-		cellSums = (cellCoefficients.sum(axis=1))[threshCells]%q
-		cellZeros = np.nonzero(cellSums == 0)[0]
+		cellCoefficients = self.spins[cellBoundary]
+		cellCoefficients[:,1::2] = -cellCoefficients[:,1::2]%q
+		cellSums = cellCoefficients.sum(axis=1)%q
+		cellZeros = np.nonzero(cellSums[threshCells] == 0)[0]
 
 		# Decide which faces (by default, edges) to include, take a submatrix
 		# of the coboundary matrix by including only the rows corresponding to
@@ -165,7 +166,7 @@ class Nienhuis(Model):
 
 		# Compute energies.
 		faceEnergy = (self.faces - np.count_nonzero(spins==0))/self.faces
-		cellEnergy = (self.cells - np.count_nonzero(cellCoefficients==0))/self.cells
+		cellEnergy = (self.cells - np.count_nonzero(cellSums==0))/self.cells
 
 		return spins, faceEnergy, cellEnergy
 
@@ -175,7 +176,7 @@ class Nienhuis(Model):
 		Updates mappings from faces to spins and cubes to occupations.
 
 		Args:
-			cocycle (np.array): Cocycle on the sublattice.
+			cocycle (np.array): Cocycle on the subcomplex.
 		
 		Returns:
 			None.

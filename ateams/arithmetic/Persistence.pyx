@@ -48,9 +48,9 @@ cdef class Persistence:
 		
 		
 			from ateams.arithmetic import Persistence
-			from ateams.structures import Lattice
+			from ateams.structures import Complex
 			
-			L = Lattice().fromCorners([3,3], field=3)
+			L = Complex().fromCorners([3,3], field=3)
 			P = Persistence(L.field.characteristic, L.flattened, homology=1)
 
 			filtration = np.arange(len(L.flattened))
@@ -61,16 +61,16 @@ cdef class Persistence:
 		Betti numbers for an entire subcomplex. The subcomplex is specified by
 		a list of indices corresponding to the cells included in the subcomplex.
 		Initializing the `Persistence` object as before, we can get the Betti
-		numbers of the \(2\)-torus encoded by the `Lattice` above by passing a
+		numbers of the \(2\)-torus encoded by the `Complex` above by passing a
 		list of all cells' indices in the flattened boundary matrix: since there
 		are \(36\) cells (including vertices, edges, and squares), the `subcomplex`
 		is just the range of integers \(0-36\):
 
 
 			from ateams.arithmetic import Persistence
-			from ateams.structures import Lattice
+			from ateams.structures import Complex
 			
-			L = Lattice().fromCorners([3,3], field=3)
+			L = Complex().fromCorners([3,3], field=3)
 			P = Persistence(L.field.characteristic, L.flattened)
 
 			subcomplex = np.arange(len(L.flattened))
@@ -82,18 +82,18 @@ cdef class Persistence:
 		reduce the number of squares by two, so we should expect the homology
 		of a one-edge-deleted \(2\)-torus to have betti numbers `[1,2,0]`. To
 		access the indices of the flattened boundary matrix corresponding to
-		cells of each dimension, we can use the `Lattice.tranches` property
+		cells of each dimension, we can use the `Complex.tranches` property
 		which maps an integer dimension to a (start, stop) pair: for example,
-		`L.tranches[1]` is `[9, 27]` in the lattice above, so we know that all
+		`L.tranches[1]` is `[9, 27]` in the complex above, so we know that all
 		entries in the flattened boundary matrix between indices \(9\) and \(27\)
 		(_right-exclusive_) correspond to edges. To test our theory, we
 		construct a subcomplex by deleting the first edge added:
 
 
 			from ateams.arithmetic import Persistence
-			from ateams.structures import Lattice
+			from ateams.structures import Complex
 			
-			L = Lattice().fromCorners([3,3], field=3)
+			L = Complex().fromCorners([3,3], field=3)
 			P = Persistence(L.field.characteristic, L.flattened)
 
 			subcomplex = np.arange(len(L.flattened))
@@ -275,7 +275,7 @@ cdef class Persistence:
 		
 		return self.boundary
 
-
+	
 	cdef Vector[Vector[int]] ReindexSubBoundary(self, INDEXFLAT subcomplex) noexcept:
 		# Create a "subboundary" matrix that maps old boundary indices to new
 		# ones.

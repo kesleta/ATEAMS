@@ -1,6 +1,6 @@
 
 from ateams.arithmetic import computeGiantCyclePairs, FINT, MINT, boundaryMatrix, Persistence
-from ateams.complexes import Lattice
+from ateams.complexes import Complex
 from math import comb
 from functools import partial
 import json
@@ -10,13 +10,13 @@ from tqdm import tqdm
 
 
 def constructDefaults(L, sparse, parallel, minBlockSize, maxBlockSize, cores):
-	LATTICE = Lattice().fromCorners([L]*4, field=3, dimension=3)
+	LATTICE = Complex().fromCorners([L]*4, field=3, dimension=3)
 
 	homology = 2
 	t = LATTICE.tranches
 	p = LATTICE.field.characteristic
 
-	# Premake the "occupied cells" array; change the dimension of the lattice
+	# Premake the "occupied cells" array; change the dimension of the complex
 	# to correspond to the provided dimension.
 	rank = comb(len(LATTICE.corners), homology)
 	nullity = len(LATTICE.boundary[homology])

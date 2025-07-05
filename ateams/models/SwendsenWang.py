@@ -53,7 +53,6 @@ class SwendsenWang(Model):
 		# Useful values to have later.
 		self.cells = len(self.complex.Boundary[self.dimension])
 		self.faces = len(self.complex.Boundary[self.dimension-1])
-		self.orientations = np.tile([-1,1], self.dimension).astype(FINT)
 
 		# Check the dimensions of the boundary/coboundary matrices by comparing
 		# the number of cells. LinBox is really sensitive to smaller-size matrices,
@@ -104,7 +103,7 @@ class SwendsenWang(Model):
 
 	def initial(self):
 		"""
-		Computes an initial state for the model's Lattice.
+		Computes an initial state for the model's Complex.
 
 		Returns:
 			A numpy `np.array` representing a vector of spin assignments.
@@ -136,7 +135,8 @@ class SwendsenWang(Model):
 		q = self.complex.field
 
 		# Evaluate the current spin assignment (cochain).
-		coefficients = (self.spins[boundary[include]]*self.orientations)%q
+		coefficients = self.spins[boundary[include]]
+		coefficients[:,1::2] = -coefficients[:,1::2]%q
 		sums = coefficients.sum(axis=1)%q
 		zeros = np.nonzero(sums == 0)[0]
 
@@ -155,7 +155,7 @@ class SwendsenWang(Model):
 		Updates mappings from faces to spins and cubes to occupations.
 
 		Args:
-			cocycle (np.array): Cocycle on the sublattice.
+			cocycle (np.array): Cocycle on the subcomplex.
 		
 		Returns:
 			None.

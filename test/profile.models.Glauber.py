@@ -9,20 +9,22 @@ import sys
 
 
 try:
+    DIM = int(sys.argv[-2])
     L = int(sys.argv[-1])
     sparse = False
 except:
     L = 10
+    DIM = 4
 
 pyximport.install()
 
-M = Glauber.construct(L)
+M = Glauber.construct(L, DIM)
 
-TESTS = [L]
-WIDTHS = [8]
+TESTS = [L, DIM]
+WIDTHS = [8, 8]
 DESC = [str(int(thing)).ljust(width) for thing, width in zip(TESTS, WIDTHS)]
 DESC = " ".join(DESC)
-DESC = ("      "+DESC).ljust(10)
+DESC = ("      "+DESC).ljust(20)
 
 
 cProfile.runctx("Glauber.chain(M, DESC)", globals(), locals(), "Profile.prof")

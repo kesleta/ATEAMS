@@ -7,14 +7,14 @@ import sys
 
 
 def construct(L, parallel, cores, LinBox):
-	# Construct lattice object.
+	# Construct complex object.
 	field = 3
 	L = Cubical().fromCorners([L]*4, field=field)
 
 	# Set up Model and Chain.
 	homology = 2
 	SW = InvadedCluster(L, dimension=homology, parallel=parallel, cores=cores, LinBox=LinBox)
-	N = 10
+	N = 50
 	M = Chain(SW, steps=N)
 
 	return M

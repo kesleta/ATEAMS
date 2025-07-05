@@ -49,10 +49,10 @@ hljs.highlightAll();
 <dd>An instantiated descendant of <code>Model</code> (e.g. <code>HomologicalPercolation</code>)
 generating the Markov chain.</dd>
 <dt><strong><code>accept</code></strong> :&ensp;<code>Callable</code></dt>
-<dd>A function which consumes the lattice, model, and
+<dd>A function which consumes the complex, model, and
 state to determine whether we're going to a good place.</dd>
 <dt><strong><code>statistics</code></strong> :&ensp;<code>dict</code></dt>
-<dd>A mapping of names to functions which take the lattice
+<dd>A mapping of names to functions which take the complex
 as an argument. The Chain keeps track of these at each iteration
 and stores whatever output is given.</dd>
 <dt><strong><code>steps</code></strong> :&ensp;<code>int</code></dt>
@@ -70,9 +70,9 @@ and stores whatever output is given.</dd>
         Args:
             model (Model): An instantiated descendant of `Model` (e.g. `HomologicalPercolation`)
                 generating the Markov chain.
-            accept (Callable): A function which consumes the lattice, model, and
+            accept (Callable): A function which consumes the complex, model, and
                 state to determine whether we&#39;re going to a good place.
-            statistics (dict): A mapping of names to functions which take the lattice
+            statistics (dict): A mapping of names to functions which take the complex
                 as an argument. The Chain keeps track of these at each iteration
                 and stores whatever output is given.
             steps (int): The number of iterations in the chain.
@@ -290,7 +290,7 @@ file.</p></div>
 
         Args:
             M (Chain): `potts.Chain` object to be recorded; `Recorder` needs
-                access to the `Model` and `Lattice` subobjects.
+                access to the `Model` and `Complex` subobjects.
             fp (str): Filename.
             outputs (dict): Dictionary mapping integer keys to initial states.
             compressed (bool): Do we want to compress our outputs? The answer
@@ -371,7 +371,7 @@ be used as a context manager (i.e. with the <code>with</code> statement).</p>
 <dl>
 <dt><strong><code>M</code></strong> :&ensp;<code><a title="ateams.statistics.Chain.Chain" href="#ateams.statistics.Chain.Chain">Chain</a></code></dt>
 <dd><code>potts.Chain</code> object to be recorded; <code><a title="ateams.statistics.Chain.Recorder" href="#ateams.statistics.Chain.Recorder">Recorder</a></code> needs
-access to the <code>Model</code> and <code>Lattice</code> subobjects.</dd>
+access to the <code>Model</code> and <code>Complex</code> subobjects.</dd>
 <dt><strong><code>fp</code></strong> :&ensp;<code>str</code></dt>
 <dd>Filename.</dd>
 <dt><strong><code>outputs</code></strong> :&ensp;<code>dict</code></dt>

@@ -13,17 +13,16 @@ from ..common import Matrices, TooSmallWarning
 from .Model import Model
 
 
-class InvadedCluster(Model):
-	name = "InvadedCluster"
+class Bernoulli(Model):
+	name = "Bernoulli"
 	
 	def __init__(
 			self, C, dimension=1, initial=None, stop=lambda: 1, LinBox=True, sparse=True,
 			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
 		):
 		"""
-		Initializes the plaquette invaded-cluster algorithm on the provided
-		integer complex, detecting percolation in the `homology`-th homology
-		group.
+		Initializes classic Bernoulli percolation on the provided complex,
+		detecting percolation in the `dimension`-1th homology group.
 
 		Args:
 			C (Complex): The `Complex` object on which we'll be running experiments.
@@ -65,13 +64,6 @@ class InvadedCluster(Model):
 		self.target = np.arange(self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1])
 
 
-		# Check the dimensions of the boundary/coboundary matrices by comparing
-		# the number of cells. LinBox is really sensitive to smaller-size matrices,
-		# but can easily handle large ones.
-		if self.cells*self.faces < 10000 and LinBox:
-			warnings.warn(f"complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.", TooSmallWarning, stacklevel=2)
-
-
 		# Premake the "occupied cells" array; change the dimension of the complex
 		# to correspond to the provided dimension.
 		self.rank = comb(len(self.complex.corners), self.dimension)
@@ -94,12 +86,6 @@ class InvadedCluster(Model):
 	def _delegateComputation(self, LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores):
 		if LinBox:
 			low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
-
-			def sample(zeros):
-				return np.array(LanczosKernelSample(
-					self.matrices.coboundary, zeros, 2*self.dimension,
-					self.faces, self.complex.field
-				), dtype=FINT)
 			
 			def persist(filtration):
 				essential = ComputePercolationEvents(
@@ -126,9 +112,6 @@ class InvadedCluster(Model):
 			
 			def persist(filtration):
 				return Persistencer.TwistComputePercolationEvents(filtration)
-			
-			def sample(zeros):
-				return KernelSample(Reducer, coboundary.take(zeros, axis=0)).astype(FINT)
 			
 		
 		# If p == 2, then we want to use PHAT for persistence only. We have to some
@@ -164,38 +147,22 @@ class InvadedCluster(Model):
 			def persist(filtration):
 				return phattified(phat.boundary_matrix(), dimensions, set(times), filtration)
 
-
-		self.sample = sample
 		self.persist = persist
 
 
-	def filtrate(self, cochain):
+	def filtrate(self):
 		"""
 		Constructs a filtration based on the evaluation of the cochain.
 		"""
 		# Find which cubes get zeroed out (i.e. are sent to zero by the cocycle).
-		boundary = self.complex.Boundary[self.dimension]
-		q = self.complex.field
-
-		coefficients = cochain[boundary]
-		coefficients[:,1::2] = -coefficients[:,1::2]%q
-		sums = coefficients.sum(axis=1)%q
-
-		# POSSIBLY INEFFICIENT!! TAKE A LOOK DUMMY
-		satisfied = np.nonzero(sums==0)[0]
-		unsatisfied = np.nonzero(sums>0)[0]
-		m = satisfied.shape[0]
-
-		# Construct the filtration.
-		filtration = np.arange(self.cellCount)
 		low = self.complex.breaks[self.dimension]
 		high = self.complex.breaks[self.dimension+1]
 
-		shuffled = np.random.permutation(satisfied)
-		filtration[low:low+m] = self.target[shuffled]
-		filtration[low+m:high] = self.target[unsatisfied]
+		filtration = np.arange(self.cellCount)
+		shuffled = np.random.permutation(self.target)
+		filtration[low:high] = shuffled
 
-		return filtration, shuffled, satisfied
+		return filtration, shuffled-low
 
 
 	def initial(self):
@@ -222,27 +189,19 @@ class InvadedCluster(Model):
 			A numpy array representing a vector of spin assignments.
 		"""
 		# Construct the filtration and find the essential cycles.
-		filtration, shuffledIndices, satisfiedIndices = self.filtrate(self.spins)
+		filtration, shuffled = self.filtrate()
 		essential = self.persist(filtration)
 
 		j = 0
 		low = self.complex.breaks[self.dimension]
 
-		stop = self.stop()
 		occupied = np.zeros((self.rank, self.nullity))
-		satisfied = np.zeros(self.nullity)
 
 		for t in essential:
-			occupiedIndices = shuffledIndices[:t-low]
+			occupiedIndices = shuffled[:t-low]
 			occupied[j,occupiedIndices] = 1
 
-			if (j+1) == stop: spins = self.sample(occupiedIndices)
-
-			j += 1
-
-		satisfied[satisfiedIndices] = 1
-
-		return spins, occupied, satisfied
+		return occupied
 	
 
 	def assign(self, cocycle):

@@ -53,7 +53,7 @@ hljs.highlightAll();
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>C</code></strong></dt>
-<dd>The <code>Lattice</code> object on which we'll be running experiments.</dd>
+<dd>The <code>Complex</code> object on which we'll be running experiments.</dd>
 <dt><strong><code>temperature</code></strong> :&ensp;<code>Callable</code></dt>
 <dd>A temperature schedule function which
 takes a single positive integer argument <code>t</code>, and returns the
@@ -75,7 +75,7 @@ scheduled temperature at time <code>t</code>.</dd>
                 Initializes Glauber dynamics on the Potts model.
 
                 Args:
-                        C: The `Lattice` object on which we&#39;ll be running experiments.
+                        C: The `Complex` object on which we&#39;ll be running experiments.
                         temperature (Callable): A temperature schedule function which
                                 takes a single positive integer argument `t`, and returns the
                                 scheduled temperature at time `t`.
@@ -95,12 +95,12 @@ scheduled temperature at time <code>t</code>.</dd>
 
                 # If no initial spin configuration is passed, initialize.
                 if not initial: self.spins = self.initial()
-                else: self.spins = (initial%self.lattice.field).astype(FINT)
+                else: self.spins = (initial%self.complex.field).astype(FINT)
         
 
         def initial(self):
                 &#34;&#34;&#34;
-                Computes an initial state for the model&#39;s Lattice.
+                Computes an initial state for the model&#39;s Complex.
 
                 Returns:
                         A numpy `np.array` representing a vector of spin assignments.
@@ -162,7 +162,7 @@ scheduled temperature at time <code>t</code>.</dd>
                 Updates mappings from faces to spins and cubes to occupations.
                 
                 Args:
-                        cochain (np.array): Cochain on the lattice.
+                        cochain (np.array): Cochain on the complex.
                 
                 Returns:
                         None.
@@ -190,7 +190,7 @@ scheduled temperature at time <code>t</code>.</dd>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>cochain</code></strong> :&ensp;<code>np.array</code></dt>
-<dd>Cochain on the lattice.</dd>
+<dd>Cochain on the complex.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>None.</p></div>
@@ -199,7 +199,7 @@ scheduled temperature at time <code>t</code>.</dd>
 <span>def <span class="ident">initial</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Computes an initial state for the model's Lattice.</p>
+<div class="desc"><p>Computes an initial state for the model's Complex.</p>
 <h2 id="returns">Returns</h2>
 <p>A Galois <code>Array</code> representing a vector of spin assignments.</p></div>
 </dd>
@@ -226,7 +226,7 @@ and returns the corresponding cocycle.</p>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes the plaquette invaded-cluster algorithm on the provided
-integer lattice, detecting percolation in the <code>homology</code>-th homology
+integer complex, detecting percolation in the <code>homology</code>-th homology
 group.</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -269,7 +269,7 @@ number of columns processed in parallel.</dd>
                 ):
                 &#34;&#34;&#34;
                 Initializes the plaquette invaded-cluster algorithm on the provided
-                integer lattice, detecting percolation in the `homology`-th homology
+                integer complex, detecting percolation in the `homology`-th homology
                 group.
 
                 Args:
@@ -320,7 +320,7 @@ number of columns processed in parallel.</dd>
                         warnings.warn(f&#34;complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.&#34;, TooSmallWarning, stacklevel=2)
 
 
-                # Premake the &#34;occupied cells&#34; array; change the dimension of the lattice
+                # Premake the &#34;occupied cells&#34; array; change the dimension of the complex
                 # to correspond to the provided dimension.
                 self.rank = comb(len(self.complex.corners), self.dimension)
                 self.nullity = len(self.complex.Boundary[self.dimension])
@@ -447,7 +447,7 @@ number of columns processed in parallel.</dd>
 
         def initial(self):
                 &#34;&#34;&#34;
-                Computes an initial state for the model&#39;s Lattice.
+                Computes an initial state for the model&#39;s Complex.
 
                 Returns:
                         A numpy `np.array` representing a vector of spin assignments.
@@ -497,7 +497,7 @@ number of columns processed in parallel.</dd>
                 Updates mappings from faces to spins and cubes to occupations.
 
                 Args:
-                        cocycle (np.array): Cocycle on the sublattice.
+                        cocycle (np.array): Cocycle on the subcomplex.
                 
                 Returns:
                         Nothing.
@@ -525,7 +525,7 @@ number of columns processed in parallel.</dd>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>cocycle</code></strong> :&ensp;<code>np.array</code></dt>
-<dd>Cocycle on the sublattice.</dd>
+<dd>Cocycle on the subcomplex.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>Nothing.</p></div>
@@ -540,7 +540,7 @@ number of columns processed in parallel.</dd>
 <span>def <span class="ident">initial</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Computes an initial state for the model's Lattice.</p>
+<div class="desc"><p>Computes an initial state for the model's Complex.</p>
 <h2 id="returns">Returns</h2>
 <p>A Galois <code>Array</code> representing a vector of spin assignments.</p></div>
 </dd>
@@ -699,7 +699,7 @@ number of columns processed in parallel.</dd>
 
         def initial(self):
                 &#34;&#34;&#34;
-                Computes an initial state for the model&#39;s Lattice.
+                Computes an initial state for the model&#39;s Complex.
 
                 Returns:
                         A numpy `np.array` representing a vector of spin assignments.
@@ -750,7 +750,7 @@ number of columns processed in parallel.</dd>
                 Updates mappings from faces to spins and cubes to occupations.
 
                 Args:
-                        cocycle (np.array): Cocycle on the sublattice.
+                        cocycle (np.array): Cocycle on the subcomplex.
                 
                 Returns:
                         None.
@@ -778,7 +778,7 @@ number of columns processed in parallel.</dd>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>cocycle</code></strong> :&ensp;<code>np.array</code></dt>
-<dd>Cocycle on the sublattice.</dd>
+<dd>Cocycle on the subcomplex.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>None.</p></div>
@@ -787,7 +787,7 @@ number of columns processed in parallel.</dd>
 <span>def <span class="ident">initial</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Computes an initial state for the model's Lattice.</p>
+<div class="desc"><p>Computes an initial state for the model's Complex.</p>
 <h2 id="returns">Returns</h2>
 <p>A Galois <code>Array</code> representing a vector of spin assignments.</p></div>
 </dd>

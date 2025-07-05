@@ -261,9 +261,9 @@ adds each cube to the cubical complex in order of construction. At
 completion, <code>events</code> contains the times <code>{17, 21}</code> which correspond to
 crossings of the meridian and equator of the torus, respectively.</p>
 <pre><code>    from ateams.arithmetic import Persistence
-    from ateams.structures import Lattice
+    from ateams.structures import Complex
 
-    L = Lattice().fromCorners([3,3], field=3)
+    L = Complex().fromCorners([3,3], field=3)
     P = Persistence(L.field.characteristic, L.flattened, homology=1)
 
     filtration = np.arange(len(L.flattened))
@@ -273,14 +273,14 @@ crossings of the meridian and equator of the torus, respectively.</p>
 Betti numbers for an entire subcomplex. The subcomplex is specified by
 a list of indices corresponding to the cells included in the subcomplex.
 Initializing the <code><a title="ateams.arithmetic.Persistence" href="#ateams.arithmetic.Persistence">Persistence</a></code> object as before, we can get the Betti
-numbers of the <span><span class="MathJax_Preview">2</span><script type="math/tex">2</script></span>-torus encoded by the <code>Lattice</code> above by passing a
+numbers of the <span><span class="MathJax_Preview">2</span><script type="math/tex">2</script></span>-torus encoded by the <code>Complex</code> above by passing a
 list of all cells' indices in the flattened boundary matrix: since there
 are <span><span class="MathJax_Preview">36</span><script type="math/tex">36</script></span> cells (including vertices, edges, and squares), the <code>subcomplex</code>
 is just the range of integers <span><span class="MathJax_Preview">0-36</span><script type="math/tex">0-36</script></span>:</p>
 <pre><code>    from ateams.arithmetic import Persistence
-    from ateams.structures import Lattice
+    from ateams.structures import Complex
 
-    L = Lattice().fromCorners([3,3], field=3)
+    L = Complex().fromCorners([3,3], field=3)
     P = Persistence(L.field.characteristic, L.flattened)
 
     subcomplex = np.arange(len(L.flattened))
@@ -291,16 +291,16 @@ is just the range of integers <span><span class="MathJax_Preview">0-36</span><sc
 reduce the number of squares by two, so we should expect the homology
 of a one-edge-deleted <span><span class="MathJax_Preview">2</span><script type="math/tex">2</script></span>-torus to have betti numbers <code>[1,2,0]</code>. To
 access the indices of the flattened boundary matrix corresponding to
-cells of each dimension, we can use the <code>Lattice.tranches</code> property
+cells of each dimension, we can use the <code>Complex.tranches</code> property
 which maps an integer dimension to a (start, stop) pair: for example,
-<code>L.tranches[1]</code> is <code>[9, 27]</code> in the lattice above, so we know that all
+<code>L.tranches[1]</code> is <code>[9, 27]</code> in the complex above, so we know that all
 entries in the flattened boundary matrix between indices <span><span class="MathJax_Preview">9</span><script type="math/tex">9</script></span> and <span><span class="MathJax_Preview">27</span><script type="math/tex">27</script></span>
 (<em>right-exclusive</em>) correspond to edges. To test our theory, we
 construct a subcomplex by deleting the first edge added:</p>
 <pre><code>    from ateams.arithmetic import Persistence
-    from ateams.structures import Lattice
+    from ateams.structures import Complex
 
-    L = Lattice().fromCorners([3,3], field=3)
+    L = Complex().fromCorners([3,3], field=3)
     P = Persistence(L.field.characteristic, L.flattened)
 
     subcomplex = np.arange(len(L.flattened))

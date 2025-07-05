@@ -7,7 +7,7 @@ import json
 import sys
 
 def construct(L, parallel, cores, LinBox):
-	# Construct lattice object.
+	# Construct complex object.
 	field = 3
 	L = Cubical().fromCorners([L]*2, field=field)
 

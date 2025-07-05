@@ -26,25 +26,39 @@ PHAT: FORCE
 fast:
 	@sudo clang++ `pkg-config --libs linbox` -shared -fPIC -std=c++17 -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp -v -O3 -ffast-math
 
+# Individual model profiles.
 
-profile: FORCE
+Glauber: FORCE
+	@cd test && ./profile.models.Glauber.sh 11 14 4
+
+SwendsenWang: FORCE
+	@cd test && ./profile.models.SW.sh 9 12 2
+
+Nienhuis: FORCE
 	@cd test && ./profile.models.NH.sh 9 12 2
-	@cd test && ./profile.models.SW.sh 3 5 2
+
+InvadedCluster: FORCE
 	@cd test && ./profile.models.IC.sh 3 5 2
-	@cd test && ./profile.models.Glauber.sh 9 12
+
+Bernoulli: FORCE
+	@cd test && ./profile.models.Bernoulli.sh 3 5 2
+
+profile: Glauber SwendsenWang Nienhuis InvadedCluster Bernoulli
 
 
+
+# Build docs.
 docs: FORCE quick
 	./docs.sh
 
-install: _install gauntlet docs
 
+# Installation recipes.
+install: _install gauntlet docs
 
 _install: FORCE build PHAT
 	python setup.py develop
 
 clean:
 	@rm -rf ./build
-
 
 FORCE:

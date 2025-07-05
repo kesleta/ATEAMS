@@ -37,7 +37,7 @@ SW = SwendsenWang(complex, dimension=2, temperature=critical(complex.field))
 for (spins, occupied, satisfied) in Chain(SW, steps=1000):
 	<do whatever>
 ```
-The plaquette Swendsen-Wang is, besides Glauber, the most efficient implementation in this library; the above chain (excluding the time required to construct the lattice) runs in ~10 seconds using LinBox on an Apple M2. There are ${\approx}2.4 \times 10^9$ total entries in the boundary matrix for this particular $4$-torus, but only ${\approx}2.4 \times 10^5$ are nonzero, for a density of ${\approx}0.01\%$; the LinBox features _immensely_ reduce the time required to perform the matrix-reduction computations.
+The plaquette Swendsen-Wang is, besides Glauber, the most efficient implementation in this library; the above chain (excluding the time required to construct the complex) runs in ~10 seconds using LinBox on an Apple M2. There are ${\approx}2.4 \times 10^9$ total entries in the boundary matrix for this particular $4$-torus, but only ${\approx}2.4 \times 10^5$ are nonzero, for a density of ${\approx}0.01\%$; the LinBox features _immensely_ reduce the time required to perform the matrix-reduction computations.
 
 
 You can turn on a progress bar for your simulation using the
@@ -54,7 +54,7 @@ pattern.
 ### Prerequisites
 1. Patience. 
 2. Python $\geq$ 3.10. To manage different versions of Python on your machine, we recommend [pyenv](https://github.com/pyenv/pyenv).
-2. A C/C++ compiler. Clang is recommended, as some dependencies break with GCC.
+2. A C/C++ compiler. **Clang is recommended; please ensure your machine's default compiler is Clang.**
 3. [GNU Make](https://www.gnu.org/software/make/) (or a Windows variant...) to build and install the library, and to build any changes you might make. _(This is optional for Windows users, as these commands can be run manually when using raw Windows. If that's undesirable, the Linux Subsystem for Windows is a useful workaround.)_
 4. Standard tools (pkg-config, autoconf, libtool, etc.) for building and maintaining C++ libraries. For Windows, the Visual Studio BuildTools (which include Clang/LLVM) may be required.
 5. If you want to keep your sanity, a computer running macOS or a flavor of Linux.
@@ -110,7 +110,7 @@ $ ./docs.sh
 ### Dependencies
 ATEAMS relies on [LinBox](https://github.com/apizzimenti/linbox) — this link goes to our GitHub fork of LinBox, which addresses a small matrix preconditioning bug; otherwise, the library is unchanged from [its original source](https://github.com/linbox-team/linbox). LinBox relies on [fflas-ffpack](https://github.com/linbox-team/fflas-ffpack), [Givaro](https://github.com/linbox-team/givaro), [OpenBLAS](https://github.com/OpenMathLib/OpenBLAS), and [GMP](https://gmplib.org/). **It is recommended that you install these dependencies to make sure you get the most out of this toolkit.**
 
-#### Installing GMP
+#### GMP
 1. [Download GMP 6.3.0 from here](https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz).
 2. Follow the [installation instructions here](https://gmplib.org/manual/Installing-GMP), passing the `--enable-cxx` flag to the `./configure` script and setting the install prefix to `/usr/local` (or wherever you'd like). In summary, the installation looks like
 
@@ -124,7 +124,7 @@ $ pkg-config --libs gmp gmpxx
 ```
 
 
-#### Installing OpenBLAS
+#### OpenBLAS
 In general, follow the [installation instructions here](http://www.openmathlib.org/OpenBLAS/docs/install/). In particular,
 
 * for macOS users, [the openblas formula on homebrew](https://formulae.brew.sh/formula/openblas) is recommended. It will be installed wherever formulae are typically installed on your computer (e.g. `/opt/homebrew/Cellar/openblas/0.3.29/lib`). _If you choose this option, you are done installing OpenBLAS._
@@ -145,7 +145,7 @@ $ pkg-config --libs openblas
 ```
 
 
-#### Installing Givaro
+#### Givaro
 
 To stave off bugs, we recommend cloning [the current main branch of Givaro](https://github.com/linbox-team/givaro) and building from source.
 
@@ -174,7 +174,7 @@ $ pkg-config --libs givaro
   -L/usr/local/lib -lgivaro -lgmpxx -lgmp
 ```
 
-#### Installing fflas-ffpack
+#### fflas-ffpack
 
 This package can be slightly trickier, and may need some convincing that the previous dependencies actually exist on your system. As with Givaro, we recommend cloning [the current main branch of fflas-ffpack](https://github.com/linbox-team/fflas-ffpack) and building from source.
 
@@ -220,7 +220,7 @@ $ pkg-config --libs fflas-ffpack
 ```
 
 
-#### Installing LinBox
+#### LinBox
 
 The end is in sight! Here, we recommend cloning [the `bug/bad-checks` branch of our forked LinBox repository](https://github.com/apizzimenti/linbox.git) and building from source.
 
@@ -253,7 +253,7 @@ $ pkg-config --libs linbox
 ```
 
 
-#### Installing PHAT
+#### PHAT
 
 The [Persistent Homology Algorithms Toolbox (PHAT)](https://bitbucket.org/phat-code/phat) provides Python bindings, which ATEAMS uses when computing over the finite field $\mathbb Z / 2\mathbb Z$. The bindings are built with PyBind11, and are distributed using an older version of pip. To build PHAT,
 

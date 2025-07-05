@@ -24,7 +24,7 @@ class Cubical:
 		provided dimension.
 
 		Args:
-			corners (list): Corners of the lattice; determines the maximal
+			corners (list): Corners of the complex; determines the maximal
 				cell dimension.
 			field (int): Characteristic of finite field from which cells take
 				coefficients.
@@ -112,7 +112,7 @@ class Cubical:
 		absolute = Path(fp).resolve()
 		root = absolute.parent
 		stem = absolute.stem
-		ComplexFile = root/f".{stem}.lattice.npz"
+		ComplexFile = root/f".{stem}.complex.npz"
 		np.savez_compressed(ComplexFile, **{str(t): v for t, v in self.Boundary.items()})
 
 		with open(fp, "w") as write:
@@ -129,7 +129,7 @@ class Cubical:
 
 	def fromFile(self, fp:str, vertexMap=False):
 		"""
-		Reconstructs a serialized Lattice.
+		Reconstructs a serialized Complex.
 
 		Args:
 			fp (str): Filepath.
@@ -276,13 +276,13 @@ def cubicalComplex(corners, D, periodic=True):
 	a vertex map.
 
 	Args:
-		corners (iterable): An iterable specifying the extent of the lattice. If
+		corners (iterable): An iterable specifying the extent of the complex. If
 			`periodic` is truthy, antipodal vertices are identified; for example,
 			if `corners = [3,3]`, then the vertices at indices (0,0), (0,3), (3,0),
 			and (3,3) are identified.
 		D (int): Top-level dimension.
 		periodic (bool=True): If truthy, we construct a \(d\)-fold torus, where \(d\)
-			is the topmost dimension of the lattice (as determined by the number
+			is the topmost dimension of the complex (as determined by the number
 			of corners specified). For example, if `periodic` is falsy, then
 			`corners = [3,3]` hands back a 4x4 grid (zero-indexed).
 

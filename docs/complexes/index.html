@@ -62,7 +62,7 @@ hljs.highlightAll();
                 provided dimension.
 
                 Args:
-                        corners (list): Corners of the lattice; determines the maximal
+                        corners (list): Corners of the complex; determines the maximal
                                 cell dimension.
                         field (int): Characteristic of finite field from which cells take
                                 coefficients.
@@ -150,7 +150,7 @@ hljs.highlightAll();
                 absolute = Path(fp).resolve()
                 root = absolute.parent
                 stem = absolute.stem
-                ComplexFile = root/f&#34;.{stem}.lattice.npz&#34;
+                ComplexFile = root/f&#34;.{stem}.complex.npz&#34;
                 np.savez_compressed(ComplexFile, **{str(t): v for t, v in self.Boundary.items()})
 
                 with open(fp, &#34;w&#34;) as write:
@@ -167,7 +167,7 @@ hljs.highlightAll();
 
         def fromFile(self, fp:str, vertexMap=False):
                 &#34;&#34;&#34;
-                Reconstructs a serialized Lattice.
+                Reconstructs a serialized Complex.
 
                 Args:
                         fp (str): Filepath.
@@ -186,7 +186,7 @@ hljs.highlightAll();
 
                         # Construct indices, boundary matrix, and graph.
                         return self._construct(
-                                corners, dimension, periodic, field, data
+                                corners, periodic, field, data
                         )</code></pre>
 </details>
 <h3>Methods</h3>
@@ -200,7 +200,7 @@ provided dimension.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>corners</code></strong> :&ensp;<code>list</code></dt>
-<dd>Corners of the lattice; determines the maximal
+<dd>Corners of the complex; determines the maximal
 cell dimension.</dd>
 <dt><strong><code>field</code></strong> :&ensp;<code>int</code></dt>
 <dd>Characteristic of finite field from which cells take
@@ -214,7 +214,7 @@ conditions (i.e. are we making a torus)?</dd>
 <span>def <span class="ident">fromFile</span></span>(<span>self, fp: str, vertexMap=False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Reconstructs a serialized Lattice.</p>
+<div class="desc"><p>Reconstructs a serialized Complex.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>fp</code></strong> :&ensp;<code>str</code></dt>

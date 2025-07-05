@@ -16,7 +16,7 @@ class Glauber(Model):
 		Initializes Glauber dynamics on the Potts model.
 
 		Args:
-			C: The `Lattice` object on which we'll be running experiments.
+			C: The `Complex` object on which we'll be running experiments.
 			dimension (int=1): Dimension on which we'll be building experiments.
 			temperature (Callable): A temperature schedule function which
 				takes a single positive integer argument `t`, and returns the
@@ -30,7 +30,6 @@ class Glauber(Model):
 		# Useful values to have later.
 		self.cells = len(self.complex.Boundary[self.dimension])
 		self.faces = len(self.complex.Boundary[self.dimension-1])
-		self.orientations = np.tile([-1,1], self.dimension).astype(FINT)
 		self.closed = 1
 
 		# Seed the random number generator.
@@ -38,12 +37,12 @@ class Glauber(Model):
 
 		# If no initial spin configuration is passed, initialize.
 		if not initial: self.spins = self.initial()
-		else: self.spins = (initial%self.lattice.field).astype(FINT)
+		else: self.spins = (initial%self.complex.field).astype(FINT)
 	
 
 	def initial(self):
 		"""
-		Computes an initial state for the model's Lattice.
+		Computes an initial state for the model's Complex.
 
 		Returns:
 			A numpy `np.array` representing a vector of spin assignments.
@@ -74,17 +73,21 @@ class Glauber(Model):
 		q = self.complex.field
 
 		# Evaluate the current spin assignment (cochain).
-		coefficients = (spins[boundary]*self.orientations)%q
-		sums = coefficients.sum(axis=1)%q
+		evaluation = spins[boundary]
+		evaluation[:, 1::2] = -evaluation[:, 1::2]%q
+		sums = evaluation.sum(axis=1)%q
+
 		opens = np.nonzero(sums == 0)[0]
-		closed = -(self.faces-len(opens))
+		closed = -(self.faces-opens.shape[0])
 
 		# If we don't know how many "closed" faces there are, compute it.
 		if self.closed > 0:
-			coefficients = (self.spins[boundary]*self.orientations)%q
-			sums = coefficients.sum(axis=1)%q
+			evaluation = self.spins[boundary]
+			evaluation[:,1::2] = -evaluation[:,1::2]%q
+			sums = evaluation.sum(axis=1)%q
+			
 			opens = np.nonzero(sums == 0)[0]
-			self.closed = -(self.faces-len(opens))
+			self.closed = -(self.faces-opens.shape[0])
 
 		# Compute the energy and decide if this is an acceptable transition.
 		energy = np.exp(self.temperature(time)*(self.closed-closed))
@@ -105,7 +108,7 @@ class Glauber(Model):
 		Updates mappings from faces to spins and cubes to occupations.
 		
 		Args:
-			cochain (np.array): Cochain on the lattice.
+			cochain (np.array): Cochain on the complex.
 		
 		Returns:
 			None.

@@ -9,4 +9,3 @@ class Model:
         pass
     def proposal(self): pass
     def initial(self): pass
-    # def energy(self): pass

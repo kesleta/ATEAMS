@@ -7,14 +7,14 @@ import json
 
 
 def construct(L, parallel, cores, LinBox):
-	# Construct lattice object.
+	# Construct complex object.
 	field = 3
 	L = Cubical().fromCorners([L]*4, field=field)
 
 	# Set up Model and Chain.
 	T = critical(L.field)
 	SW = SwendsenWang(L, dimension=2, temperature=lambda t: -T(t), LinBox=LinBox, parallel=parallel, cores=cores)
-	N = 20
+	N = 100
 	M = Chain(SW, steps=N)
 
 	return M

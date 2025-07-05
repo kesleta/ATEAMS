@@ -19,17 +19,17 @@ SUBCOMPLEXES = 20
 DESC = (f"          SPARSE, SERIAL").ljust(30)
 
 with tqdm(total=len(LATTICES)*SUBCOMPLEXES, dynamic_ncols=True, desc=DESC) as bar:
-	for lattice in LATTICES:
+	for complex in LATTICES:
 		for _ in range(SUBCOMPLEXES):
-			P = Persistence(F, lattice.flattened)
+			P = Persistence(F, complex.flattened)
 
 			# First, check that we correctly compute the betti numbers for the full
 			# torus.
-			dimension = lattice.dimension
+			dimension = complex.dimension
 			ground = [combinations(dimension, d) for d in range(dimension+1)]
 
 			print("######## BEGIN FULL COMPLEX COMPUTATION")
-			subcomplex = np.array(range(len(lattice.flattened)))
+			subcomplex = np.array(range(len(complex.flattened)))
 			test = P.ComputeBettiNumbers(subcomplex)
 			print("######## END FULL COMPLEX COMPUTATION")
 			print()
@@ -52,7 +52,7 @@ with tqdm(total=len(LATTICES)*SUBCOMPLEXES, dynamic_ncols=True, desc=DESC) as ba
 			# by deleting one cell of dimension i (for i > 1), we cannot realize
 			# any cells of dimension higher than i.
 			for d in range(1, dimension+1):
-				delete = choice(range(*lattice.tranches[d]))
+				delete = choice(range(*complex.tranches[d]))
 				subsubcomplex = np.concatenate([subcomplex[:delete], subcomplex[delete+1:]])
 				ground = [combinations(dimension, d) for d in range(dimension+1)]
 
