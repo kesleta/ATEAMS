@@ -97,8 +97,8 @@ cdef Vector[int] SubZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeroRows, INDEXFLAT zer
 
 cpdef Vector[int] SubLanczosKernelSample(
 		INDEXFLAT coboundary, INDEXFLAT zeroRows, INDEXFLAT zeroColumns,
-		int p, int maxTries=16
-	) except +:
+		int p, int maxTries=8
+	) except *:
 	"""
 	Uses the LinBox (Block?) Lanczos black-box solver to get a uniform
 	random element of the kernel of the coboundary.
@@ -110,7 +110,7 @@ cpdef Vector[int] SubLanczosKernelSample(
 			in the coboundary submatrix.
 		p: Characteristic of the field \(\mathbb Z/p\mathbb Z\).
 		maxTries: How many times do we try to get a nonzero solution from
-			the black-box solver? Default is 16.
+			the black-box solver? Default is 8.
 
 	Returns:
 		A C++ `std::vector` with spin assignments.
@@ -121,8 +121,8 @@ cpdef Vector[int] SubLanczosKernelSample(
 
 cpdef Vector[int] LanczosKernelSample(
 		INDEXFLAT coboundary, INDEXFLAT zeros, int faces, int columns, int p,
-		int maxTries=16
-	) except +:
+		int maxTries=8
+	) except *:
 	"""
 	Uses the LinBox (Block?) Lanczos black-box solver to get a uniform
 	random element of the kernel of the coboundary.
@@ -137,7 +137,7 @@ cpdef Vector[int] LanczosKernelSample(
 			submatrix; should be the total number of faces in the complex.
 		p: Characteristic of the field \(\mathbb Z/p\mathbb Z\).
 		maxTries: How many times do we try to get a nonzero solution from
-			the black-box solver? Default is 16.
+			the black-box solver? Default is 8.
 
 	Returns:
 		A C++ `std::vector` with spin assignments.

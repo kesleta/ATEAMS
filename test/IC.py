@@ -12,16 +12,17 @@ def construct(L, dim, field):
 
 	# Set up Model and Chain.
 	SW = InvadedCluster(L, dimension=dim//2)
-	N = 50
+	N = 20
 	M = Chain(SW, steps=N)
 
 	return M
 
 def chain(M, DESC=""):
-	for (spins, essentials, satisfied) in M.progress(dynamic_ncols=True, desc=DESC):
+	for result in M.progress(dynamic_ncols=True, desc=DESC):
 		pass
+	return M._exitcode
 
 if __name__ == "__main__":
-	M = construct(5, False, 2, True)
+	M = construct(21, 2, 2)
 	chain(M)
 

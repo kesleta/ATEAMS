@@ -1,14 +1,11 @@
 #!/bin/zsh
 
-autoload colors; colors
 start="${1:-3}"
 stop="${2:-4}"
 dim="${3:-4}"
 fields=(2 3 5 7)
 
-UP="\033[F"
-DOWN="\033[B"
-CLEAR="\033[K"
+source .vars
 
 echo "___________________________"
 echo "| PROFILE INVADED-CLUSTER | ➭➭➭ results in profiles/InvadedCluster"
@@ -22,18 +19,24 @@ for ((L=$start; L<$stop; L++)); do
 		python profile.models.IC.py $dim $L $field &
 		wait $!
 		
-		if [ $? != 0 ]; then
-			echo -e "$UP$UP$UP$UP$UP$fg[red]FAIL$reset_color"
-			echo -e "$DOWN$CLEAR$DOWN$CLEAR$DOWN$CLEAR$UP$UP$UP$UP"
-		else
-			echo -e "$UP$fg[green]PASS$reset_color"
-		fi
+		case $? in
+			1)
+				echo -e "$UP$FAIL";;
+			0)
+				echo -e "$UP$PASS";;
+			*)
+				echo -e "$UP$WARN";;
+		esac
 	done
 	echo
 done
 
-echo -e "A test $fg[red]FAIL$reset_color typically results from small system size, small field characteristic, or a poorly conditioned matrix."
+width=$(tput cols)
+indent=2
 
+echo -e $PASSDESC
+echo -e $WARNDESC
+echo -e $FAILDESC
 echo
 echo
 echo

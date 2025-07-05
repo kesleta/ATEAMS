@@ -1,7 +1,7 @@
 
 import numpy as np
 
-from ..common import MINT, FINT, Matrices
+from ..common import MINT, FINT
 from ..statistics import constant
 from .Model import Model
 
@@ -26,6 +26,7 @@ class Glauber(Model):
 		self.complex = C
 		self.dimension = dimension
 		self.temperature = temperature
+		self._returns = 2
 
 		# Useful values to have later.
 		self.cells = len(self.complex.Boundary[self.dimension])

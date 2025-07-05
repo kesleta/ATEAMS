@@ -13,6 +13,8 @@ FINT = np.int16
 
 class TooSmallWarning(UserWarning): pass
 
+class NumericalInstabilityWarning(UserWarning): pass
+
 
 class Matrices:
     boundary = None

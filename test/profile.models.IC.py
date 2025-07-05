@@ -28,10 +28,15 @@ DESC = " ".join(DESC)
 DESC = ("      "+DESC).ljust(10)
 
 
-cProfile.runctx("IC.chain(M, DESC)", globals(), locals(), "Profile.prof")
+pr = cProfile.Profile()
+pr.enable()
+code = IC.chain(M, DESC)
+pr.disable()
 
 fname = f"./profiles/InvadedCluster/{L}.{field}.txt"
 with open(fname, 'w') as stream:
     s = pstats.Stats('Profile.prof', stream=stream)
     s.strip_dirs().sort_stats("time").print_stats()
 
+
+exit(code)

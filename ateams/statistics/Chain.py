@@ -1,5 +1,6 @@
 
 from . import always
+from ..common import NumericalInstabilityWarning
 
 
 class Chain:
@@ -20,6 +21,7 @@ class Chain:
         self.model = model
         self.steps = steps
         self.accept = accept
+        self._exitcode = 0
 
         # Store stats and things.
         self.functions = statistics
@@ -31,7 +33,7 @@ class Chain:
         Initializes the Chain object as a generator.
         """
         self.step = 0
-        self.state = self.model.spins
+        self.state = tuple([self.model.spins] + []*(self.model._returns-1))
         return self
     
 
@@ -45,7 +47,11 @@ class Chain:
             # Propose the next state and check whether we want to accept it as
             # the next state or not; assign whichever state is chosen to the
             # Model.
-            proposed = self.model.proposal(self.step)
+            try: proposed = self.model.proposal(self.step)
+            except NumericalInstabilityWarning:
+                self._exitcode = 2
+                proposed = self.state
+
             self.state = proposed if self.accept(self.state, proposed, self.step) else self.state
             self.model.assign(self.state[0])
 

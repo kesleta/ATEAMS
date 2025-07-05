@@ -3,7 +3,7 @@ import numpy as np
 import warnings
 
 from ..arithmetic import MatrixReduction, SubLanczosKernelSample, KernelSample
-from ..common import FINT, TooSmallWarning, Matrices, Bunch
+from ..common import FINT, TooSmallWarning, Matrices, Bunch, NumericalInstabilityWarning
 from .Model import Model
 
 
@@ -11,8 +11,8 @@ class Nienhuis(Model):
 	name = "SwendsenWang"
 
 	def __init__(
-			self, C, q1, q2, dimension=2, initial=None, LinBox=True,
-			sparse=True, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
+			self, C, q1, q2, dimension=2, initial=None, LinBox=True, maxTries=16,
+			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
 		):
 		"""
 		Initializes the self-dual Nienhuis model.
@@ -27,7 +27,8 @@ class Nienhuis(Model):
 			LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
 				ones. WARNING: using inbuilt methods may dramatically increase
 				computation time.
-			sparse (boolean): Should matrices be formatted sparsely? (Uses C/C++).
+			maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
+				vector in the kernel of the coboundary matrix.
 			parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
 			minBlockSize (int=32): If `parallel` is truthy, this is the smallest
 				number of columns processed in parallel.
@@ -38,6 +39,7 @@ class Nienhuis(Model):
 		# Object access.
 		self.complex = C
 		self.dimension = dimension
+		self._returns = 3
 
 		# Force-recompute the matrices for a different dimension; creates
 		# a set of orientations for fast elementwise products. Here, the dimension
@@ -82,18 +84,19 @@ class Nienhuis(Model):
 		else: self.spins = (initial%self.complex.field).astype(FINT)
 
 		# Delegate computation.
-		self._delegateComputation(LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores)
+		self._delegateComputation(LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries)
 
 
-	def _delegateComputation(self, LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores):
+	def _delegateComputation(self, LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries):
 		# If we use LinBox, keep everything as-is.
 		if LinBox:
 			def sample(faceZeros, cellZeros):
-				if faceZeros.shape[0] < 1 or cellZeros.shape[0] < 1: return self.spins;
-				
-				return np.array(SubLanczosKernelSample(
-					self.matrices.coboundary, cellZeros, faceZeros, self.complex.field
-				), dtype=FINT)
+				try:
+					return np.array(SubLanczosKernelSample(
+						self.matrices.coboundary, cellZeros, faceZeros, self.complex.field, maxTries=maxTries
+					), dtype=FINT)
+				except Exception as e:
+					raise NumericalInstabilityWarning(e)
 		
 		# If we use inbuilt routines, we need to actually construct the matrix
 		# form of the coboundary matrix, which is extremely sparse (and really big).

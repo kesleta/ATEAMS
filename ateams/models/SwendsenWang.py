@@ -3,7 +3,7 @@ import numpy as np
 import warnings
 
 from ..arithmetic import LanczosKernelSample, KernelSample, MatrixReduction
-from ..common import MINT, FINT, Matrices, TooSmallWarning
+from ..common import MINT, FINT, Matrices, TooSmallWarning, NumericalInstabilityWarning
 from ..statistics import constant
 from .Model import Model
 
@@ -13,7 +13,8 @@ class SwendsenWang(Model):
 
 	def __init__(
 			self, C, dimension=1, temperature=constant(-0.6), initial=None, LinBox=True,
-			sparse=True, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
+			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4,
+			maxTries=16
 		):
 		"""
 		Initializes Swendsen-Wang evolution on the Potts model.
@@ -28,18 +29,20 @@ class SwendsenWang(Model):
 			LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
 				ones. WARNING: using inbuilt methods may dramatically increase
 				computation time.
-			sparse (bool=True): Should matrices be formatted sparsely? (Uses C/C++).
 			parallel (bool=False): Should matrix computations be done in parallel? (Uses C/C++).
 			minBlockSize (int=32): If `parallel` is truthy, this is the smallest
 				number of columns processed in parallel.
 			maxBlockSize (int=64): If `parallel` is truthy, this is the largest
 				number of columns processed in parallel.
 			cores (int=4): Number of available CPUs/cores/threads on the machine.
+			maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
+				vector in the kernel of the coboundary matrix.
 		"""
 		# Object access.
 		self.complex = C
 		self.temperature = temperature
 		self.dimension = dimension
+		self._returns = 2
 
 		# Force-recompute the matrices for a different dimension; creates
 		# a set of orientations for fast elementwise products.
@@ -68,19 +71,26 @@ class SwendsenWang(Model):
 		else: self.spins = (initial%self.complex.field).astype(FINT)
 
 		# Delegate computation.
-		self._delegateComputation(LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores)
+		self._delegateComputation(LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries)
 
 	
-	def _delegateComputation(self, LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores):
+	def _delegateComputation(self, LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries):
 		# If we use LinBox, keep everything as-is.
 		if LinBox:
 			def sample(zeros):
-				if zeros.shape[0] < 1: return self.spins;
-				
-				return np.array(LanczosKernelSample(
-					self.matrices.coboundary, zeros, 2*self.dimension,
-					self.faces, self.complex.field
-				), dtype=FINT)
+				# Not currently sure how to handle this... maybe we'll just "reject"
+				# for now, come back, and sub something else in later. We shouldn't
+				# be halting computation. For now, we should raise an exception that
+				# the Chain catches, and warns the user by exiting with exit code
+				# 1 or 2.
+				try:
+					return np.array(LanczosKernelSample(
+						self.matrices.coboundary, zeros, 2*self.dimension,
+						self.faces, self.complex.field, maxTries=maxTries
+					), dtype=FINT)
+				except Exception as e:
+					raise NumericalInstabilityWarning(e)
+
 		
 		# If we use inbuilt routines, we need to actually construct the matrix
 		# form of the coboundary matrix, which is extremely sparse (and really big).

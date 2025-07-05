@@ -13,7 +13,7 @@ def construct(L, field, DIM):
 	# Set up Model and Chain.
 	T = critical(L.field)
 	SW = Glauber(L, dimension=DIM//2, temperature=lambda t: -T(t))
-	N = 50
+	N = 100
 	M = Chain(SW, steps=N)
 
 	return M
@@ -21,9 +21,10 @@ def construct(L, field, DIM):
 def chain(M, DESC=""):
 	for (spins, occupied) in M.progress(dynamic_ncols=True, desc=DESC):
 		pass
+	return M._exitcode
 
 
 if __name__ == "__main__":
-	M = construct(10, 4)
+	M = construct(100, 2, 2)
 	chain(M)
 

@@ -1,10 +1,12 @@
 #!/bin/zsh
 
-autoload colors; colors
 start="${1:-99}"
 stop="${2:-102}"
 dim="${3:-2}"
 fields=(2 3 5 7)
+
+source .vars
+
 
 echo "___________________"
 echo "| PROFILE GLAUBER | ➭➭➭ results in profiles/Glauber"
@@ -18,15 +20,21 @@ for ((L=$start; L<$stop; L++)); do
 		python profile.models.Glauber.py $field $dim $L &
 		wait $!
 		
-		if [ $? != 0 ]; then
-			echo -e "\033[F$fg[red]FAIL$reset_color"
-		else
-			echo -e "\033[F$fg[green]PASS$reset_color"
-		fi
+		case $? in
+			1)
+				echo -e "$UP$FAIL";;
+			0)
+				echo -e "$UP$PASS";;
+			*)
+				echo -e "$UP$WARN";;
+		esac
 	done
 	echo
 done
 
+echo -e $PASSDESC
+echo -e $WARNDESC
+echo -e $FAILDESC
 echo
 echo
 echo

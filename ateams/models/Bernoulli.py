@@ -25,6 +25,7 @@ class Bernoulli(Model):
 		# Object access.
 		self.complex = C
 		self.dimension = dimension
+		self._returns = 1
 
 		# Set a phantom spins attribute so we don't break the Chain.
 		self.spins = None

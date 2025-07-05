@@ -62,19 +62,37 @@ Vector LanczosKernelSample(Vector coboundary, int M, int N, int p, int maxTries)
 	Field F(p);
 	FieldMatrix A = FieldFill(coboundary, M, N, F);
 	FieldVector X(F, A.coldim()), b(F, A.rowdim());
-
-	// Use the sparse Lanczos solver; if there are more rows than columns, we can
-	// precondition the matrix.
+	
+	// Preconditioners in order of severity. We try all but FullDiagonal twice;
+	// if a zero result still occurs, we sample with the FullDiagonal for the
+	// remaining attempts.
 	LinBox::Method::Lanczos LANC;
-	LANC.preconditioner = LinBox::Preconditioner::FullDiagonal;
+	
+	vector<LinBox::Preconditioner> Preconditioners({
+		LinBox::Preconditioner::None,
+		LinBox::Preconditioner::PartialDiagonal,
+		LinBox::Preconditioner::PartialDiagonalSymmetrize,
+		LinBox::Preconditioner::FullDiagonal
+	});
 
-	// Re-sample until we get something other than the zero vector (up to four
-	// tries).
-	int t = 0;
+	int t = 0, pc = 0, tried = 0, pcs = Preconditioners.size();
 
-	while (!containsNonzero(X) and t < maxTries) {
-		solve(X, A, b, LANC);
-		t++;
+	while (!containsNonzero(X) && t < maxTries) {
+		if (pc < pcs-1) {
+			tried = 0;
+
+			while (tried < 2) {
+				LANC.preconditioner = Preconditioners[pc];
+				solve(X, A, b, LANC);
+				t++;
+				tried++;
+			}
+			pc++;
+		} else {
+			LANC.preconditioner = LinBox::Preconditioner::FullDiagonal;
+			solve(X, A, b, LANC);
+			t++;
+		}
 	}
 
 	return populate(A, X);

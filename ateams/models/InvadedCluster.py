@@ -9,7 +9,7 @@ from ..arithmetic import (
 	ComputePercolationEvents, LanczosKernelSample, MatrixReduction,
 	Persistence, KernelSample, FINT, ComputePersistencePairs
 )
-from ..common import Matrices, TooSmallWarning
+from ..common import Matrices, TooSmallWarning, NumericalInstabilityWarning
 from .Model import Model
 
 
@@ -17,7 +17,7 @@ class InvadedCluster(Model):
 	name = "InvadedCluster"
 	
 	def __init__(
-			self, C, dimension=1, initial=None, stop=lambda: 1, LinBox=True, sparse=True,
+			self, C, dimension=1, initial=None, stop=lambda: 1, LinBox=True, maxTries=16,
 			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
 		):
 		"""
@@ -34,7 +34,8 @@ class InvadedCluster(Model):
 			LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
 				ones. WARNING: using inbuilt methods may dramatically increase
 				computation time.
-			sparse (boolean): Should matrices be formatted sparsely? (Uses C/C++).
+			maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
+				vector in the kernel of the coboundary matrix.
 			parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
 			minBlockSize (int=32): If `parallel` is truthy, this is the smallest
 				number of columns processed in parallel.
@@ -46,6 +47,7 @@ class InvadedCluster(Model):
 		self.complex = C
 		self.dimension = dimension
 		self.stop = stop
+		self._returns = 3
 
 
 		# Force-recompute the matrices for a different dimension; creates
@@ -79,7 +81,7 @@ class InvadedCluster(Model):
 
 
 		# Delegates computation for persistence and cocycle sampling.
-		self._delegateComputation(LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores)
+		self._delegateComputation(LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries)
 
 
 		# Seed the random number generator.
@@ -91,17 +93,20 @@ class InvadedCluster(Model):
 		else: self.spins = (initial%self.complex.field).astype(FINT)
 
 	
-	def _delegateComputation(self, LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores):
+	def _delegateComputation(self, LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries):
 		low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
 
 		# If we're using LinBox, our sampling method is Lanczos regardless of
 		# dimension.
 		if LinBox:
 			def sample(zeros):
-				return np.array(LanczosKernelSample(
-					self.matrices.coboundary, zeros, 2*self.dimension,
-					self.faces, self.complex.field
-				), dtype=FINT)
+				try:
+					return np.array(LanczosKernelSample(
+						self.matrices.coboundary, zeros, 2*self.dimension,
+						self.faces, self.complex.field, maxTries
+					), dtype=FINT)
+				except Exception as e:
+					raise NumericalInstabilityWarning(e)
 		
 		# If we're using LinBox and the characteristic of our field is greater
 		# than 2, we use the twist_reduce variant implemented in this library.
@@ -156,7 +161,7 @@ class InvadedCluster(Model):
 			
 			def sample(zeros):
 				return KernelSample(Reducer, coboundary.take(zeros, axis=0)).astype(FINT)
-			
+		
 
 		self.sample = sample
 		self.persist = persist
@@ -169,7 +174,7 @@ class InvadedCluster(Model):
 		# Find which cubes get zeroed out (i.e. are sent to zero by the cocycle).
 		boundary = self.complex.Boundary[self.dimension]
 		q = self.complex.field
-
+		
 		coefficients = cochain[boundary]
 		coefficients[:,1::2] = -coefficients[:,1::2]%q
 		sums = coefficients.sum(axis=1)%q

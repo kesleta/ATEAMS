@@ -6,6 +6,8 @@ stop="${2:-12}"
 cores="${3:-2}"
 fields=(2 3 5 7)
 
+source .vars
+
 echo "____________________"
 echo "| PROFILE NIENHUIS | ➭➭➭ results in profiles/Nienhuis"
 echo "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾"
@@ -18,15 +20,21 @@ for ((L=$start; L<$stop; L++)); do
 		python profile.models.NH.py $L $field &
 		wait $!
 		
-		if [ $? != 0 ]; then
-			echo -e "\033[F$fg[red]FAIL$reset_color"
-		else
-			echo -e "\033[F$fg[green]PASS$reset_color"
-		fi
+		case $? in
+			1)
+				echo -e "$UP$FAIL";;
+			0)
+				echo -e "$UP$PASS";;
+			*)
+				echo -e "$UP$WARN";;
+		esac
 	done
 	echo
 done
 
+echo -e $PASSDESC
+echo -e $WARNDESC
+echo -e $FAILDESC
 echo
 echo
 echo
