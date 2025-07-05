@@ -6,15 +6,14 @@ from ateams import Chain
 import json
 
 
-def construct(L, DIM):
+def construct(L, field, DIM):
 	# Construct complex object.
-	field = 3
 	L = Cubical().fromCorners([L]*DIM, field=field)
 
 	# Set up Model and Chain.
 	T = critical(L.field)
 	SW = Glauber(L, dimension=DIM//2, temperature=lambda t: -T(t))
-	N = 1000
+	N = 50
 	M = Chain(SW, steps=N)
 
 	return M

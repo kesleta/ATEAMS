@@ -9,35 +9,28 @@ import sys
 
 
 try:
-    LinBox = int(sys.argv[-5])
-    L = int(sys.argv[-4])
-    parallel = bool(int(sys.argv[-3]))
-    cores = int(sys.argv[-2])
-    slurm = bool(int(sys.argv[-1]))
+    DIM = int(sys.argv[-2])
+    L = int(sys.argv[-1])
     sparse = False
 except:
-    LinBox = True
-    L = 3
-    parallel = False
-    cores = True
-    slurm = False
-    sparse = False
-
+    L = 6
+    DIM = 4
 
 pyximport.install()
 
-M = Bernoulli.construct(L, parallel, cores, LinBox)
+M = Bernoulli.construct(L, DIM)
 
-TESTS = [L, parallel, cores, LinBox]
-WIDTHS = [8, 8, 8, 8]
-DESC = [str(int(thing)).ljust(width) for thing, width in zip(TESTS, WIDTHS)]
+
+TESTS = [L, DIM]
+WIDTHS = [8, 8]
+DESC = [str(thing).ljust(width) for thing, width in zip(TESTS, WIDTHS)]
 DESC = " ".join(DESC)
-DESC = ("      "+DESC).ljust(10)
+DESC = ("      "+DESC).ljust(30)
 
 
 cProfile.runctx("Bernoulli.chain(M, DESC)", globals(), locals(), "Profile.prof")
 
-fname = f"./profiles/Bernoulli/{L}{'.sparse' if sparse else ''}{'.parallel' if parallel else ''}{'.slurm' if slurm else ''}.txt"
+fname = f"./profiles/Bernoulli/{L}.txt"
 with open(fname, 'w') as stream:
     s = pstats.Stats('Profile.prof', stream=stream)
     s.strip_dirs().sort_stats("time").print_stats()

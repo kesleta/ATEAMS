@@ -6,15 +6,14 @@ from ateams import Chain
 import json
 
 
-def construct(L, parallel, cores, LinBox):
+def construct(L, dim, field):
 	# Construct complex object.
-	field = 3
-	L = Cubical().fromCorners([L]*4, field=field)
+	L = Cubical().fromCorners([L]*dim, field=field)
 
 	# Set up Model and Chain.
 	T = critical(L.field)
-	SW = SwendsenWang(L, dimension=2, temperature=lambda t: -T(t), LinBox=LinBox, parallel=parallel, cores=cores)
-	N = 100
+	SW = SwendsenWang(L, dimension=dim//2, temperature=lambda t: -T(t))
+	N = 50
 	M = Chain(SW, steps=N)
 
 	return M
@@ -25,6 +24,6 @@ def chain(M, DESC=""):
 
 
 if __name__ == "__main__":
-	M = construct(7, False, 2, True)
+	M = construct(3, 4, 7)
 	chain(M)
 

@@ -6,14 +6,13 @@ from ateams import Chain
 import json
 import sys
 
-def construct(L, parallel, cores, LinBox):
+def construct(L, field):
 	# Construct complex object.
-	field = 3
 	L = Cubical().fromCorners([L]*2, field=field)
 
 	# Set up Model and Chain.
-	SW = Nienhuis(L, 1, 1, dimension=2, LinBox=LinBox, parallel=parallel, cores=cores)
-	N = 20
+	SW = Nienhuis(L, 1, 1, dimension=2)
+	N = 50
 	M = Chain(SW, steps=N)
 
 	return M

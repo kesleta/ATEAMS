@@ -7,7 +7,7 @@ from math import comb
 
 from ..arithmetic import (
 	ComputePercolationEvents, LanczosKernelSample, MatrixReduction,
-	Persistence, KernelSample, FINT
+	Persistence, KernelSample, FINT, ComputePersistencePairs
 )
 from ..common import Matrices, TooSmallWarning
 from .Model import Model
@@ -92,15 +92,20 @@ class InvadedCluster(Model):
 
 	
 	def _delegateComputation(self, LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores):
-		if LinBox:
-			low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
+		low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
 
+		# If we're using LinBox, our sampling method is Lanczos regardless of
+		# dimension.
+		if LinBox:
 			def sample(zeros):
 				return np.array(LanczosKernelSample(
 					self.matrices.coboundary, zeros, 2*self.dimension,
 					self.faces, self.complex.field
 				), dtype=FINT)
-			
+		
+		# If we're using LinBox and the characteristic of our field is greater
+		# than 2, we use the twist_reduce variant implemented in this library.
+		if LinBox and self.complex.field > 2:
 			def persist(filtration):
 				essential = ComputePercolationEvents(
 					self.matrices.full, filtration, self.dimension,
@@ -111,8 +116,30 @@ class InvadedCluster(Model):
 				essential.sort()
 				
 				return essential[(essential >= low) & (essential < high)]
+		
+		# If we're using LinBox and the field we're computing over *is* two,
+		# use PHAT.
+		elif LinBox and self.complex.field < 3:
+			times = set(range(self.cellCount))
+
+			def whittle(pairs):
+				_births, _deaths = zip(*pairs)
+				births = set(_births)
+				deaths = set(_deaths)
+
+				return set(
+					e for e in times-(births|deaths)
+					if low <= e < high
+				)
 			
-		else:
+			def persist(filtration):
+				essential = ComputePersistencePairs(
+					self.matrices.full, filtration, self.dimension, self.complex.breaks
+				)
+
+				return whittle(essential)
+			
+		if not LinBox:
 			# If we can't/don't want to use LinBox, use inbuilt methods.
 			Reducer = MatrixReduction(self.complex.field, parallel, minBlockSize, maxBlockSize, cores)
 			Persistencer = Persistence(self.complex.field, self.complex.flattened, self.dimension)
@@ -130,40 +157,6 @@ class InvadedCluster(Model):
 			def sample(zeros):
 				return KernelSample(Reducer, coboundary.take(zeros, axis=0)).astype(FINT)
 			
-		
-		# If p == 2, then we want to use PHAT for persistence only. We have to some
-		# unfortunately stupid computations though.
-		if self.complex.field < 3:
-			Persistencer = Persistence(self.complex.field, self.complex.flattened, self.dimension)
-			t = self.complex.tranches
-
-			# Indices of each cell and dimensions.
-			dimensions = np.array(sum([
-				[d]*(t[d,1]-t[d,0]) for d in range(len(t)) if d < self.dimension+2
-			],[]), dtype=FINT)
-			times = np.array(range(t[1][0], len(dimensions))).astype(FINT)
-
-			def phattified(phatBoundary, dimensions, times, filtration):
-				flattened = Persistencer.ReindexBoundary(filtration)
-				
-				dimensionalFlattened = [
-					(d, sorted(f)) if d > 0 else (d, [])
-					for d, f in zip(dimensions, flattened)
-				]
-
-				phatBoundary.columns = dimensionalFlattened
-				_births, _deaths = zip(*phatBoundary.compute_persistence_pairs())
-				births = set(_births)
-				deaths = set(_deaths)
-
-				return set(
-					e for e in times-(births|deaths)
-					if t[self.dimension][0] <= e < t[self.dimension][1]
-				)
-
-			def persist(filtration):
-				return phattified(phat.boundary_matrix(), dimensions, set(times), filtration)
-
 
 		self.sample = sample
 		self.persist = persist

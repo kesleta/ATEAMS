@@ -9,20 +9,22 @@ import sys
 
 
 try:
+    field = int(sys.argv[-3])
     DIM = int(sys.argv[-2])
     L = int(sys.argv[-1])
-    sparse = False
-except:
+except Exception as e:
+    print(e)
     L = 10
     DIM = 4
+    field = 3
 
 pyximport.install()
 
-M = Glauber.construct(L, DIM)
+M = Glauber.construct(L, field, DIM)
 
-TESTS = [L, DIM]
-WIDTHS = [8, 8]
-DESC = [str(int(thing)).ljust(width) for thing, width in zip(TESTS, WIDTHS)]
+TESTS = [L, DIM, f"Z/{field}Z"]
+WIDTHS = [8, 8, 8]
+DESC = [str(thing).ljust(width) for thing, width in zip(TESTS, WIDTHS)]
 DESC = " ".join(DESC)
 DESC = ("      "+DESC).ljust(20)
 

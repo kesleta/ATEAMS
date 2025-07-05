@@ -9,35 +9,28 @@ import sys
 
 
 try:
-    LinBox = int(sys.argv[-5])
-    L = int(sys.argv[-4])
-    parallel = bool(int(sys.argv[-3]))
-    cores = int(sys.argv[-2])
-    slurm = bool(int(sys.argv[-1]))
-    sparse = False
+    dim = int(sys.argv[-3])
+    field = int(sys.argv[-1])
+    L = int(sys.argv[-2])
 except:
-    LinBox = True
-    L = 3
-    parallel = False
-    cores = True
-    slurm = False
-    sparse = False
-
+    field = 3
+    L = 10
+    dim = 4
 
 pyximport.install()
 
-M = IC.construct(L, parallel, cores, LinBox)
+M = IC.construct(L, dim, field)
 
-TESTS = [L, parallel, cores, LinBox]
+TESTS = [L, dim, f"Z/{field}Z", bool(int(field < 3))]
 WIDTHS = [8, 8, 8, 8]
-DESC = [str(int(thing)).ljust(width) for thing, width in zip(TESTS, WIDTHS)]
+DESC = [str(thing).ljust(width) for thing, width in zip(TESTS, WIDTHS)]
 DESC = " ".join(DESC)
 DESC = ("      "+DESC).ljust(10)
 
 
 cProfile.runctx("IC.chain(M, DESC)", globals(), locals(), "Profile.prof")
 
-fname = f"./profiles/InvadedCluster/{L}{'.sparse' if sparse else ''}{'.parallel' if parallel else ''}{'.slurm' if slurm else ''}.txt"
+fname = f"./profiles/InvadedCluster/{L}.{field}.txt"
 with open(fname, 'w') as stream:
     s = pstats.Stats('Profile.prof', stream=stream)
     s.strip_dirs().sort_stats("time").print_stats()

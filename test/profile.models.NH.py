@@ -9,33 +9,25 @@ import sys
 
 
 try:
-    LinBox = int(sys.argv[-5])
-    L = int(sys.argv[-4])
-    parallel = bool(int(sys.argv[-3]))
-    cores = int(sys.argv[-2])
-    slurm = bool(int(sys.argv[-1]))
-    sparse = False
+    field = int(sys.argv[-1])
+    L = int(sys.argv[-2])
 except:
-    LinBox = True
+    field = 3
     L = 10
-    parallel = False
-    cores = True
-    slurm = False
-    sparse = False
 
 pyximport.install()
 
-M = NH.construct(L, parallel, cores, LinBox)
+M = NH.construct(L, field)
 
-TESTS = [L, parallel, cores, LinBox]
-WIDTHS = [8, 8, 8, 8]
-DESC = [str(int(thing)).ljust(width) for thing, width in zip(TESTS, WIDTHS)]
+TESTS = [L, f"Z/{field}Z"]
+WIDTHS = [8, 8]
+DESC = [str(thing).ljust(width) for thing, width in zip(TESTS, WIDTHS)]
 DESC = " ".join(DESC)
 DESC = ("      "+DESC).ljust(10)
 
 cProfile.runctx("NH.chain(M, DESC)", globals(), locals(), "Profile.prof")
 
-fname = f"./profiles/Nienhuis/{L}{'.sparse' if sparse else ''}{'.parallel' if parallel else ''}{'.slurm' if slurm else ''}.txt"
+fname = f"./profiles/Nienhuis/{L}.{field}.txt"
 with open(fname, 'w') as stream:
     s = pstats.Stats('Profile.prof', stream=stream)
     s.strip_dirs().sort_stats("time").print_stats()

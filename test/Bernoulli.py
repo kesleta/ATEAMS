@@ -4,14 +4,12 @@ from ateams.models import Bernoulli
 from ateams import Chain
 
 
-def construct(L, parallel, cores, LinBox):
+def construct(L, DIM):
 	# Construct complex object.
-	field = 2
-	L = Cubical().fromCorners([L]*4, field=field)
+	L = Cubical().fromCorners([L]*DIM)
 
 	# Set up Model and Chain.
-	homology = 2
-	SW = Bernoulli(L, dimension=homology, parallel=parallel, cores=cores, LinBox=LinBox)
+	SW = Bernoulli(L, dimension=DIM//2)
 	N = 50
 	M = Chain(SW, steps=N)
 
@@ -22,6 +20,6 @@ def chain(M, DESC=""):
 		pass
 
 if __name__ == "__main__":
-	M = construct(4, False, 2, True)
+	M = construct(4, 4)
 	chain(M)
 

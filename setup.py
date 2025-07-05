@@ -4,23 +4,6 @@ from Cython.Build import cythonize
 from Cython.Compiler.Options import get_directive_defaults as GDD
 import numpy
 
-#########################
-### INSTALLATION NOTE ###
-#########################
-
-# PHAT is often *very difficult* to install. Before installing, please ensure
-# that the following are installed and accessible in your system:
-#
-#   • PyBind11, setuptools, wheel (via pip)
-#   • g++ (preferably >12)
-#
-# When installing PHAT, please use the arguments
-#
-#   pip install --use-deprecated=legacy-resolver --no-binary :all: phat
-#
-# To ensure installation.
-#
-
 DD = GDD()
 DD["linetrace"] = True
 DD["binding"] = True
@@ -33,7 +16,7 @@ extensions = [
 		extra_compile_args=["-std=c++20", "-O3"],
 		define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
 		language="c++",
-		libraries=["LinBoxMethods"]
+		libraries=["LinBoxMethods", "PHATMethods"]
 	)
 ]
 

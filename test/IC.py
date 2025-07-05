@@ -6,28 +6,22 @@ import json
 import sys
 
 
-def construct(L, parallel, cores, LinBox):
+def construct(L, dim, field):
 	# Construct complex object.
-	field = 3
-	L = Cubical().fromCorners([L]*4, field=field)
+	L = Cubical().fromCorners([L]*dim, field=field)
 
 	# Set up Model and Chain.
-	homology = 2
-	SW = InvadedCluster(L, dimension=homology, parallel=parallel, cores=cores, LinBox=LinBox)
+	SW = InvadedCluster(L, dimension=dim//2)
 	N = 50
 	M = Chain(SW, steps=N)
 
 	return M
 
 def chain(M, DESC=""):
-	try:
-		for (spins, essentials, satisfied) in M.progress(dynamic_ncols=True, desc=DESC):
-			pass
-	except Exception as e:
-		print(e)
-		exit(1)
+	for (spins, essentials, satisfied) in M.progress(dynamic_ncols=True, desc=DESC):
+		pass
 
 if __name__ == "__main__":
-	M = construct(3, False, 2, True)
+	M = construct(5, False, 2, True)
 	chain(M)
 
