@@ -4,6 +4,7 @@ from .Persistence import Persistence
 from .MatrixReduction import MatrixReduction
 from .BuiltinWrapper import Kernel, KernelSample
 from .LinBoxWrapper import LanczosKernelSample, ComputePercolationEvents, SubLanczosKernelSample
+from .PHATWrapper import PHATComputePersistencePairs as ComputePersistencePairs
 
 
 __pdoc__ = {}
@@ -13,6 +14,6 @@ __pdoc__["ateams.arithmetic.common.SFINT"] = False
 
 __all__ = [
 	"Persistence", "MatrixReduction", "Kernel", "KernelSample", "LanczosKernelSample",
-	"ComputePercolationEvents"
+	"ComputePercolationEvents", "SubLanczosKernelSample", "ComputePersistencePairs"
 ]
 

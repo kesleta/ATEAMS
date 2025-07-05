@@ -66,7 +66,7 @@ Vector LanczosKernelSample(Vector coboundary, int M, int N, int p, int maxTries)
 	// Use the sparse Lanczos solver; if there are more rows than columns, we can
 	// precondition the matrix.
 	LinBox::Method::Lanczos LANC;
-	if (A.rowdim() > A.coldim()) LANC.preconditioner = LinBox::Preconditioner::PartialDiagonal;
+	LANC.preconditioner = LinBox::Preconditioner::PartialDiagonal;
 
 	// Re-sample until we get something other than the zero vector (up to four
 	// tries).

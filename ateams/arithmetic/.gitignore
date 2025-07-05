@@ -3,3 +3,6 @@
 *.so
 *.html
 *.o
+
+!LinBoxMethods.cpp
+!PHATMethods.cpp

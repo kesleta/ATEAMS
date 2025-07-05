@@ -98,7 +98,7 @@ cdef Vector[int] SubZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeroRows, INDEXFLAT zer
 cpdef Vector[int] SubLanczosKernelSample(
 		INDEXFLAT coboundary, INDEXFLAT zeroRows, INDEXFLAT zeroColumns,
 		int p, int maxTries=16
-	) noexcept:
+	) except +:
 	"""
 	Uses the LinBox (Block?) Lanczos black-box solver to get a uniform
 	random element of the kernel of the coboundary.
@@ -122,7 +122,7 @@ cpdef Vector[int] SubLanczosKernelSample(
 cpdef Vector[int] LanczosKernelSample(
 		INDEXFLAT coboundary, INDEXFLAT zeros, int faces, int columns, int p,
 		int maxTries=16
-	) noexcept:
+	) except +:
 	"""
 	Uses the LinBox (Block?) Lanczos black-box solver to get a uniform
 	random element of the kernel of the coboundary.
@@ -142,7 +142,7 @@ cpdef Vector[int] LanczosKernelSample(
 	Returns:
 		A C++ `std::vector` with spin assignments.
 	"""
-	cdef Vector[int] submatrix = ZeroSubmatrix(coboundary, zeros, faces, columns);
+	cdef Vector[int] sample, submatrix = ZeroSubmatrix(coboundary, zeros, faces, columns);
 	return _LanczosKernelSample(submatrix, zeros.shape[0], columns, p, maxTries);
 
 
