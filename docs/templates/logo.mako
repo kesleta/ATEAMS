@@ -1,68 +1,26 @@
 
+
 <!-- include a script for adding stuff to the end of proofs. -->
 <script>
-    // Get all the proofs in the document.
-    proofs = document.getElementsByClassName("proof");
+	// Get all the proofs in the document.
+	proofs = document.getElementsByClassName("proof");
 
-    // For each of the proofs, attach a floating child element in the bottom-right
-    // corner.
-    for (var proof of proofs) {
-        // Create a proof-ending tombstone.
-        square = document.createElement("div");
-        square.className = "tombstone";
-        square.innerHTML = "◼️";
+	// For each of the proofs, attach a floating child element in the bottom-right
+	// corner.
+	for (var proof of proofs) {
+		// Create a proof-ending tombstone.
+		square = document.createElement("div");
+		square.className = "tombstone";
+		square.innerHTML = "◼️";
 
-        // Attach the tombstone to the proof.
-        proof.appendChild(square);
-    }
+		// Attach the tombstone to the proof.
+		proof.appendChild(square);
+	}
 </script>
 
+
 <header>
-    <a class="homelink" rel="home" title="ATEAM" href="https://github.com/apizzimenti/ateam">
-        <style>
-            header > h1 { display: none; }
-
-            img.resize {
-                min-width: 10vw;
-                max-width: 15vw;
-                display: block;
-                margin: 0 auto;
-            }
-
-            div.proof {
-                border: 1px solid black;
-                padding: 0em 1em;
-                width: 90%;
-                margin: 1em auto;
-            }
-
-            .tombstone {
-                margin-top: -2em;
-                float: right;
-            }
-
-            #section-intro {
-                text-align: justify;
-            }
-
-            #index .two-column {
-                column-count: 1 !important;
-            }
-
-            #ateams {
-                margin-top: 0;
-            }
-
-            #content {
-                text-align: justify;
-            }
-
-            #sidebar {
-                width: 20vw;
-                font-size: 1rem;
-                scrollbar-width: none;
-            }
-        </style>
-        <img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
-    </a>
+	<a class="homelink" rel="home" title="ATEAM" href="https://github.com/apizzimenti/ateam">
+		<img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
+	</a>
 </header>

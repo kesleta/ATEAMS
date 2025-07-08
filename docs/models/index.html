@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.3">
 <title>ateams.models API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="Models …">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" crossorigin>
@@ -19,6 +19,68 @@
 hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
 hljs.highlightAll();
 })</script>
+<!-- Sidebar edits -->
+<style>
+header > h1 { display: none; }
+.toc { display: none; }
+img.resize {
+min-width: 10vw;
+max-width: 15vw;
+display: block;
+margin: 0 auto;
+}
+div.proof {
+border: 1px solid black;
+padding: 0em 1em;
+width: 90%;
+margin: 1em auto;
+}
+.tombstone {
+margin-top: -2em;
+float: right;
+}
+#index .two-column {
+column-count: 1 !important;
+}
+#ateams {
+margin-top: 0;
+}
+#sidebar {
+width: 20vw;
+font-size: 1rem;
+scrollbar-width: none;
+}
+</style>
+<!-- table edits -->
+<style>
+.dataframe.profile-data-table {
+margin: auto;
+width: 75%;
+}
+.dataframe.profile-data-table thead tr {
+text-align: center !important;
+}
+.dataframe.profile-data-table thead {
+border-bottom: 3px solid black;
+}
+.dataframe.profile-data-table tbody > tr:nth-of-type(9n) {
+border-bottom: 3px solid black;
+}
+.dataframe.profile-data-table tbody tr th {
+vertical-align: middle;
+}
+.dataframe.profile-data-table tbody tr td {
+vertical-align: middle;
+}
+.dataframe.profile-data-table tbody > tr:nth-child(3n) {
+:nth-child(n) {
+border-bottom: 1px solid black;
+}
+}
+.dataframe.profile-data-table tbody td {
+text-align: center;
+}
+</style>
 </head>
 <body>
 <main>
@@ -27,6 +89,9 @@ hljs.highlightAll();
 <h1 class="title">Module <code>ateams.models</code></h1>
 </header>
 <section id="section-intro">
+<h2 id="models">Models</h2>
+<p>A <em>model</em> programmatically specifies a probability distribution over a combinatorial object like a graph, cubical complex, or polytope. Given one of these objects (e.g. <code><a title="ateams.complexes.Cubical" href="../complexes/index.html#ateams.complexes.Cubical">Cubical</a></code>), each model implements a <em>proposal function</em> for sampling from the distribution it specifies. For example, <code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code> represents the Edwards-Sokal coupling of the <a href="https://link.springer.com/article/10.1007/s00220-025-05322-5"><em>plaquette random cluster model</em> and <em>Potts lattice gauge theory</em></a> on subcomplexes of the $d$-fold, scale-$N$ cubical torus $\mathbb T^d_N$; its proposal function is a generalized version of the <a href="https://link.aps.org/doi/10.1103/PhysRevLett.58.86"><em>Swendsen-Wang algorithm</em></a>.</p>
+<p>The <code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code>, <code><a title="ateams.models.InvadedCluster" href="#ateams.models.InvadedCluster">InvadedCluster</a></code>, and <code><a title="ateams.models.Nienhuis" href="#ateams.models.Nienhuis">Nienhuis</a></code> models require performant sparse linear algebra over finite fields, for which we turn to <a href="https://github.com/linbox-team/linbox">LinBox</a>. The <code><a title="ateams.models.InvadedCluster" href="#ateams.models.InvadedCluster">InvadedCluster</a></code> and <code><a title="ateams.models.Bernoulli" href="#ateams.models.Bernoulli">Bernoulli</a></code> models require fast computation of persistent homology, for which we use <a href="https://www.sciencedirect.com/science/article/pii/S0747717116300098">PHAT</a> (when sampling over $\mathbb Z/2\mathbb Z$) and a home-brew variant of <a href="https://www.geometrie.tugraz.at/kerber/kerber_papers/ck-phcwat-11.pdf">the "twist" algorithm proposed by Chen and Kerber</a>. Only the <code><a title="ateams.models.Glauber" href="#ateams.models.Glauber">Glauber</a></code> dynamics model is implemented in "pure Python," though it relies exclusively on NumPy.</p>
 </section>
 <section>
 </section>
@@ -59,8 +124,8 @@ computation time.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Bernoulli(Model):
-        name = &#34;Bernoulli&#34;
+<pre><code class="python">class Bernoulli():
+        _name = &#34;Bernoulli&#34;
         
         def __init__(self, C, dimension=1, PHAT=True):
                 &#34;&#34;&#34;
@@ -74,12 +139,15 @@ computation time.</dd>
                                 ones. WARNING: using inbuilt methods may dramatically increase
                                 computation time.
                 &#34;&#34;&#34;
-                # Object access.
+                # Object access. Set a field.
                 self.complex = C
                 self.dimension = dimension
+                self._returns = 1
+                self.field = 2
 
-                # Set a phantom spins attribute so we don&#39;t break the Chain.
+                # Set a phantom spins attribute so we don&#39;t break the Chain
                 self.spins = None
+
 
                 # Force-recompute the matrices for a different dimension; creates
                 # a set of orientations for fast elementwise products.
@@ -140,7 +208,7 @@ computation time.</dd>
                 self.persist = persist
 
 
-        def filtrate(self):
+        def _filtrate(self):
                 &#34;&#34;&#34;
                 Constructs a filtration based on the evaluation of the cochain.
                 &#34;&#34;&#34;
@@ -155,7 +223,7 @@ computation time.</dd>
                 return filtration, shuffled-low
 
 
-        def initial(self):
+        def _initial(self):
                 &#34;&#34;&#34;
                 Computes an initial state for the model&#39;s Complex.
 
@@ -163,11 +231,11 @@ computation time.</dd>
                         A numpy `np.array` representing a vector of spin assignments.
                 &#34;&#34;&#34;
                 return self.RNG.integers(
-                        0, high=self.complex.field, dtype=FINT, size=self.faces
+                        0, high=self.field, dtype=FINT, size=self.faces
                 )
         
 
-        def proposal(self, time):
+        def _proposal(self, time):
                 &#34;&#34;&#34;
                 Proposal scheme for generalized invaded-cluster evolution on the
                 random-cluster model.
@@ -179,7 +247,7 @@ computation time.</dd>
                         A numpy array representing a vector of spin assignments.
                 &#34;&#34;&#34;
                 # Construct the filtration and find the essential cycles.
-                filtration, shuffled = self.filtrate()
+                filtration, shuffled = self._filtrate()
                 essential = self.persist(filtration)
 
                 j = 0
@@ -195,60 +263,12 @@ computation time.</dd>
                 return occupied
         
 
-        def assign(self, cocycle): pass</code></pre>
+        def _assign(self, cocycle): pass</code></pre>
 </details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>ateams.models.Model.Model</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="ateams.models.Bernoulli.name"><code class="name">var <span class="ident">name</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="ateams.models.Bernoulli.assign"><code class="name flex">
-<span>def <span class="ident">assign</span></span>(<span>self, cocycle)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ateams.models.Bernoulli.filtrate"><code class="name flex">
-<span>def <span class="ident">filtrate</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Constructs a filtration based on the evaluation of the cochain.</p></div>
-</dd>
-<dt id="ateams.models.Bernoulli.initial"><code class="name flex">
-<span>def <span class="ident">initial</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Computes an initial state for the model's Complex.</p>
-<h2 id="returns">Returns</h2>
-<p>A numpy <code>np.array</code> representing a vector of spin assignments.</p></div>
-</dd>
-<dt id="ateams.models.Bernoulli.proposal"><code class="name flex">
-<span>def <span class="ident">proposal</span></span>(<span>self, time)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Proposal scheme for generalized invaded-cluster evolution on the
-random-cluster model.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>time</code></strong> :&ensp;<code>int</code></dt>
-<dd>Step in the chain.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A numpy array representing a vector of spin assignments.</p></div>
-</dd>
-</dl>
 </dd>
 <dt id="ateams.models.Glauber"><code class="flex name class">
 <span>class <span class="ident">Glauber</span></span>
-<span>(</span><span>C,<br>dimension=1,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None)</span>
+<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes Glauber dynamics on the Potts model.</p>
@@ -258,6 +278,8 @@ random-cluster model.</p>
 <dd>The <code>Complex</code> object on which we'll be running experiments.</dd>
 <dt><strong><code>dimension</code></strong> :&ensp;<code>int=1</code></dt>
 <dd>Dimension on which we'll be building experiments.</dd>
+<dt><strong><code>field</code></strong> :&ensp;<code>int=2</code></dt>
+<dd>Field characteristic.</dd>
 <dt><strong><code>temperature</code></strong> :&ensp;<code>Callable</code></dt>
 <dd>A temperature schedule function which
 takes a single positive integer argument <code>t</code>, and returns the
@@ -269,11 +291,11 @@ scheduled temperature at time <code>t</code>.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Glauber(Model):
-        name = &#34;Glauber&#34;
+<pre><code class="python">class Glauber():
+        _name = &#34;Glauber&#34;
         
         def __init__(
-                        self, C, dimension=1, temperature=constant(-0.6), initial=None
+                        self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None
                 ):
                 &#34;&#34;&#34;
                 Initializes Glauber dynamics on the Potts model.
@@ -281,14 +303,17 @@ scheduled temperature at time <code>t</code>.</dd>
                 Args:
                         C: The `Complex` object on which we&#39;ll be running experiments.
                         dimension (int=1): Dimension on which we&#39;ll be building experiments.
+                        field (int=2): Field characteristic.
                         temperature (Callable): A temperature schedule function which
                                 takes a single positive integer argument `t`, and returns the
                                 scheduled temperature at time `t`.
                         initial (np.ndarray): A vector of spin assignments to components.
                 &#34;&#34;&#34;
+                self.field = field
                 self.complex = C
                 self.dimension = dimension
                 self.temperature = temperature
+                self._returns = 2
 
                 # Useful values to have later.
                 self.cells = len(self.complex.Boundary[self.dimension])
@@ -299,11 +324,11 @@ scheduled temperature at time <code>t</code>.</dd>
                 self.RNG = np.random.default_rng()
 
                 # If no initial spin configuration is passed, initialize.
-                if not initial: self.spins = self.initial()
-                else: self.spins = (initial%self.complex.field).astype(FINT)
+                if not initial: self.spins = self._initial()
+                else: self.spins = (initial%self.field).astype(FINT)
         
 
-        def initial(self):
+        def _initial(self):
                 &#34;&#34;&#34;
                 Computes an initial state for the model&#39;s Complex.
 
@@ -311,11 +336,11 @@ scheduled temperature at time <code>t</code>.</dd>
                         A numpy `np.array` representing a vector of spin assignments.
                 &#34;&#34;&#34;
                 return self.RNG.integers(
-                        0, high=self.complex.field, dtype=MINT, size=self.faces
+                        0, high=self.field, dtype=MINT, size=self.faces
                 )
         
 
-        def proposal(self, time):
+        def _proposal(self, time):
                 &#34;&#34;&#34;
                 Proposal scheme for generalized Glauber dynamics on the Potts model:
                 uniformly randomly chooses a face in the complex, flips the face&#39;s spin,
@@ -330,10 +355,10 @@ scheduled temperature at time <code>t</code>.</dd>
                 # Flip.
                 spins = self.spins[::]
                 flip = self.RNG.integers(self.faces)
-                spins[flip] = (self.RNG.integers(self.complex.field, dtype=FINT))
+                spins[flip] = (self.RNG.integers(self.field, dtype=FINT))
 
                 boundary = self.complex.Boundary[self.dimension]
-                q = self.complex.field
+                q = self.field
 
                 # Evaluate the current spin assignment (cochain).
                 evaluation = spins[boundary]
@@ -366,7 +391,7 @@ scheduled temperature at time <code>t</code>.</dd>
                 return self.spins, satisfied
         
 
-        def assign(self, cochain):
+        def _assign(self, cochain):
                 &#34;&#34;&#34;
                 Updates mappings from faces to spins and cubes to occupations.
                 
@@ -378,60 +403,10 @@ scheduled temperature at time <code>t</code>.</dd>
                 &#34;&#34;&#34;
                 self.spins = cochain</code></pre>
 </details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>ateams.models.Model.Model</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="ateams.models.Glauber.name"><code class="name">var <span class="ident">name</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="ateams.models.Glauber.assign"><code class="name flex">
-<span>def <span class="ident">assign</span></span>(<span>self, cochain)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>cochain</code></strong> :&ensp;<code>np.array</code></dt>
-<dd>Cochain on the complex.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>None.</p></div>
-</dd>
-<dt id="ateams.models.Glauber.initial"><code class="name flex">
-<span>def <span class="ident">initial</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Computes an initial state for the model's Complex.</p>
-<h2 id="returns">Returns</h2>
-<p>A numpy <code>np.array</code> representing a vector of spin assignments.</p></div>
-</dd>
-<dt id="ateams.models.Glauber.proposal"><code class="name flex">
-<span>def <span class="ident">proposal</span></span>(<span>self, time)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Proposal scheme for generalized Glauber dynamics on the Potts model:
-uniformly randomly chooses a face in the complex, flips the face's spin,
-and returns the corresponding cocycle.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>time</code></strong> :&ensp;<code>int</code></dt>
-<dd>Step in the chain.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A NumPy array representing a vector of spin assignments.</p></div>
-</dd>
-</dl>
 </dd>
 <dt id="ateams.models.InvadedCluster"><code class="flex name class">
 <span>class <span class="ident">InvadedCluster</span></span>
-<span>(</span><span>C,<br>dimension=1,<br>initial=None,<br>stop=&lt;function InvadedCluster.&lt;lambda&gt;&gt;,<br>LinBox=True,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
+<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>initial=None,<br>stop=&lt;function InvadedCluster.&lt;lambda&gt;&gt;,<br>LinBox=True,<br>maxTries=16,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes the plaquette invaded-cluster algorithm on the provided
@@ -443,6 +418,8 @@ group.</p>
 <dd>The <code>Complex</code> object on which we'll be running experiments.</dd>
 <dt><strong><code>dimension</code></strong> :&ensp;<code>int=1</code></dt>
 <dd>The dimension of cells on which we're percolating.</dd>
+<dt><strong><code>field</code></strong> :&ensp;<code>int=2</code></dt>
+<dd>Field characteristic.</dd>
 <dt><strong><code>initial</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>A vector of spin assignments to components.</dd>
 <dt><strong><code>stop</code></strong> :&ensp;<code>function</code></dt>
@@ -452,8 +429,10 @@ found before sampling the next configuration.</dd>
 <dd>Uses fast LinBox routines instead of slow inbuilt
 ones. WARNING: using inbuilt methods may dramatically increase
 computation time.</dd>
-<dt><strong><code>sparse</code></strong> :&ensp;<code>boolean</code></dt>
-<dd>Should matrices be formatted sparsely? (Uses C/C++).</dd>
+<dt><strong><code>maxTries</code></strong> :&ensp;<code>int=16</code></dt>
+<dd>The number of attempts LinBox makes to sample a nonzero
+vector in the kernel of the coboundary matrix <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>. See more
+discussion in the <code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code> model.</dd>
 <dt><strong><code>parallel</code></strong> :&ensp;<code>boolean</code></dt>
 <dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
 <dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
@@ -464,16 +443,96 @@ number of columns processed in parallel.</dd>
 number of columns processed in parallel.</dd>
 <dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
 <dd>Number of available CPUs/cores/threads on the machine.</dd>
-</dl></div>
+</dl>
+<p>Below are some performance statistics</p>
+<p></br>
+</br>
+<center> Samples in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span> </center></p>
+<table class="dataframe profile-data-table">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th></th>
+<th></th>
+<th>s/iteration</th>
+</tr>
+<tr>
+<th>Field</th>
+<th>$N$</th>
+<th><code>maxTries</code></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
+<td rowspan="3" valign="top">724</td>
+<td>8</td>
+<td>2.155</td>
+</tr>
+<tr>
+<td>16</td>
+<td>2.255</td>
+</tr>
+<tr>
+<td>32</td>
+<td>2.161</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1024</td>
+<td>8</td>
+<td>4.921</td>
+</tr>
+<tr>
+<td>16</td>
+<td>4.663</td>
+</tr>
+<tr>
+<td>32</td>
+<td>4.915</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1448</td>
+<td>8</td>
+<td>10.527</td>
+</tr>
+<tr>
+<td>16</td>
+<td>10.442</td>
+</tr>
+<tr>
+<td>32</td>
+<td>10.658</td>
+</tr>
+</tbody>
+</table>
+<table class="dataframe profile-data-table">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th></th>
+<th></th>
+<th>s/iteration</th>
+</tr>
+<tr>
+<th>Field</th>
+<th>$N$</th>
+<th><code>maxTries</code></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class InvadedCluster(Model):
-        name = &#34;InvadedCluster&#34;
+<pre><code class="python">class InvadedCluster():
+        _name = &#34;InvadedCluster&#34;
         
         def __init__(
-                        self, C, dimension=1, initial=None, stop=lambda: 1, LinBox=True, sparse=True,
+                        self, C, dimension=1, field=2, initial=None, stop=lambda: 1, LinBox=True, maxTries=16,
                         parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
                 ):
                 &#34;&#34;&#34;
@@ -484,24 +543,37 @@ number of columns processed in parallel.</dd>
                 Args:
                         C (Complex): The `Complex` object on which we&#39;ll be running experiments.
                         dimension (int=1): The dimension of cells on which we&#39;re percolating.
+                        field (int=2): Field characteristic.
                         initial (np.array): A vector of spin assignments to components.
                         stop (function): A function that returns the number of essential cycles
                                 found before sampling the next configuration.
                         LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
                                 ones. WARNING: using inbuilt methods may dramatically increase
                                 computation time.
-                        sparse (boolean): Should matrices be formatted sparsely? (Uses C/C++).
+                        maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
+                                vector in the kernel of the coboundary matrix \(A\). See more
+                                discussion in the `SwendsenWang` model.
                         parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
                         minBlockSize (int=32): If `parallel` is truthy, this is the smallest
                                 number of columns processed in parallel.
                         maxBlockSize (int=64): If `parallel` is truthy, this is the largest
                                 number of columns processed in parallel.
                         cores (int=4): Number of available CPUs/cores/threads on the machine.
+
+                Below are some performance statistics
+                
+                &lt;/br&gt;
+                &lt;/br&gt;
+                &lt;center&gt; Samples in \(\mathbb T^2_N\) &lt;/center&gt;
+                ..include:: ./tables/InvadedCluster.PHATComputePersistencePairs.2.html
+                ..include:: ./tables/InvadedCluster.ComputePercolationEvents.2.html
                 &#34;&#34;&#34;
                 # Object access.
                 self.complex = C
                 self.dimension = dimension
                 self.stop = stop
+                self._returns = 3
+                self.field = field
 
 
                 # Force-recompute the matrices for a different dimension; creates
@@ -535,7 +607,7 @@ number of columns processed in parallel.</dd>
 
 
                 # Delegates computation for persistence and cocycle sampling.
-                self._delegateComputation(LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores)
+                self._delegateComputation(LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries)
 
 
                 # Seed the random number generator.
@@ -543,29 +615,32 @@ number of columns processed in parallel.</dd>
 
 
                 # If no initial spin configuration is passed, initialize.
-                if not initial: self.spins = self.initial()
-                else: self.spins = (initial%self.complex.field).astype(FINT)
+                if not initial: self.spins = self._initial()
+                else: self.spins = (initial%self.field).astype(FINT)
 
         
-        def _delegateComputation(self, LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores):
+        def _delegateComputation(self, LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries):
                 low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
 
                 # If we&#39;re using LinBox, our sampling method is Lanczos regardless of
                 # dimension.
                 if LinBox:
                         def sample(zeros):
-                                return np.array(LanczosKernelSample(
-                                        self.matrices.coboundary, zeros, 2*self.dimension,
-                                        self.faces, self.complex.field
-                                ), dtype=FINT)
+                                try:
+                                        return np.array(LanczosKernelSample(
+                                                self.matrices.coboundary, zeros, 2*self.dimension,
+                                                self.faces, self.field, maxTries
+                                        ), dtype=FINT)
+                                except Exception as e:
+                                        raise NumericalInstabilityWarning(e)
                 
                 # If we&#39;re using LinBox and the characteristic of our field is greater
                 # than 2, we use the twist_reduce variant implemented in this library.
-                if LinBox and self.complex.field &gt; 2:
+                if LinBox and self.field &gt; 2:
                         def persist(filtration):
                                 essential = ComputePercolationEvents(
                                         self.matrices.full, filtration, self.dimension,
-                                        self.complex.field, self.complex.breaks
+                                        self.field, self.complex.breaks
                                 )
 
                                 essential = np.array(list(essential))
@@ -575,7 +650,7 @@ number of columns processed in parallel.</dd>
                 
                 # If we&#39;re using LinBox and the field we&#39;re computing over *is* two,
                 # use PHAT.
-                elif LinBox and self.complex.field &lt; 3:
+                elif LinBox and self.field &lt; 3:
                         times = set(range(self.cellCount))
 
                         def whittle(pairs):
@@ -597,13 +672,13 @@ number of columns processed in parallel.</dd>
                         
                 if not LinBox:
                         # If we can&#39;t/don&#39;t want to use LinBox, use inbuilt methods.
-                        Reducer = MatrixReduction(self.complex.field, parallel, minBlockSize, maxBlockSize, cores)
-                        Persistencer = Persistence(self.complex.field, self.complex.flattened, self.dimension)
+                        Reducer = MatrixReduction(self.field, parallel, minBlockSize, maxBlockSize, cores)
+                        Persistencer = Persistence(self.field, self.complex.flattened, self.dimension)
 
                         coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
                         rows = self.matrices.coboundary[::3]
                         cols = self.matrices.coboundary[1::3]
-                        entries = (self.matrices.coboundary[2::3]%self.complex.field).astype(FINT)
+                        entries = (self.matrices.coboundary[2::3]%self.field).astype(FINT)
 
                         coboundary[rows,cols] = entries
                         
@@ -612,20 +687,20 @@ number of columns processed in parallel.</dd>
                         
                         def sample(zeros):
                                 return KernelSample(Reducer, coboundary.take(zeros, axis=0)).astype(FINT)
-                        
+                
 
                 self.sample = sample
                 self.persist = persist
 
 
-        def filtrate(self, cochain):
+        def _filtrate(self, cochain):
                 &#34;&#34;&#34;
                 Constructs a filtration based on the evaluation of the cochain.
                 &#34;&#34;&#34;
                 # Find which cubes get zeroed out (i.e. are sent to zero by the cocycle).
                 boundary = self.complex.Boundary[self.dimension]
-                q = self.complex.field
-
+                q = self.field
+                
                 coefficients = cochain[boundary]
                 coefficients[:,1::2] = -coefficients[:,1::2]%q
                 sums = coefficients.sum(axis=1)%q
@@ -647,7 +722,7 @@ number of columns processed in parallel.</dd>
                 return filtration, shuffled, satisfied
 
 
-        def initial(self):
+        def _initial(self):
                 &#34;&#34;&#34;
                 Computes an initial state for the model&#39;s Complex.
 
@@ -655,11 +730,11 @@ number of columns processed in parallel.</dd>
                         A numpy `np.array` representing a vector of spin assignments.
                 &#34;&#34;&#34;
                 return self.RNG.integers(
-                        0, high=self.complex.field, dtype=FINT, size=self.faces
+                        0, high=self.field, dtype=FINT, size=self.faces
                 )
         
 
-        def proposal(self, time):
+        def _proposal(self, time):
                 &#34;&#34;&#34;
                 Proposal scheme for generalized invaded-cluster evolution on the
                 random-cluster model.
@@ -671,7 +746,7 @@ number of columns processed in parallel.</dd>
                         A numpy array representing a vector of spin assignments.
                 &#34;&#34;&#34;
                 # Construct the filtration and find the essential cycles.
-                filtration, shuffledIndices, satisfiedIndices = self.filtrate(self.spins)
+                filtration, shuffledIndices, satisfiedIndices = self._filtrate(self.spins)
                 essential = self.persist(filtration)
 
                 j = 0
@@ -694,7 +769,7 @@ number of columns processed in parallel.</dd>
                 return spins, occupied, satisfied
         
 
-        def assign(self, cocycle):
+        def _assign(self, cocycle):
                 &#34;&#34;&#34;
                 Updates mappings from faces to spins and cubes to occupations.
 
@@ -706,65 +781,10 @@ number of columns processed in parallel.</dd>
                 &#34;&#34;&#34;
                 self.spins = cocycle</code></pre>
 </details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>ateams.models.Model.Model</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="ateams.models.InvadedCluster.name"><code class="name">var <span class="ident">name</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="ateams.models.InvadedCluster.assign"><code class="name flex">
-<span>def <span class="ident">assign</span></span>(<span>self, cocycle)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>cocycle</code></strong> :&ensp;<code>np.array</code></dt>
-<dd>Cocycle on the subcomplex.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>Nothing.</p></div>
-</dd>
-<dt id="ateams.models.InvadedCluster.filtrate"><code class="name flex">
-<span>def <span class="ident">filtrate</span></span>(<span>self, cochain)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Constructs a filtration based on the evaluation of the cochain.</p></div>
-</dd>
-<dt id="ateams.models.InvadedCluster.initial"><code class="name flex">
-<span>def <span class="ident">initial</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Computes an initial state for the model's Complex.</p>
-<h2 id="returns">Returns</h2>
-<p>A numpy <code>np.array</code> representing a vector of spin assignments.</p></div>
-</dd>
-<dt id="ateams.models.InvadedCluster.proposal"><code class="name flex">
-<span>def <span class="ident">proposal</span></span>(<span>self, time)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Proposal scheme for generalized invaded-cluster evolution on the
-random-cluster model.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>time</code></strong> :&ensp;<code>int</code></dt>
-<dd>Step in the chain.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A numpy array representing a vector of spin assignments.</p></div>
-</dd>
-</dl>
 </dd>
 <dt id="ateams.models.Nienhuis"><code class="flex name class">
 <span>class <span class="ident">Nienhuis</span></span>
-<span>(</span><span>C,<br>q1,<br>q2,<br>dimension=2,<br>initial=None,<br>LinBox=True,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
+<span>(</span><span>C,<br>q1,<br>q2,<br>dimension=2,<br>field=2,<br>initial=None,<br>LinBox=True,<br>maxTries=16,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes the self-dual Nienhuis model.</p>
@@ -779,14 +799,17 @@ Here, the dimension is assumed to be 2.</dd>
 <dd>Face (i.e. cell) coupling parameter.</dd>
 <dt><strong><code>dimension</code></strong> :&ensp;<code>int</code></dt>
 <dd>Dimension targeted by the model.</dd>
+<dt><strong><code>field</code></strong> :&ensp;<code>int=2</code></dt>
+<dd>Field characteristic.</dd>
 <dt><strong><code>initial</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>A vector of spin assignments to components.</dd>
 <dt><strong><code>LinBox</code></strong> :&ensp;<code>bool=True</code></dt>
 <dd>Uses fast LinBox routines instead of slow inbuilt
 ones. WARNING: using inbuilt methods may dramatically increase
 computation time.</dd>
-<dt><strong><code>sparse</code></strong> :&ensp;<code>boolean</code></dt>
-<dd>Should matrices be formatted sparsely? (Uses C/C++).</dd>
+<dt><strong><code>maxTries</code></strong> :&ensp;<code>int=16</code></dt>
+<dd>The number of attempts LinBox makes to sample a nonzero
+vector in the kernel of the coboundary matrix.</dd>
 <dt><strong><code>parallel</code></strong> :&ensp;<code>boolean</code></dt>
 <dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
 <dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
@@ -802,12 +825,12 @@ number of columns processed in parallel.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Nienhuis(Model):
-        name = &#34;SwendsenWang&#34;
+<pre><code class="python">class Nienhuis():
+        _name = &#34;Nienhuis&#34;
 
         def __init__(
-                        self, C, q1, q2, dimension=2, initial=None, LinBox=True,
-                        sparse=True, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
+                        self, C, q1, q2, dimension=2, field=2, initial=None, LinBox=True, maxTries=16,
+                        parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
                 ):
                 &#34;&#34;&#34;
                 Initializes the self-dual Nienhuis model.
@@ -818,11 +841,13 @@ number of columns processed in parallel.</dd>
                         q1 (float): Edge coupling parameter.
                         q2 (float): Face (i.e. cell) coupling parameter.
                         dimension (int): Dimension targeted by the model.
+                        field (int=2): Field characteristic.
                         initial (np.array): A vector of spin assignments to components.
                         LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
                                 ones. WARNING: using inbuilt methods may dramatically increase
                                 computation time.
-                        sparse (boolean): Should matrices be formatted sparsely? (Uses C/C++).
+                        maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
+                                vector in the kernel of the coboundary matrix.
                         parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
                         minBlockSize (int=32): If `parallel` is truthy, this is the smallest
                                 number of columns processed in parallel.
@@ -833,6 +858,8 @@ number of columns processed in parallel.</dd>
                 # Object access.
                 self.complex = C
                 self.dimension = dimension
+                self._returns = 3
+                self.field = field
 
                 # Force-recompute the matrices for a different dimension; creates
                 # a set of orientations for fast elementwise products. Here, the dimension
@@ -873,22 +900,23 @@ number of columns processed in parallel.</dd>
                 self.RNG = np.random.default_rng()
 
                 # If no initial spin configuration is passed, initialize.
-                if not initial: self.spins = self.initial()
-                else: self.spins = (initial%self.complex.field).astype(FINT)
+                if not initial: self.spins = self._initial()
+                else: self.spins = (initial%self.field).astype(FINT)
 
                 # Delegate computation.
-                self._delegateComputation(LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores)
+                self._delegateComputation(LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries)
 
 
-        def _delegateComputation(self, LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores):
+        def _delegateComputation(self, LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries):
                 # If we use LinBox, keep everything as-is.
                 if LinBox:
                         def sample(faceZeros, cellZeros):
-                                if faceZeros.shape[0] &lt; 1 or cellZeros.shape[0] &lt; 1: return self.spins;
-                                
-                                return np.array(SubLanczosKernelSample(
-                                        self.matrices.coboundary, cellZeros, faceZeros, self.complex.field
-                                ), dtype=FINT)
+                                try:
+                                        return np.array(SubLanczosKernelSample(
+                                                self.matrices.coboundary, cellZeros, faceZeros, self.field, maxTries=maxTries
+                                        ), dtype=FINT)
+                                except Exception as e:
+                                        raise NumericalInstabilityWarning(e)
                 
                 # If we use inbuilt routines, we need to actually construct the matrix
                 # form of the coboundary matrix, which is extremely sparse (and really big).
@@ -897,10 +925,10 @@ number of columns processed in parallel.</dd>
                         coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
                         rows = self.matrices.coboundary[::3]
                         cols = self.matrices.coboundary[1::3]
-                        entries = (self.matrices.coboundary[2::3]%self.complex.field).astype(FINT)
+                        entries = (self.matrices.coboundary[2::3]%self.field).astype(FINT)
 
                         coboundary[rows,cols] = entries
-                        Reducer = MatrixReduction(self.complex.field, parallel, minBlockSize, maxBlockSize, cores)
+                        Reducer = MatrixReduction(self.field, parallel, minBlockSize, maxBlockSize, cores)
 
                         def sample(faceZeros, cellZeros):
                                 subbasis = coboundary.take(cellZeros, axis=0).take(faceZeros, axis=1)
@@ -909,7 +937,7 @@ number of columns processed in parallel.</dd>
                 self.sample = sample
 
 
-        def initial(self):
+        def _initial(self):
                 &#34;&#34;&#34;
                 Computes an initial state for the model&#39;s Complex.
 
@@ -917,11 +945,11 @@ number of columns processed in parallel.</dd>
                         A numpy array of spin assignments (mod p).
                 &#34;&#34;&#34;
                 return self.RNG.integers(
-                        0, high=self.complex.field, dtype=FINT, size=self.faces
+                        0, high=self.field, dtype=FINT, size=self.faces
                 )
         
 
-        def proposal(self, time):
+        def _proposal(self, time):
                 &#34;&#34;&#34;
                 Proposal scheme for the Nienhuis model.
 
@@ -936,7 +964,7 @@ number of columns processed in parallel.</dd>
                 faces = self.RNG.uniform(size=self.faces)
                 threshCells = (cells &lt; self.prob.cell).nonzero()[0]
                 threshFaces = (faces &lt; self.prob.face).nonzero()[0]
-                q = self.complex.field
+                q = self.field
 
                 # Evaluate the current spin configuration (cochain) on the boundary
                 # of our chosen cells, and find which to include.
@@ -966,7 +994,7 @@ number of columns processed in parallel.</dd>
                 return spins, faceEnergy, cellEnergy
 
 
-        def assign(self, cocycle):
+        def _assign(self, cocycle):
                 &#34;&#34;&#34;
                 Updates mappings from faces to spins and cubes to occupations.
 
@@ -978,58 +1006,10 @@ number of columns processed in parallel.</dd>
                 &#34;&#34;&#34;
                 self.spins = cocycle</code></pre>
 </details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>ateams.models.Model.Model</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="ateams.models.Nienhuis.name"><code class="name">var <span class="ident">name</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="ateams.models.Nienhuis.assign"><code class="name flex">
-<span>def <span class="ident">assign</span></span>(<span>self, cocycle)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>cocycle</code></strong> :&ensp;<code>np.array</code></dt>
-<dd>Cocycle on the subcomplex.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>None.</p></div>
-</dd>
-<dt id="ateams.models.Nienhuis.initial"><code class="name flex">
-<span>def <span class="ident">initial</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Computes an initial state for the model's Complex.</p>
-<h2 id="returns">Returns</h2>
-<p>A numpy array of spin assignments (mod p).</p></div>
-</dd>
-<dt id="ateams.models.Nienhuis.proposal"><code class="name flex">
-<span>def <span class="ident">proposal</span></span>(<span>self, time)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Proposal scheme for the Nienhuis model.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>time</code></strong> :&ensp;<code>int</code></dt>
-<dd>Step in the chain.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A numpy array of spin assignments (mod p).</p></div>
-</dd>
-</dl>
 </dd>
 <dt id="ateams.models.SwendsenWang"><code class="flex name class">
 <span>class <span class="ident">SwendsenWang</span></span>
-<span>(</span><span>C,<br>dimension=1,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>LinBox=True,<br>sparse=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
+<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>LinBox=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4,<br>maxTries=16)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes Swendsen-Wang evolution on the Potts model.</p>
@@ -1039,6 +1019,8 @@ number of columns processed in parallel.</dd>
 <dd>The <code>Complex</code> object on which we'll be running experiments.</dd>
 <dt><strong><code>dimension</code></strong> :&ensp;<code>int=1</code></dt>
 <dd>The dimension of cells on which we're percolating.</dd>
+<dt><strong><code>field</code></strong> :&ensp;<code>int=2</code></dt>
+<dd>Field characteristic.</dd>
 <dt><strong><code>temperature</code></strong> :&ensp;<code>Callable</code></dt>
 <dd>A temperature schedule function which
 takes a single positive integer argument <code>t</code>, and returns the
@@ -1049,8 +1031,6 @@ scheduled temperature at time <code>t</code>.</dd>
 <dd>Uses fast LinBox routines instead of slow inbuilt
 ones. WARNING: using inbuilt methods may dramatically increase
 computation time.</dd>
-<dt><strong><code>sparse</code></strong> :&ensp;<code>bool=True</code></dt>
-<dd>Should matrices be formatted sparsely? (Uses C/C++).</dd>
 <dt><strong><code>parallel</code></strong> :&ensp;<code>bool=False</code></dt>
 <dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
 <dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
@@ -1061,24 +1041,556 @@ number of columns processed in parallel.</dd>
 number of columns processed in parallel.</dd>
 <dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
 <dd>Number of available CPUs/cores/threads on the machine.</dd>
-</dl></div>
+<dt><strong><code>maxTries</code></strong> :&ensp;<code>int=16</code></dt>
+<dd>The number of attempts LinBox makes to sample a nonzero
+vector in the kernel of the coboundary matrix.</dd>
+</dl>
+<p>If the first vector sampled
+by the Lanczos algorithm is all zeros, we perform the following
+steps until a nonzero vector is found, or we exhaust the number
+of attempts:</p>
+<ol>
+<li>sample once from <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span> with no preconditioner;</li>
+<li>sample up to twice from <span><span class="MathJax_Preview">D_0A</span><script type="math/tex">D_0A</script></span>, where <span><span class="MathJax_Preview">D_0</span><script type="math/tex">D_0</script></span> is a random diagonal matrix;</li>
+<li>sample up to twice from <span><span class="MathJax_Preview">A^\top D_1 A</span><script type="math/tex">A^\top D_1 A</script></span>, where <span><span class="MathJax_Preview">D_1</span><script type="math/tex">D_1</script></span> is a random diagonal matrix;</li>
+<li>sample for the remainder of the attempts from <span><span class="MathJax_Preview">D_2 A^\top D_3 A D_2</span><script type="math/tex">D_2 A^\top D_3 A D_2</script></span>, where <span><span class="MathJax_Preview">D_2, D_3</span><script type="math/tex">D_2, D_3</script></span> are random diagonal matrices.</li>
+</ol>
+<p>If we spend the entire budget of attempts, it is likely that the
+result returned is either the all-zeros vector. Included below are
+performance statistics for various configurations of the <code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code> model.</p>
+<p></br>
+</br>
+<center> Samples in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span> </center></p>
+<table class="dataframe profile-data-table">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th></th>
+<th></th>
+<th>s/iteration</th>
+<th>Warns</th>
+<th>Zeros</th>
+</tr>
+<tr>
+<th>Field</th>
+<th>$N$</th>
+<th><code>maxTries</code></th>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
+<td rowspan="3" valign="top">724</td>
+<td>8</td>
+<td>0.483</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.886</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>32</td>
+<td>1.701</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1024</td>
+<td>8</td>
+<td>1.190</td>
+<td>0</td>
+<td>3</td>
+</tr>
+<tr>
+<td>16</td>
+<td>1.969</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>32</td>
+<td>3.351</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1448</td>
+<td>8</td>
+<td>2.432</td>
+<td>0</td>
+<td>3</td>
+</tr>
+<tr>
+<td>16</td>
+<td>4.349</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr>
+<td>32</td>
+<td>5.320</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
+<td rowspan="3" valign="top">724</td>
+<td>8</td>
+<td>0.306</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.376</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.372</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1024</td>
+<td>8</td>
+<td>0.751</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.915</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.919</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1448</td>
+<td>8</td>
+<td>1.376</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>1.657</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>2.898</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
+<td rowspan="3" valign="top">724</td>
+<td>8</td>
+<td>0.246</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.249</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.237</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1024</td>
+<td>8</td>
+<td>0.551</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.567</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.506</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1448</td>
+<td>8</td>
+<td>1.332</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>1.357</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>1.537</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
+<td rowspan="3" valign="top">724</td>
+<td>8</td>
+<td>0.254</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.245</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.246</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1024</td>
+<td>8</td>
+<td>0.529</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.537</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.526</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1448</td>
+<td>8</td>
+<td>1.319</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>1.301</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>1.395</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p></br>
+</br>
+<center> Samples in <span><span class="MathJax_Preview">\mathbb T^4_N</span><script type="math/tex">\mathbb T^4_N</script></span> </center></p>
+<table class="dataframe profile-data-table">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th></th>
+<th></th>
+<th>s/iteration</th>
+<th>Warns</th>
+<th>Zeros</th>
+</tr>
+<tr>
+<th>Field</th>
+<th>$N$</th>
+<th><code>maxTries</code></th>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
+<td rowspan="3" valign="top">20</td>
+<td>8</td>
+<td>0.176</td>
+<td>11</td>
+<td>11</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.187</td>
+<td>6</td>
+<td>6</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.189</td>
+<td>3</td>
+<td>3</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">30</td>
+<td>8</td>
+<td>1.085</td>
+<td>12</td>
+<td>12</td>
+</tr>
+<tr>
+<td>16</td>
+<td>1.103</td>
+<td>6</td>
+<td>6</td>
+</tr>
+<tr>
+<td>32</td>
+<td>1.160</td>
+<td>3</td>
+<td>3</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">40</td>
+<td>8</td>
+<td>4.264</td>
+<td>12</td>
+<td>12</td>
+</tr>
+<tr>
+<td>16</td>
+<td>4.360</td>
+<td>5</td>
+<td>5</td>
+</tr>
+<tr>
+<td>32</td>
+<td>4.499</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
+<td rowspan="3" valign="top">20</td>
+<td>8</td>
+<td>0.126</td>
+<td>12</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.179</td>
+<td>6</td>
+<td>6</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.125</td>
+<td>2</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">30</td>
+<td>8</td>
+<td>1.088</td>
+<td>12</td>
+<td>12</td>
+</tr>
+<tr>
+<td>16</td>
+<td>1.053</td>
+<td>4</td>
+<td>4</td>
+</tr>
+<tr>
+<td>32</td>
+<td>1.051</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">40</td>
+<td>8</td>
+<td>3.934</td>
+<td>11</td>
+<td>11</td>
+</tr>
+<tr>
+<td>16</td>
+<td>3.815</td>
+<td>4</td>
+<td>4</td>
+</tr>
+<tr>
+<td>32</td>
+<td>3.961</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
+<td rowspan="3" valign="top">20</td>
+<td>8</td>
+<td>0.128</td>
+<td>9</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.134</td>
+<td>6</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.136</td>
+<td>3</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">30</td>
+<td>8</td>
+<td>0.939</td>
+<td>12</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.867</td>
+<td>6</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.913</td>
+<td>2</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">40</td>
+<td>8</td>
+<td>3.506</td>
+<td>11</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>3.654</td>
+<td>6</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>3.331</td>
+<td>2</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
+<td rowspan="3" valign="top">20</td>
+<td>8</td>
+<td>0.149</td>
+<td>12</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.143</td>
+<td>5</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.135</td>
+<td>2</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">30</td>
+<td>8</td>
+<td>0.984</td>
+<td>12</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.833</td>
+<td>4</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.969</td>
+<td>2</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">40</td>
+<td>8</td>
+<td>3.855</td>
+<td>12</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>3.552</td>
+<td>5</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>3.579</td>
+<td>2</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class SwendsenWang(Model):
-        name = &#34;SwendsenWang&#34;
+<pre><code class="python">class SwendsenWang():
+        _name = &#34;SwendsenWang&#34;
 
         def __init__(
-                        self, C, dimension=1, temperature=constant(-0.6), initial=None, LinBox=True,
-                        sparse=True, parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
+                        self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None, LinBox=True,
+                        parallel=False, minBlockSize=32, maxBlockSize=64, cores=4,
+                        maxTries=16
                 ):
-                &#34;&#34;&#34;
+                r&#34;&#34;&#34;
                 Initializes Swendsen-Wang evolution on the Potts model.
 
                 Args:
                         C (Complex): The `Complex` object on which we&#39;ll be running experiments.
                         dimension (int=1): The dimension of cells on which we&#39;re percolating.
+                        field (int=2): Field characteristic.
                         temperature (Callable): A temperature schedule function which
                                 takes a single positive integer argument `t`, and returns the
                                 scheduled temperature at time `t`.
@@ -1086,18 +1598,46 @@ number of columns processed in parallel.</dd>
                         LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
                                 ones. WARNING: using inbuilt methods may dramatically increase
                                 computation time.
-                        sparse (bool=True): Should matrices be formatted sparsely? (Uses C/C++).
                         parallel (bool=False): Should matrix computations be done in parallel? (Uses C/C++).
                         minBlockSize (int=32): If `parallel` is truthy, this is the smallest
                                 number of columns processed in parallel.
                         maxBlockSize (int=64): If `parallel` is truthy, this is the largest
                                 number of columns processed in parallel.
                         cores (int=4): Number of available CPUs/cores/threads on the machine.
+                        maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
+                                vector in the kernel of the coboundary matrix.
+
+
+                If the first vector sampled
+                by the Lanczos algorithm is all zeros, we perform the following
+                steps until a nonzero vector is found, or we exhaust the number
+                of attempts:
+
+                1. sample once from \(A\) with no preconditioner;
+                2. sample up to twice from \(D_0A\), where \(D_0\) is a random diagonal matrix;
+                3. sample up to twice from \(A^\top D_1 A\), where \(D_1\) is a random diagonal matrix;
+                4. sample for the remainder of the attempts from \(D_2 A^\top D_3 A D_2\), where \(D_2, D_3\) are random diagonal matrices.
+                        
+                If we spend the entire budget of attempts, it is likely that the
+                result returned is either the all-zeros vector. Included below are
+                performance statistics for various configurations of the `SwendsenWang` model.
+
+                &lt;/br&gt;
+                &lt;/br&gt;
+                &lt;center&gt; Samples in \(\mathbb T^2_N\) &lt;/center&gt;
+                .. include:: ./tables/SwendsenWang.LanczosKernelSample.2.html
+
+                &lt;/br&gt;
+                &lt;/br&gt;
+                &lt;center&gt; Samples in \(\mathbb T^4_N\) &lt;/center&gt;
+                .. include:: ./tables/SwendsenWang.LanczosKernelSample.4.html
                 &#34;&#34;&#34;
                 # Object access.
                 self.complex = C
                 self.temperature = temperature
                 self.dimension = dimension
+                self._returns = 2
+                self.field = field
 
                 # Force-recompute the matrices for a different dimension; creates
                 # a set of orientations for fast elementwise products.
@@ -1122,23 +1662,30 @@ number of columns processed in parallel.</dd>
                 self.RNG = np.random.default_rng()
 
                 # If no initial spin configuration is passed, initialize.
-                if not initial: self.spins = self.initial()
-                else: self.spins = (initial%self.complex.field).astype(FINT)
+                if not initial: self.spins = self._initial()
+                else: self.spins = (initial%self.field).astype(FINT)
 
                 # Delegate computation.
-                self._delegateComputation(LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores)
+                self._delegateComputation(LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries)
 
         
-        def _delegateComputation(self, LinBox, sparse, parallel, minBlockSize, maxBlockSize, cores):
+        def _delegateComputation(self, LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries):
                 # If we use LinBox, keep everything as-is.
                 if LinBox:
                         def sample(zeros):
-                                if zeros.shape[0] &lt; 1: return self.spins;
-                                
-                                return np.array(LanczosKernelSample(
-                                        self.matrices.coboundary, zeros, 2*self.dimension,
-                                        self.faces, self.complex.field
-                                ), dtype=FINT)
+                                # Not currently sure how to handle this... maybe we&#39;ll just &#34;reject&#34;
+                                # for now, come back, and sub something else in later. We shouldn&#39;t
+                                # be halting computation. For now, we should raise an exception that
+                                # the Chain catches, and warns the user by exiting with exit code
+                                # 1 or 2.
+                                try:
+                                        return np.array(LanczosKernelSample(
+                                                self.matrices.coboundary, zeros, 2*self.dimension,
+                                                self.faces, self.field, maxTries=maxTries
+                                        ), dtype=FINT)
+                                except Exception as e:
+                                        raise NumericalInstabilityWarning(e)
+
                 
                 # If we use inbuilt routines, we need to actually construct the matrix
                 # form of the coboundary matrix, which is extremely sparse (and really big).
@@ -1147,10 +1694,10 @@ number of columns processed in parallel.</dd>
                         coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
                         rows = self.matrices.coboundary[::3]
                         cols = self.matrices.coboundary[1::3]
-                        entries = (self.matrices.coboundary[2::3]%self.complex.field).astype(FINT)
+                        entries = (self.matrices.coboundary[2::3]%self.field).astype(FINT)
 
                         coboundary[rows,cols] = entries
-                        Reducer = MatrixReduction(self.complex.field, parallel, minBlockSize, maxBlockSize, cores)
+                        Reducer = MatrixReduction(self.field, parallel, minBlockSize, maxBlockSize, cores)
 
                         def sample(zeros):
                                 return KernelSample(Reducer, coboundary.take(zeros, axis=0)).astype(FINT)
@@ -1159,7 +1706,7 @@ number of columns processed in parallel.</dd>
 
 
 
-        def initial(self):
+        def _initial(self):
                 &#34;&#34;&#34;
                 Computes an initial state for the model&#39;s Complex.
 
@@ -1167,11 +1714,11 @@ number of columns processed in parallel.</dd>
                         A numpy `np.array` representing a vector of spin assignments.
                 &#34;&#34;&#34;
                 return self.RNG.integers(
-                        0, high=self.complex.field, dtype=FINT, size=self.faces
+                        0, high=self.field, dtype=FINT, size=self.faces
                 )
         
 
-        def proposal(self, time):
+        def _proposal(self, time):
                 &#34;&#34;&#34;
                 Proposal scheme for generalized Swendsen-Wang evolution on the Potts model.
 
@@ -1190,7 +1737,7 @@ number of columns processed in parallel.</dd>
                 uniform = self.RNG.uniform(size=self.cells)
                 include = np.nonzero(uniform &lt; p)[0]
                 boundary = self.complex.Boundary[self.dimension]
-                q = self.complex.field
+                q = self.field
 
                 # Evaluate the current spin assignment (cochain).
                 coefficients = self.spins[boundary[include]]
@@ -1208,7 +1755,7 @@ number of columns processed in parallel.</dd>
                 return spins, satisfied
         
 
-        def assign(self, cocycle):
+        def _assign(self, cocycle):
                 &#34;&#34;&#34;
                 Updates mappings from faces to spins and cubes to occupations.
 
@@ -1220,54 +1767,6 @@ number of columns processed in parallel.</dd>
                 &#34;&#34;&#34;
                 self.spins = cocycle</code></pre>
 </details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>ateams.models.Model.Model</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="ateams.models.SwendsenWang.name"><code class="name">var <span class="ident">name</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="ateams.models.SwendsenWang.assign"><code class="name flex">
-<span>def <span class="ident">assign</span></span>(<span>self, cocycle)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Updates mappings from faces to spins and cubes to occupations.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>cocycle</code></strong> :&ensp;<code>np.array</code></dt>
-<dd>Cocycle on the subcomplex.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>None.</p></div>
-</dd>
-<dt id="ateams.models.SwendsenWang.initial"><code class="name flex">
-<span>def <span class="ident">initial</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Computes an initial state for the model's Complex.</p>
-<h2 id="returns">Returns</h2>
-<p>A numpy <code>np.array</code> representing a vector of spin assignments.</p></div>
-</dd>
-<dt id="ateams.models.SwendsenWang.proposal"><code class="name flex">
-<span>def <span class="ident">proposal</span></span>(<span>self, time)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Proposal scheme for generalized Swendsen-Wang evolution on the Potts model.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>time</code></strong> :&ensp;<code>int</code></dt>
-<dd>Step in the chain.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A numpy array representing a vector of spin assignments.</p></div>
-</dd>
-</dl>
 </dd>
 </dl>
 </section>
@@ -1290,47 +1789,13 @@ proof.appendChild(square);
 </script>
 <header>
 <a class="homelink" rel="home" title="ATEAM" href="https://github.com/apizzimenti/ateam">
-<style>
-header > h1 { display: none; }
-img.resize {
-min-width: 10vw;
-max-width: 15vw;
-display: block;
-margin: 0 auto;
-}
-div.proof {
-border: 1px solid black;
-padding: 0em 1em;
-width: 90%;
-margin: 1em auto;
-}
-.tombstone {
-margin-top: -2em;
-float: right;
-}
-#section-intro {
-text-align: justify;
-}
-#index .two-column {
-column-count: 1 !important;
-}
-#ateams {
-margin-top: 0;
-}
-#content {
-text-align: justify;
-}
-#sidebar {
-width: 20vw;
-font-size: 1rem;
-scrollbar-width: none;
-}
-</style>
 <img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
 </a>
 </header>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#models">Models</a></li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>
@@ -1342,50 +1807,18 @@ scrollbar-width: none;
 <ul>
 <li>
 <h4><code><a title="ateams.models.Bernoulli" href="#ateams.models.Bernoulli">Bernoulli</a></code></h4>
-<ul class="">
-<li><code><a title="ateams.models.Bernoulli.assign" href="#ateams.models.Bernoulli.assign">assign</a></code></li>
-<li><code><a title="ateams.models.Bernoulli.filtrate" href="#ateams.models.Bernoulli.filtrate">filtrate</a></code></li>
-<li><code><a title="ateams.models.Bernoulli.initial" href="#ateams.models.Bernoulli.initial">initial</a></code></li>
-<li><code><a title="ateams.models.Bernoulli.name" href="#ateams.models.Bernoulli.name">name</a></code></li>
-<li><code><a title="ateams.models.Bernoulli.proposal" href="#ateams.models.Bernoulli.proposal">proposal</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="ateams.models.Glauber" href="#ateams.models.Glauber">Glauber</a></code></h4>
-<ul class="">
-<li><code><a title="ateams.models.Glauber.assign" href="#ateams.models.Glauber.assign">assign</a></code></li>
-<li><code><a title="ateams.models.Glauber.initial" href="#ateams.models.Glauber.initial">initial</a></code></li>
-<li><code><a title="ateams.models.Glauber.name" href="#ateams.models.Glauber.name">name</a></code></li>
-<li><code><a title="ateams.models.Glauber.proposal" href="#ateams.models.Glauber.proposal">proposal</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="ateams.models.InvadedCluster" href="#ateams.models.InvadedCluster">InvadedCluster</a></code></h4>
-<ul class="">
-<li><code><a title="ateams.models.InvadedCluster.assign" href="#ateams.models.InvadedCluster.assign">assign</a></code></li>
-<li><code><a title="ateams.models.InvadedCluster.filtrate" href="#ateams.models.InvadedCluster.filtrate">filtrate</a></code></li>
-<li><code><a title="ateams.models.InvadedCluster.initial" href="#ateams.models.InvadedCluster.initial">initial</a></code></li>
-<li><code><a title="ateams.models.InvadedCluster.name" href="#ateams.models.InvadedCluster.name">name</a></code></li>
-<li><code><a title="ateams.models.InvadedCluster.proposal" href="#ateams.models.InvadedCluster.proposal">proposal</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="ateams.models.Nienhuis" href="#ateams.models.Nienhuis">Nienhuis</a></code></h4>
-<ul class="">
-<li><code><a title="ateams.models.Nienhuis.assign" href="#ateams.models.Nienhuis.assign">assign</a></code></li>
-<li><code><a title="ateams.models.Nienhuis.initial" href="#ateams.models.Nienhuis.initial">initial</a></code></li>
-<li><code><a title="ateams.models.Nienhuis.name" href="#ateams.models.Nienhuis.name">name</a></code></li>
-<li><code><a title="ateams.models.Nienhuis.proposal" href="#ateams.models.Nienhuis.proposal">proposal</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code></h4>
-<ul class="">
-<li><code><a title="ateams.models.SwendsenWang.assign" href="#ateams.models.SwendsenWang.assign">assign</a></code></li>
-<li><code><a title="ateams.models.SwendsenWang.initial" href="#ateams.models.SwendsenWang.initial">initial</a></code></li>
-<li><code><a title="ateams.models.SwendsenWang.name" href="#ateams.models.SwendsenWang.name">name</a></code></li>
-<li><code><a title="ateams.models.SwendsenWang.proposal" href="#ateams.models.SwendsenWang.proposal">proposal</a></code></li>
-</ul>
 </li>
 </ul>
 </li>

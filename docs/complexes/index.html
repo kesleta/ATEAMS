@@ -19,6 +19,68 @@
 hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
 hljs.highlightAll();
 })</script>
+<!-- Sidebar edits -->
+<style>
+header > h1 { display: none; }
+.toc { display: none; }
+img.resize {
+min-width: 10vw;
+max-width: 15vw;
+display: block;
+margin: 0 auto;
+}
+div.proof {
+border: 1px solid black;
+padding: 0em 1em;
+width: 90%;
+margin: 1em auto;
+}
+.tombstone {
+margin-top: -2em;
+float: right;
+}
+#index .two-column {
+column-count: 1 !important;
+}
+#ateams {
+margin-top: 0;
+}
+#sidebar {
+width: 20vw;
+font-size: 1rem;
+scrollbar-width: none;
+}
+</style>
+<!-- table edits -->
+<style>
+.dataframe.profile-data-table {
+margin: auto;
+width: 75%;
+}
+.dataframe.profile-data-table thead tr {
+text-align: center !important;
+}
+.dataframe.profile-data-table thead {
+border-bottom: 3px solid black;
+}
+.dataframe.profile-data-table tbody > tr:nth-of-type(9n) {
+border-bottom: 3px solid black;
+}
+.dataframe.profile-data-table tbody tr th {
+vertical-align: middle;
+}
+.dataframe.profile-data-table tbody tr td {
+vertical-align: middle;
+}
+.dataframe.profile-data-table tbody > tr:nth-child(3n) {
+:nth-child(n) {
+border-bottom: 1px solid black;
+}
+}
+.dataframe.profile-data-table tbody td {
+text-align: center;
+}
+</style>
 </head>
 <body>
 <main>
@@ -29,13 +91,6 @@ hljs.highlightAll();
 <section id="section-intro">
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
-<dl>
-<dt><code class="name"><a title="ateams.complexes.construction" href="construction.html">ateams.complexes.construction</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
 </section>
 <section>
 </section>
@@ -56,7 +111,7 @@ hljs.highlightAll();
 <pre><code class="python">class Cubical:
         def __init__(self): pass
 
-        def fromCorners(self, corners, field=2, periodic=True):
+        def fromCorners(self, corners, periodic=True):
                 &#34;&#34;&#34;
                 Creates a cell complex with the given corners made of cells of the
                 provided dimension.
@@ -64,12 +119,10 @@ hljs.highlightAll();
                 Args:
                         corners (list): Corners of the complex; determines the maximal
                                 cell dimension.
-                        field (int): Characteristic of finite field from which cells take
-                                coefficients.
                         periodic (bool): Do we use periodic boundary
                                 conditions (i.e. are we making a torus)?
                 &#34;&#34;&#34;
-                self._construct(corners, periodic, field)
+                self._construct(corners, periodic)
                 return self
         
 
@@ -79,9 +132,8 @@ hljs.highlightAll();
         
 
         def _construct(
-                        self, corners, periodic, field, data=None
+                        self, corners, periodic, data=None
                 ):
-                self.field = field
                 self.dimension = len(corners)
                 self.periodic = periodic
                 self.corners = corners
@@ -138,47 +190,50 @@ hljs.highlightAll();
 
 
         
-        def toFile(self, fp:str):
+        def toFile(self, fp, vertexMap=False):
                 &#34;&#34;&#34;
                 JSON-serializes this object and writes it to file so we can reconstruct
                 it later.
 
                 Args:
                         fp (str): Filepath.
+                        vertexMap (bool): Do we save the vertex map? Not doing so saves
+                                a lot of space.
                 &#34;&#34;&#34;
                 # Write compressed boundary matrix and vertex maps to file.
                 absolute = Path(fp).resolve()
                 root = absolute.parent
                 stem = absolute.stem
                 ComplexFile = root/f&#34;.{stem}.complex.npz&#34;
-                np.savez_compressed(ComplexFile, **{str(t): v for t, v in self.Boundary.items()})
+                np.savez(ComplexFile, **{str(t): v for t, v in self.Boundary.items()})
 
                 with open(fp, &#34;w&#34;) as write:
                         json.dump(
                                 {
-                                        &#34;field&#34;: self.field,
                                         &#34;dimension&#34;: self.dimension,
                                         &#34;periodic&#34;: int(self.periodic),
                                         &#34;corners&#34;: self.corners,
                                         &#34;Complex&#34;: str(ComplexFile),
-                                        &#34;vertexMap&#34;: { str(k): int(v) for k, v in self.vertexMap.items() }
+                                        &#34;vertexMap&#34;: { str(k): int(v) for k, v in self.vertexMap.items() } if vertexMap else { }
                                 }, write
                         )
 
-        def fromFile(self, fp:str, vertexMap=False):
+        
+        def fromFile(self, fp:str, vertexMap=False, field=None):
                 &#34;&#34;&#34;
                 Reconstructs a serialized Complex.
 
                 Args:
                         fp (str): Filepath.
+                        vertexMap (bool): Is there a vertexmap to load?
+                        field (int): Reconstructs this lattice with a different field;
+                                good for portability.
                 &#34;&#34;&#34;
                 with open(fp, &#34;r&#34;) as read:
                         # Read file into memory.
                         serialized = json.load(read)
 
                         # Set field and dimension.
-                        field = serialized[&#34;field&#34;]
-                        dimension = int(serialized[&#34;dimension&#34;])
                         periodic = bool(serialized[&#34;periodic&#34;])
                         corners = serialized[&#34;corners&#34;]
                         data = { &#34;Complex&#34;: np.load(serialized[&#34;Complex&#34;], allow_pickle=True) }
@@ -186,13 +241,13 @@ hljs.highlightAll();
 
                         # Construct indices, boundary matrix, and graph.
                         return self._construct(
-                                corners, periodic, field, data
+                                corners, periodic, data
                         )</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="ateams.complexes.Cubical.fromCorners"><code class="name flex">
-<span>def <span class="ident">fromCorners</span></span>(<span>self, corners, field=2, periodic=True)</span>
+<span>def <span class="ident">fromCorners</span></span>(<span>self, corners, periodic=True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates a cell complex with the given corners made of cells of the
@@ -202,16 +257,13 @@ provided dimension.</p>
 <dt><strong><code>corners</code></strong> :&ensp;<code>list</code></dt>
 <dd>Corners of the complex; determines the maximal
 cell dimension.</dd>
-<dt><strong><code>field</code></strong> :&ensp;<code>int</code></dt>
-<dd>Characteristic of finite field from which cells take
-coefficients.</dd>
 <dt><strong><code>periodic</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Do we use periodic boundary
 conditions (i.e. are we making a torus)?</dd>
 </dl></div>
 </dd>
 <dt id="ateams.complexes.Cubical.fromFile"><code class="name flex">
-<span>def <span class="ident">fromFile</span></span>(<span>self, fp: str, vertexMap=False)</span>
+<span>def <span class="ident">fromFile</span></span>(<span>self, fp: str, vertexMap=False, field=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reconstructs a serialized Complex.</p>
@@ -219,6 +271,11 @@ conditions (i.e. are we making a torus)?</dd>
 <dl>
 <dt><strong><code>fp</code></strong> :&ensp;<code>str</code></dt>
 <dd>Filepath.</dd>
+<dt><strong><code>vertexMap</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Is there a vertexmap to load?</dd>
+<dt><strong><code>field</code></strong> :&ensp;<code>int</code></dt>
+<dd>Reconstructs this lattice with a different field;
+good for portability.</dd>
 </dl></div>
 </dd>
 <dt id="ateams.complexes.Cubical.recomputeBoundaryMatrices"><code class="name flex">
@@ -236,7 +293,7 @@ conditions (i.e. are we making a torus)?</dd>
 new full boundary.</p></div>
 </dd>
 <dt id="ateams.complexes.Cubical.toFile"><code class="name flex">
-<span>def <span class="ident">toFile</span></span>(<span>self, fp: str)</span>
+<span>def <span class="ident">toFile</span></span>(<span>self, fp, vertexMap=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>JSON-serializes this object and writes it to file so we can reconstruct
@@ -245,6 +302,9 @@ it later.</p>
 <dl>
 <dt><strong><code>fp</code></strong> :&ensp;<code>str</code></dt>
 <dd>Filepath.</dd>
+<dt><strong><code>vertexMap</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Do we save the vertex map? Not doing so saves
+a lot of space.</dd>
 </dl></div>
 </dd>
 </dl>
@@ -270,42 +330,6 @@ proof.appendChild(square);
 </script>
 <header>
 <a class="homelink" rel="home" title="ATEAM" href="https://github.com/apizzimenti/ateam">
-<style>
-header > h1 { display: none; }
-img.resize {
-min-width: 10vw;
-max-width: 15vw;
-display: block;
-margin: 0 auto;
-}
-div.proof {
-border: 1px solid black;
-padding: 0em 1em;
-width: 90%;
-margin: 1em auto;
-}
-.tombstone {
-margin-top: -2em;
-float: right;
-}
-#section-intro {
-text-align: justify;
-}
-#index .two-column {
-column-count: 1 !important;
-}
-#ateams {
-margin-top: 0;
-}
-#content {
-text-align: justify;
-}
-#sidebar {
-width: 20vw;
-font-size: 1rem;
-scrollbar-width: none;
-}
-</style>
 <img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
 </a>
 </header>
@@ -316,11 +340,6 @@ scrollbar-width: none;
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="ateams" href="../index.html">ateams</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
-<ul>
-<li><code><a title="ateams.complexes.construction" href="construction.html">ateams.complexes.construction</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

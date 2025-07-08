@@ -19,6 +19,68 @@
 hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
 hljs.highlightAll();
 })</script>
+<!-- Sidebar edits -->
+<style>
+header > h1 { display: none; }
+.toc { display: none; }
+img.resize {
+min-width: 10vw;
+max-width: 15vw;
+display: block;
+margin: 0 auto;
+}
+div.proof {
+border: 1px solid black;
+padding: 0em 1em;
+width: 90%;
+margin: 1em auto;
+}
+.tombstone {
+margin-top: -2em;
+float: right;
+}
+#index .two-column {
+column-count: 1 !important;
+}
+#ateams {
+margin-top: 0;
+}
+#sidebar {
+width: 20vw;
+font-size: 1rem;
+scrollbar-width: none;
+}
+</style>
+<!-- table edits -->
+<style>
+.dataframe.profile-data-table {
+margin: auto;
+width: 75%;
+}
+.dataframe.profile-data-table thead tr {
+text-align: center !important;
+}
+.dataframe.profile-data-table thead {
+border-bottom: 3px solid black;
+}
+.dataframe.profile-data-table tbody > tr:nth-of-type(9n) {
+border-bottom: 3px solid black;
+}
+.dataframe.profile-data-table tbody tr th {
+vertical-align: middle;
+}
+.dataframe.profile-data-table tbody tr td {
+vertical-align: middle;
+}
+.dataframe.profile-data-table tbody > tr:nth-child(3n) {
+:nth-child(n) {
+border-bottom: 1px solid black;
+}
+}
+.dataframe.profile-data-table tbody td {
+text-align: center;
+}
+</style>
 </head>
 <body>
 <main>
@@ -31,11 +93,11 @@ hljs.highlightAll();
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt><code class="name"><a title="ateams.statistics.Chain" href="Chain.html">ateams.statistics.Chain</a></code></dt>
+<dt><code class="name"><a title="ateams.statistics.accepts" href="accepts.html">ateams.statistics.accepts</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt><code class="name"><a title="ateams.statistics.accepts" href="accepts.html">ateams.statistics.accepts</a></code></dt>
+<dt><code class="name"><a title="ateams.statistics.autocorrelation" href="autocorrelation.html">ateams.statistics.autocorrelation</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -48,130 +110,377 @@ hljs.highlightAll();
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="ateams.statistics.MetropolisHastings"><code class="name flex">
-<span>def <span class="ident">MetropolisHastings</span></span>(<span>model, distribution, burnIn=0)</span>
-</code></dt>
-<dd>
-<div class="desc"><h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>model</code></strong> :&ensp;<code>Model</code></dt>
-<dd>Evolution model we're using.</dd>
-<dt><strong><code>distribution</code></strong> :&ensp;<code>Callable</code></dt>
-<dd>Distribution function which consumes a cocycle
-(a list of assignments to faces).</dd>
-<dt><strong><code>burnIn</code></strong> :&ensp;<code>int=0</code></dt>
-<dd>How long we wait to begin the Metropolis-Hastings scheme.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A closure which decides whether the proposed state is accepted or not.</p></div>
-</dd>
-<dt id="ateams.statistics.always"><code class="name flex">
-<span>def <span class="ident">always</span></span>(<span>model=None, distribution=None, burnIn=None)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>An acceptance function which always accepts the proposed state; we do nothing
-with the arguments to this function.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>model</code></strong> :&ensp;<code>Model</code></dt>
-<dd>Optional argument; does nothing.</dd>
-<dt><strong><code>distribution</code></strong> :&ensp;<code>Callable</code></dt>
-<dd>Optional argument; does nothing.</dd>
-<dt><strong><code>burnIn</code></strong> :&ensp;<code>int</code></dt>
-<dd>Optional argument; does nothing.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A function which always returns True.</p></div>
-</dd>
-<dt id="ateams.statistics.autocorrelation"><code class="name flex">
-<span>def <span class="ident">autocorrelation</span></span>(<span>data)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Computes the autocorrelation of a given observable.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>data</code></strong> :&ensp;<code>Iterable</code></dt>
-<dd>An iterable, indexed by sample times, containing data
-from a given observable.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>An <code>np.ndarray</code> of autocorrelation data.</p></div>
-</dd>
-<dt id="ateams.statistics.constant"><code class="name flex">
-<span>def <span class="ident">constant</span></span>(<span>temperature)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A constant annealing schedule.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>temperature</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature to be returned.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A function passed to a model constructor.</p></div>
-</dd>
-<dt id="ateams.statistics.critical"><code class="name flex">
-<span>def <span class="ident">critical</span></span>(<span>field)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A constant annealing schedule which calculates the critical temperature
-of the model.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>field</code></strong> :&ensp;<code>int</code></dt>
-<dd>The order of the field we're over.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A function passed to a Model constructor that returns the critical
-temperature of the Potts model.</p></div>
-</dd>
-<dt id="ateams.statistics.linear"><code class="name flex">
-<span>def <span class="ident">linear</span></span>(<span>steps, low=-10, high=10)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A linear temperature schedule.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>steps</code></strong> :&ensp;<code>int</code></dt>
-<dd>Total number of steps in the experiment.</dd>
-<dt><strong><code>low</code></strong> :&ensp;<code>float</code></dt>
-<dd>Lowest temperature we assign.</dd>
-<dt><strong><code>high</code></strong> :&ensp;<code>float</code></dt>
-<dd>Highest temperature we assign.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A function that consumes a step number and returns a temperature.</p></div>
-</dd>
-<dt id="ateams.statistics.randomizedToConstant"><code class="name flex">
-<span>def <span class="ident">randomizedToConstant</span></span>(<span>constant, steps, hold=0.5, distribution=&lt;function scaledUniform&gt;)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A temperature schedule which samples spin values (according to <code>distribution</code>)
-<em>less than</em> the critical temperature of the model, then fixes the temperature
-at the critical temperature for some desired proportion of the runtime.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>steps</code></strong> :&ensp;<code>int</code></dt>
-<dd>Total number of steps the experiment takes.</dd>
-<dt><strong><code>field</code></strong> :&ensp;<code>int</code></dt>
-<dd>Order of the field we're over; used to compute critical
-temperature.</dd>
-<dt><strong><code>hold</code></strong> :&ensp;<code>float</code></dt>
-<dd>Value in [0,1] which represents the proportion of the time
-the temperature is fixed at the critical temperature. Defaults to
-half random, half fixed.</dd>
-<dt><strong><code>distribution</code></strong> :&ensp;<code>Callable</code></dt>
-<dd>Distribution from which we sample; default is
-a ln-normal distribution centered at 2 with variance 2.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A function that consumes a step number and returns a temperature.</p></div>
-</dd>
-</dl>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="ateams.statistics.Chain"><code class="flex name class">
+<span>class <span class="ident">Chain</span></span>
+<span>(</span><span>model,<br>accept=&lt;function always.&lt;locals&gt;._&gt;,<br>statistics={},<br>steps=10000)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simulates a Markov chain on the given Model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>model</code></strong> :&ensp;<code>Model</code></dt>
+<dd>An instantiated descendant of <code>Model</code> (e.g. <code>SwendsenWang</code>)
+generating the Markov chain.</dd>
+<dt><strong><code>accept</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A function that consumes the complex, model, and
+state to determine whether we're going to a good place.</dd>
+<dt><strong><code>statistics</code></strong> :&ensp;<code>dict</code></dt>
+<dd>A mapping of names to functions which take the complex,
+model, and state as argument. The Chain keeps track of these at
+each iteration and stores whatever output is given.</dd>
+<dt><strong><code>steps</code></strong> :&ensp;<code>int</code></dt>
+<dd>The number of iterations in the chain.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Chain:
+    def __init__(self, model, accept=always(), statistics={}, steps=10000):
+        &#34;&#34;&#34;
+        Simulates a Markov chain on the given Model.
+
+        Args:
+            model (Model): An instantiated descendant of `Model` (e.g. `SwendsenWang`)
+                generating the Markov chain.
+            accept (Callable): A function that consumes the complex, model, and
+                state to determine whether we&#39;re going to a good place.
+            statistics (dict): A mapping of names to functions which take the complex,
+                model, and state as argument. The Chain keeps track of these at
+                each iteration and stores whatever output is given.
+            steps (int): The number of iterations in the chain.
+        &#34;&#34;&#34;
+        self.model = model
+        self.steps = steps
+        self.accept = accept
+        self._exitcode = 0
+        self._warnings = 0
+
+        # Store stats and things.
+        self.functions = statistics
+        self.statistics = { name: [] for name in self.functions.keys() }
+
+
+    def __iter__(self):
+        &#34;&#34;&#34;
+        Initializes the Chain object as a generator.
+        &#34;&#34;&#34;
+        self.step = 0
+        self.state = tuple([self.model.spins] + []*(self.model._returns-1))
+        return self
+    
+
+    def __next__(self):
+        &#34;&#34;&#34;
+        Performs the computations specified by the proposal and acceptance schemes.
+        &#34;&#34;&#34;
+        # While we haven&#39;t reached the max number of steps, propose a new plan,
+        # check whether it&#39;s acceptable/valid, and continue.
+        while self.step &lt; self.steps:
+            # Propose the next state and check whether we want to accept it as
+            # the next state or not; assign whichever state is chosen to the
+            # Model.
+            try: proposed = self.model._proposal(self.step)
+            except NumericalInstabilityWarning:
+                self._exitcode = 2
+                self._warnings += 1
+                proposed = self.state
+
+            self.state = proposed if self.accept(self.state, proposed, self.step) else self.state
+            self.model._assign(self.state[0])
+
+            # Compute statistics.
+            for name, function in self.functions.items():
+                self.statistics[name].append(function(self.model, self.state))
+            
+            # Iterate.
+            self.step += 1
+            
+            return self.state
+        
+        raise StopIteration
+    
+    
+    def progress(self, dynamic_ncols=True, desc=&#34;&#34;):
+        &#34;&#34;&#34;
+        Progress bar.
+
+        Returns:
+            `tqdm` iterable.
+        &#34;&#34;&#34;
+        from tqdm.auto import tqdm
+        return tqdm(self, total=self.steps, dynamic_ncols=dynamic_ncols, desc=desc)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.statistics.Chain.progress"><code class="name flex">
+<span>def <span class="ident">progress</span></span>(<span>self, dynamic_ncols=True, desc='')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Progress bar.</p>
+<h2 id="returns">Returns</h2>
+<p><code>tqdm</code> iterable.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="ateams.statistics.Player"><code class="flex name class">
+<span>class <span class="ident">Player</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Safely "replays" recorded <code><a title="ateams.statistics.Chain" href="#ateams.statistics.Chain">Chain</a></code> output.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Player():
+    &#34;&#34;&#34;
+    Safely &#34;replays&#34; recorded `Chain` output.
+    &#34;&#34;&#34;
+    def __init__(self): pass
+
+    def playback(self, S, fp:str, outputs: dict, compressed=True, steps=None):
+        &#34;&#34;&#34;
+        Initialize playback; context management.
+
+        Args:
+            S (Model): `Model` which matches the configuration on which the
+                `Chain` was simulated. **If the `Model` does not have the same
+                parameters as the `Model` on which the recorded chain was
+                simulated, statistical results from this playback may not be
+                accurate.
+            fp (str): File in which records are stored.
+            outputs (dict): Dictionary mapping integer keys to initial states.
+            compressed (bool): Are the data compressed?
+            steps (int): How many steps does this chain take?
+
+        Returns:
+            This Player object.
+        &#34;&#34;&#34;
+        # Configure filepath, file object, and JsonLines Reader.
+        self._fp = fp
+        self._file = gzip.open(self._fp, &#34;rb&#34;) if compressed else open(self._fp, &#34;r&#34;)
+        self._reader = jsl.Reader(self._file)
+        self._steps = steps
+        self.outputs = outputs.copy()
+
+        # Enter context management.
+        return self.__enter__()
+    
+
+    def __iter__(self):
+        &#34;&#34;&#34;
+        This `Player` is a generator which yields states of the recorded chain.
+        &#34;&#34;&#34;
+        return self
+
+
+    def __next__(self):
+        &#34;&#34;&#34;
+        Iteration magic method.
+        &#34;&#34;&#34;
+        # Get the next configuration by calling __next__() on the reader.
+        try: configuration = self._reader.read()
+        except: raise StopIteration
+
+        for k, output in configuration.items():
+            for spin, fs in output.items():
+                for f in fs:
+                    self.outputs[int(k)][int(f)] = int(spin)
+
+        return tuple(self.outputs.values())
+    
+
+    def __enter__(self):
+        &#34;&#34;&#34;
+        Required context management magic method.
+        &#34;&#34;&#34;
+        return self
+
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        &#34;&#34;&#34;
+        Required context management magic method; kills the reader and the file.
+        &#34;&#34;&#34;
+        self._reader.close()
+        self._file.close()
+
+    
+    def progress(self):
+        from tqdm.auto import tqdm
+        return tqdm(self, total=self._steps)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.statistics.Player.playback"><code class="name flex">
+<span>def <span class="ident">playback</span></span>(<span>self, S, fp: str, outputs: dict, compressed=True, steps=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initialize playback; context management.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>S</code></strong> :&ensp;<code>Model</code></dt>
+<dd><code>Model</code> which matches the configuration on which the
+<code><a title="ateams.statistics.Chain" href="#ateams.statistics.Chain">Chain</a></code> was simulated. **If the <code>Model</code> does not have the same
+parameters as the <code>Model</code> on which the recorded chain was
+simulated, statistical results from this playback may not be
+accurate.</dd>
+<dt><strong><code>fp</code></strong> :&ensp;<code>str</code></dt>
+<dd>File in which records are stored.</dd>
+<dt><strong><code>outputs</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary mapping integer keys to initial states.</dd>
+<dt><strong><code>compressed</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Are the data compressed?</dd>
+<dt><strong><code>steps</code></strong> :&ensp;<code>int</code></dt>
+<dd>How many steps does this chain take?</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>This Player object.</p></div>
+</dd>
+<dt id="ateams.statistics.Player.progress"><code class="name flex">
+<span>def <span class="ident">progress</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="ateams.statistics.Recorder"><code class="flex name class">
+<span>class <span class="ident">Recorder</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Safely "records" states from a Chain by tracking changes between successive
+states, and writing these changes &mdash; alongside the initial state &mdash; to
+file.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Recorder:
+    &#34;&#34;&#34;
+    Safely &#34;records&#34; states from a Chain by tracking changes between successive
+    states, and writing these changes --- alongside the initial state --- to
+    file.
+    &#34;&#34;&#34;
+    def __init__(self): pass
+
+    def record(self, M: Chain, fp: str, outputs: dict, compressed:bool=True):
+        &#34;&#34;&#34;
+        Called to configure the recording apparatus for the Chain, and *should*
+        be used as a context manager (i.e. with the `with` statement).
+
+        Args:
+            M (Chain): `potts.Chain` object to be recorded; `Recorder` needs
+                access to the `Model` and `Complex` subobjects.
+            fp (str): Filename.
+            outputs (dict): Dictionary mapping integer keys to initial states.
+            compressed (bool): Do we want to compress our outputs? The answer
+                should only be &#34;no&#34; if we&#39;re debugging something.
+
+        Returns:
+            This `Recorder` object.
+        &#34;&#34;&#34;
+        # Set up filepath, the actual file I/O object (gzip-compressed if we want
+        # compression, otherwise just a standard file), and initialize a JsonLines
+        # Writer.
+        self._fp = fp
+        self._file = gzip.open(f&#34;{self._fp}&#34;, &#34;wb&#34;) if compressed else open(self._fp, &#34;w&#34;)
+        self._writer = jsl.Writer(self._file)
+        
+        # Save the chain for access during iteration; set the &#34;previous&#34; state to
+        # be all -1s, since the first state yielded by iterating over the Chain
+        # is the initial state, and we need to record the whole thing; fix a list
+        # of possible integer states for later.
+        self.chain = M
+        self.outputs = outputs.copy()
+        self.previous = tuple(self.outputs.values())
+        
+        # Enter the context manager.
+        return self.__enter__()
+
+
+    def store(self, state: tuple) -&gt; None:
+        &#34;&#34;&#34;
+        Stores a state yielded by iteration over a `Chain`.
+
+        Args:
+            state (tuple): Tuple of assignments or other data points.
+        &#34;&#34;&#34;
+        delta = { }
+
+        for k, output in zip(self.outputs.keys(), state):
+            # Find the indices where spin assignments *differ*, then categorize the
+            # indices based on their spin value. *Should* save some space when
+            # writing to file.
+            indices = (~np.equal(self.previous[k], output)).astype(int).nonzero()[0]
+            faces = { int(s): [] for s in set(np.array(output)) }
+            for i in indices: faces[int(output[i])].append(int(i))
+
+            # Record the &#34;delta,&#34; i.e. the changes encountered from the previous
+            # state.
+            delta[k] = faces
+
+        # Write the delta to file and update the previous state to be the current
+        # one.
+        self._writer.write(delta)
+        self.previous = state
+
+    
+    def __enter__(self):
+        &#34;&#34;&#34;
+        Required context management magic method.
+        &#34;&#34;&#34;
+        return self
+
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        &#34;&#34;&#34;
+        Required context management magic method; kills the writer and the file.
+        &#34;&#34;&#34;
+        self._writer.close()
+        self._file.close()</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.statistics.Recorder.record"><code class="name flex">
+<span>def <span class="ident">record</span></span>(<span>self,<br>M: ateams.statistics.Chain.Chain,<br>fp: str,<br>outputs: dict,<br>compressed: bool = True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Called to configure the recording apparatus for the Chain, and <em>should</em>
+be used as a context manager (i.e. with the <code>with</code> statement).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>M</code></strong> :&ensp;<code><a title="ateams.statistics.Chain" href="#ateams.statistics.Chain">Chain</a></code></dt>
+<dd><code>potts.Chain</code> object to be recorded; <code><a title="ateams.statistics.Recorder" href="#ateams.statistics.Recorder">Recorder</a></code> needs
+access to the <code>Model</code> and <code>Complex</code> subobjects.</dd>
+<dt><strong><code>fp</code></strong> :&ensp;<code>str</code></dt>
+<dd>Filename.</dd>
+<dt><strong><code>outputs</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary mapping integer keys to initial states.</dd>
+<dt><strong><code>compressed</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Do we want to compress our outputs? The answer
+should only be "no" if we're debugging something.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>This <code><a title="ateams.statistics.Recorder" href="#ateams.statistics.Recorder">Recorder</a></code> object.</p></div>
+</dd>
+<dt id="ateams.statistics.Recorder.store"><code class="name flex">
+<span>def <span class="ident">store</span></span>(<span>self, state: tuple) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Stores a state yielded by iteration over a <code><a title="ateams.statistics.Chain" href="#ateams.statistics.Chain">Chain</a></code>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>state</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>Tuple of assignments or other data points.</dd>
+</dl></div>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -192,42 +501,6 @@ proof.appendChild(square);
 </script>
 <header>
 <a class="homelink" rel="home" title="ATEAM" href="https://github.com/apizzimenti/ateam">
-<style>
-header > h1 { display: none; }
-img.resize {
-min-width: 10vw;
-max-width: 15vw;
-display: block;
-margin: 0 auto;
-}
-div.proof {
-border: 1px solid black;
-padding: 0em 1em;
-width: 90%;
-margin: 1em auto;
-}
-.tombstone {
-margin-top: -2em;
-float: right;
-}
-#section-intro {
-text-align: justify;
-}
-#index .two-column {
-column-count: 1 !important;
-}
-#ateams {
-margin-top: 0;
-}
-#content {
-text-align: justify;
-}
-#sidebar {
-width: 20vw;
-font-size: 1rem;
-scrollbar-width: none;
-}
-</style>
 <img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
 </a>
 </header>
@@ -242,20 +515,33 @@ scrollbar-width: none;
 </li>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li><code><a title="ateams.statistics.Chain" href="Chain.html">ateams.statistics.Chain</a></code></li>
 <li><code><a title="ateams.statistics.accepts" href="accepts.html">ateams.statistics.accepts</a></code></li>
+<li><code><a title="ateams.statistics.autocorrelation" href="autocorrelation.html">ateams.statistics.autocorrelation</a></code></li>
 <li><code><a title="ateams.statistics.schedules" href="schedules.html">ateams.statistics.schedules</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-functions">Functions</a></h3>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="ateams.statistics.Chain" href="#ateams.statistics.Chain">Chain</a></code></h4>
 <ul class="">
-<li><code><a title="ateams.statistics.MetropolisHastings" href="#ateams.statistics.MetropolisHastings">MetropolisHastings</a></code></li>
-<li><code><a title="ateams.statistics.always" href="#ateams.statistics.always">always</a></code></li>
-<li><code><a title="ateams.statistics.autocorrelation" href="#ateams.statistics.autocorrelation">autocorrelation</a></code></li>
-<li><code><a title="ateams.statistics.constant" href="#ateams.statistics.constant">constant</a></code></li>
-<li><code><a title="ateams.statistics.critical" href="#ateams.statistics.critical">critical</a></code></li>
-<li><code><a title="ateams.statistics.linear" href="#ateams.statistics.linear">linear</a></code></li>
-<li><code><a title="ateams.statistics.randomizedToConstant" href="#ateams.statistics.randomizedToConstant">randomizedToConstant</a></code></li>
+<li><code><a title="ateams.statistics.Chain.progress" href="#ateams.statistics.Chain.progress">progress</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ateams.statistics.Player" href="#ateams.statistics.Player">Player</a></code></h4>
+<ul class="">
+<li><code><a title="ateams.statistics.Player.playback" href="#ateams.statistics.Player.playback">playback</a></code></li>
+<li><code><a title="ateams.statistics.Player.progress" href="#ateams.statistics.Player.progress">progress</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ateams.statistics.Recorder" href="#ateams.statistics.Recorder">Recorder</a></code></h4>
+<ul class="">
+<li><code><a title="ateams.statistics.Recorder.record" href="#ateams.statistics.Recorder.record">record</a></code></li>
+<li><code><a title="ateams.statistics.Recorder.store" href="#ateams.statistics.Recorder.store">store</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

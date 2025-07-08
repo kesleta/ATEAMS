@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.3">
-<title>ateams.complexes.construction API documentation</title>
+<title>ateams.statistics.autocorrelation API documentation</title>
 <meta name="description" content="">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
@@ -19,59 +19,10 @@
 hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
 hljs.highlightAll();
 })</script>
-</head>
-<body>
-<main>
-<article id="content">
-<header>
-<h1 class="title">Module <code>ateams.complexes.construction</code></h1>
-</header>
-<section id="section-intro">
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="ateams.complexes.construction.boundaryMatrices"><code class="name flex">
-<span>def <span class="ident">boundaryMatrices</span></span>(<span>cubes, coefficients)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ateams.complexes.construction.fullBoundaryMatrix"><code class="name flex">
-<span>def <span class="ident">fullBoundaryMatrix</span></span>(<span>boundary, coefficients)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</section>
-<section>
-</section>
-</article>
-<nav id="sidebar">
-<!-- include a script for adding stuff to the end of proofs. -->
-<script>
-// Get all the proofs in the document.
-proofs = document.getElementsByClassName("proof");
-// For each of the proofs, attach a floating child element in the bottom-right
-// corner.
-for (var proof of proofs) {
-// Create a proof-ending tombstone.
-square = document.createElement("div");
-square.className = "tombstone";
-square.innerHTML = "◼️";
-// Attach the tombstone to the proof.
-proof.appendChild(square);
-}
-</script>
-<header>
-<a class="homelink" rel="home" title="ATEAM" href="https://github.com/apizzimenti/ateam">
+<!-- Sidebar edits -->
 <style>
 header > h1 { display: none; }
+.toc { display: none; }
 img.resize {
 min-width: 10vw;
 max-width: 15vw;
@@ -100,6 +51,89 @@ font-size: 1rem;
 scrollbar-width: none;
 }
 </style>
+<!-- table edits -->
+<style>
+.dataframe.profile-data-table {
+margin: auto;
+width: 75%;
+}
+.dataframe.profile-data-table thead tr {
+text-align: center !important;
+}
+.dataframe.profile-data-table thead {
+border-bottom: 3px solid black;
+}
+.dataframe.profile-data-table tbody > tr:nth-of-type(9n) {
+border-bottom: 3px solid black;
+}
+.dataframe.profile-data-table tbody tr th {
+vertical-align: middle;
+}
+.dataframe.profile-data-table tbody tr td {
+vertical-align: middle;
+}
+.dataframe.profile-data-table tbody > tr:nth-child(3n) {
+:nth-child(n) {
+border-bottom: 1px solid black;
+}
+}
+.dataframe.profile-data-table tbody td {
+text-align: center;
+}
+</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>ateams.statistics.autocorrelation</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="ateams.statistics.autocorrelation.autocorrelation"><code class="name flex">
+<span>def <span class="ident">autocorrelation</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the autocorrelation of a given observable.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>Iterable</code></dt>
+<dd>An iterable, indexed by sample times, containing data
+from a given observable.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>An <code>np.ndarray</code> of autocorrelation data.</p></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<!-- include a script for adding stuff to the end of proofs. -->
+<script>
+// Get all the proofs in the document.
+proofs = document.getElementsByClassName("proof");
+// For each of the proofs, attach a floating child element in the bottom-right
+// corner.
+for (var proof of proofs) {
+// Create a proof-ending tombstone.
+square = document.createElement("div");
+square.className = "tombstone";
+square.innerHTML = "◼️";
+// Attach the tombstone to the proof.
+proof.appendChild(square);
+}
+</script>
+<header>
+<a class="homelink" rel="home" title="ATEAM" href="https://github.com/apizzimenti/ateam">
 <img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
 </a>
 </header>
@@ -109,13 +143,12 @@ scrollbar-width: none;
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="ateams.complexes" href="index.html">ateams.complexes</a></code></li>
+<li><code><a title="ateams.statistics" href="index.html">ateams.statistics</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="ateams.complexes.construction.boundaryMatrices" href="#ateams.complexes.construction.boundaryMatrices">boundaryMatrices</a></code></li>
-<li><code><a title="ateams.complexes.construction.fullBoundaryMatrix" href="#ateams.complexes.construction.fullBoundaryMatrix">fullBoundaryMatrix</a></code></li>
+<li><code><a title="ateams.statistics.autocorrelation.autocorrelation" href="#ateams.statistics.autocorrelation.autocorrelation">autocorrelation</a></code></li>
 </ul>
 </li>
 </ul>

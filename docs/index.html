@@ -19,6 +19,68 @@
 hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
 hljs.highlightAll();
 })</script>
+<!-- Sidebar edits -->
+<style>
+header > h1 { display: none; }
+.toc { display: none; }
+img.resize {
+min-width: 10vw;
+max-width: 15vw;
+display: block;
+margin: 0 auto;
+}
+div.proof {
+border: 1px solid black;
+padding: 0em 1em;
+width: 90%;
+margin: 1em auto;
+}
+.tombstone {
+margin-top: -2em;
+float: right;
+}
+#index .two-column {
+column-count: 1 !important;
+}
+#ateams {
+margin-top: 0;
+}
+#sidebar {
+width: 20vw;
+font-size: 1rem;
+scrollbar-width: none;
+}
+</style>
+<!-- table edits -->
+<style>
+.dataframe.profile-data-table {
+margin: auto;
+width: 75%;
+}
+.dataframe.profile-data-table thead tr {
+text-align: center !important;
+}
+.dataframe.profile-data-table thead {
+border-bottom: 3px solid black;
+}
+.dataframe.profile-data-table tbody > tr:nth-of-type(9n) {
+border-bottom: 3px solid black;
+}
+.dataframe.profile-data-table tbody tr th {
+vertical-align: middle;
+}
+.dataframe.profile-data-table tbody tr td {
+vertical-align: middle;
+}
+.dataframe.profile-data-table tbody > tr:nth-child(3n) {
+:nth-child(n) {
+border-bottom: 1px solid black;
+}
+}
+.dataframe.profile-data-table tbody td {
+text-align: center;
+}
+</style>
 </head>
 <body>
 <main>
@@ -28,7 +90,7 @@ hljs.highlightAll();
 </header>
 <section id="section-intro">
 <h2 id="ateams">ATEAMS</h2>
-<p>The <strong>A</strong>lgebraic <strong>t</strong>opology-<strong>e</strong>nabled <strong>a</strong>lgorith<strong>m</strong>s for <strong>s</strong>pin systems(<strong>ATEAMS</strong>) library is a high-performance software suite for conducting experiments on complex spin models. The main attractions are the <em>plaquette <a href="http://arxiv.org/abs/cond-mat/9605103">invaded-cluster</a></em> and <em>plaquette <a href="https://link.aps.org/doi/10.1103/PhysRevLett.58.86">Swendsen-Wang</a></em> algorithms for simulating Markov chains on cubical complexs of any dimension.</p>
+<p>The <strong>A</strong>lgebraic <strong>t</strong>opology-<strong>e</strong>nabled <strong>a</strong>lgorith<strong>m</strong>s for <strong>s</strong>pin systems (<strong>ATEAMS</strong>) library is a high-performance software suite for conducting experiments on complex spin models. The main attractions are the <em>plaquette <a href="http://arxiv.org/abs/cond-mat/9605103">invaded-cluster</a></em> and <em>plaquette <a href="https://link.aps.org/doi/10.1103/PhysRevLett.58.86">Swendsen-Wang</a></em> algorithms for simulating Markov chains on cubical complexs of any dimension.</p>
 <p><a href="https://doi.org/10.5281/zenodo.14284172"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.14284172.svg"></a>
 <a href="https://apizzimenti.github.io/ATEAMS/"><img alt="docs" src="https://img.shields.io/badge/%E2%93%98-Documentation-%230099cd"></a> </p>
 <p>ATEAMS is designed for high-performance simulation of the <em>Potts</em> and <em>random-cluster</em> models in cubical complexes of arbitrary dimension and scale. The linear algebra subroutines supporting these programs are tailored to this application — matrix reduction over finite fields — using <a href="https://github.com/linbox-team/linbox">LinBox</a>.</p>
@@ -280,7 +342,7 @@ $ pkg-config --libs linbox
 </dd>
 <dt><code class="name"><a title="ateams.models" href="models/index.html">ateams.models</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Models …</p></div>
 </dd>
 <dt><code class="name"><a title="ateams.statistics" href="statistics/index.html">ateams.statistics</a></code></dt>
 <dd>
@@ -313,42 +375,6 @@ proof.appendChild(square);
 </script>
 <header>
 <a class="homelink" rel="home" title="ATEAM" href="https://github.com/apizzimenti/ateam">
-<style>
-header > h1 { display: none; }
-img.resize {
-min-width: 10vw;
-max-width: 15vw;
-display: block;
-margin: 0 auto;
-}
-div.proof {
-border: 1px solid black;
-padding: 0em 1em;
-width: 90%;
-margin: 1em auto;
-}
-.tombstone {
-margin-top: -2em;
-float: right;
-}
-#section-intro {
-text-align: justify;
-}
-#index .two-column {
-column-count: 1 !important;
-}
-#ateams {
-margin-top: 0;
-}
-#content {
-text-align: justify;
-}
-#sidebar {
-width: 20vw;
-font-size: 1rem;
-scrollbar-width: none;
-}
-</style>
 <img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
 </a>
 </header>

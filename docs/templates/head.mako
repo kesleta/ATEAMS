@@ -1,0 +1,77 @@
+
+<!-- Sidebar edits -->
+<style>
+	header > h1 { display: none; }
+	.toc { display: none; }
+
+	img.resize {
+		min-width: 10vw;
+		max-width: 15vw;
+		display: block;
+		margin: 0 auto;
+	}
+
+	div.proof {
+		border: 1px solid black;
+		padding: 0em 1em;
+		width: 90%;
+		margin: 1em auto;
+	}
+
+	.tombstone {
+		margin-top: -2em;
+		float: right;
+	}
+
+	#index .two-column {
+		column-count: 1 !important;
+	}
+
+	#ateams {
+		margin-top: 0;
+	}
+
+	#sidebar {
+		width: 20vw;
+		font-size: 1rem;
+		scrollbar-width: none;
+	}
+</style>
+
+<!-- table edits -->
+<style>
+	.dataframe.profile-data-table {
+		margin: auto;
+		width: 75%;
+	}
+
+	.dataframe.profile-data-table thead tr {
+		text-align: center !important;
+	}
+
+	.dataframe.profile-data-table thead {
+		border-bottom: 3px solid black;
+	}
+
+	.dataframe.profile-data-table tbody > tr:nth-of-type(9n) {
+		border-bottom: 3px solid black;
+	}
+
+	.dataframe.profile-data-table tbody tr th {
+		vertical-align: middle;
+	}
+
+	.dataframe.profile-data-table tbody tr td {
+		vertical-align: middle;
+	}
+
+	.dataframe.profile-data-table tbody > tr:nth-child(3n) {
+		:nth-child(n) {
+			border-bottom: 1px solid black;
+		}
+	}
+
+	.dataframe.profile-data-table tbody td {
+		text-align: center;
+	}
+</style>
