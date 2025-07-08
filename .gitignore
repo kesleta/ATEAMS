@@ -18,6 +18,10 @@ test/stats
 test/**/*.json
 test/**/*.npz
 
+*hopper*
+*pangolin*
+update.sh
+
 # Ignore *most* testing stuff.
 test/sync.profiles.sh
 # test/*.txt
