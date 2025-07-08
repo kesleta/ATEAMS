@@ -51,17 +51,22 @@ class SwendsenWang():
 		4. sample for the remainder of the attempts from \(D_2 A^\top D_3 A D_2\), where \(D_2, D_3\) are random diagonal matrices.
 			
 		If we spend the entire budget of attempts, it is likely that the
-		result returned is either the all-zeros vector. Included below are
-		performance statistics for various configurations of the `SwendsenWang` model.
+		result returned is either the all-zeros vector.
+		
+		Included below are performance statistics for various configurations of
+		`SwendsenWang`. Each configuration completed 100 iterations on Pangolin,
+		a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295
+		CPU. **Warns** indicates the number of `NumericalInstabilityWarning`s caught
+		during the run, and **Zeros** the number of all-zeros vectors returned.
 
 		</br>
 		</br>
-		<center> Samples in \(\mathbb T^2_N\) </center>
+		<center> <strong> Samples in \(\mathbb T^2_N\) </strong> </center>
 		.. include:: ./tables/SwendsenWang.LanczosKernelSample.2.html
 
 		</br>
 		</br>
-		<center> Samples in \(\mathbb T^4_N\) </center>
+		<center> <strong> Samples in \(\mathbb T^4_N\) </strong> </center>
 		.. include:: ./tables/SwendsenWang.LanczosKernelSample.4.html
 		"""
 		# Object access.

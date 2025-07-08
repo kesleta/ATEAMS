@@ -444,10 +444,14 @@ number of columns processed in parallel.</dd>
 <dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
 <dd>Number of available CPUs/cores/threads on the machine.</dd>
 </dl>
-<p>Below are some performance statistics</p>
+<p>Included below are performance statistics for various configurations of
+<code><a title="ateams.models.InvadedCluster" href="#ateams.models.InvadedCluster">InvadedCluster</a></code>. Each configuration completed 100 iterations on Pangolin,
+a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295
+CPU. <strong>Warns</strong> indicates the number of <code>NumericalInstabilityWarning</code>s caught
+during the run, and <strong>Zeros</strong> the number of all-zeros vectors returned.</p>
 <p></br>
 </br>
-<center> Samples in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span> </center></p>
+<center> <strong> Samples in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span> with PHAT </strong> </center></p>
 <table class="dataframe profile-data-table">
 <thead>
 <tr style="text-align: right;">
@@ -505,24 +509,6 @@ number of columns processed in parallel.</dd>
 <td>10.658</td>
 </tr>
 </tbody>
-</table>
-<table class="dataframe profile-data-table">
-<thead>
-<tr style="text-align: right;">
-<th></th>
-<th></th>
-<th></th>
-<th>s/iteration</th>
-</tr>
-<tr>
-<th>Field</th>
-<th>$N$</th>
-<th><code>maxTries</code></th>
-<th></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
 </table></div>
 <details class="source">
 <summary>
@@ -560,13 +546,16 @@ number of columns processed in parallel.</dd>
                                 number of columns processed in parallel.
                         cores (int=4): Number of available CPUs/cores/threads on the machine.
 
-                Below are some performance statistics
+                Included below are performance statistics for various configurations of
+                `InvadedCluster`. Each configuration completed 100 iterations on Pangolin,
+                a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295
+                CPU. **Warns** indicates the number of `NumericalInstabilityWarning`s caught
+                during the run, and **Zeros** the number of all-zeros vectors returned.
                 
                 &lt;/br&gt;
                 &lt;/br&gt;
-                &lt;center&gt; Samples in \(\mathbb T^2_N\) &lt;/center&gt;
+                &lt;center&gt; &lt;strong&gt; Samples in \(\mathbb T^2_N\) with PHAT &lt;/strong&gt; &lt;/center&gt;
                 ..include:: ./tables/InvadedCluster.PHATComputePersistencePairs.2.html
-                ..include:: ./tables/InvadedCluster.ComputePercolationEvents.2.html
                 &#34;&#34;&#34;
                 # Object access.
                 self.complex = C
@@ -1056,11 +1045,15 @@ of attempts:</p>
 <li>sample for the remainder of the attempts from <span><span class="MathJax_Preview">D_2 A^\top D_3 A D_2</span><script type="math/tex">D_2 A^\top D_3 A D_2</script></span>, where <span><span class="MathJax_Preview">D_2, D_3</span><script type="math/tex">D_2, D_3</script></span> are random diagonal matrices.</li>
 </ol>
 <p>If we spend the entire budget of attempts, it is likely that the
-result returned is either the all-zeros vector. Included below are
-performance statistics for various configurations of the <code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code> model.</p>
+result returned is either the all-zeros vector.</p>
+<p>Included below are performance statistics for various configurations of
+<code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code>. Each configuration completed 100 iterations on Pangolin,
+a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295
+CPU. <strong>Warns</strong> indicates the number of <code>NumericalInstabilityWarning</code>s caught
+during the run, and <strong>Zeros</strong> the number of all-zeros vectors returned.</p>
 <p></br>
 </br>
-<center> Samples in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span> </center></p>
+<center> <strong> Samples in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span> </strong> </center></p>
 <table class="dataframe profile-data-table">
 <thead>
 <tr style="text-align: right;">
@@ -1317,7 +1310,7 @@ performance statistics for various configurations of the <code><a title="ateams.
 </table>
 <p></br>
 </br>
-<center> Samples in <span><span class="MathJax_Preview">\mathbb T^4_N</span><script type="math/tex">\mathbb T^4_N</script></span> </center></p>
+<center> <strong> Samples in <span><span class="MathJax_Preview">\mathbb T^4_N</span><script type="math/tex">\mathbb T^4_N</script></span> </strong> </center></p>
 <table class="dataframe profile-data-table">
 <thead>
 <tr style="text-align: right;">
@@ -1619,17 +1612,22 @@ performance statistics for various configurations of the <code><a title="ateams.
                 4. sample for the remainder of the attempts from \(D_2 A^\top D_3 A D_2\), where \(D_2, D_3\) are random diagonal matrices.
                         
                 If we spend the entire budget of attempts, it is likely that the
-                result returned is either the all-zeros vector. Included below are
-                performance statistics for various configurations of the `SwendsenWang` model.
+                result returned is either the all-zeros vector.
+                
+                Included below are performance statistics for various configurations of
+                `SwendsenWang`. Each configuration completed 100 iterations on Pangolin,
+                a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295
+                CPU. **Warns** indicates the number of `NumericalInstabilityWarning`s caught
+                during the run, and **Zeros** the number of all-zeros vectors returned.
 
                 &lt;/br&gt;
                 &lt;/br&gt;
-                &lt;center&gt; Samples in \(\mathbb T^2_N\) &lt;/center&gt;
+                &lt;center&gt; &lt;strong&gt; Samples in \(\mathbb T^2_N\) &lt;/strong&gt; &lt;/center&gt;
                 .. include:: ./tables/SwendsenWang.LanczosKernelSample.2.html
 
                 &lt;/br&gt;
                 &lt;/br&gt;
-                &lt;center&gt; Samples in \(\mathbb T^4_N\) &lt;/center&gt;
+                &lt;center&gt; &lt;strong&gt; Samples in \(\mathbb T^4_N\) &lt;/strong&gt; &lt;/center&gt;
                 .. include:: ./tables/SwendsenWang.LanczosKernelSample.4.html
                 &#34;&#34;&#34;
                 # Object access.

@@ -101,8 +101,9 @@ text-align: center;
 from ateams.models import InvadedCluster
 from ateams import Chain
 
-complex = Cubical().fromCorners([10]*3, field=3)
-IC = InvadedCluster(complex, dimension=1)
+field = 3
+C = Cubical().fromCorners([10]*3)
+IC = InvadedCluster(C, dimension=1, field=field)
 
 for (spins, occupied, satisfied) in Chain(IC, steps=10):
     &lt;do whatever&gt;
@@ -113,8 +114,9 @@ from ateams.models import SwendsenWang
 from ateams.statistics import critical
 from ateams import Chain
 
-complex = Cubical().fromCorners([10]*4, field=5)
-SW = SwendsenWang(complex, dimension=2, temperature=critical(complex.field))
+field = 5
+C = Cubical().fromCorners([10]*4)
+SW = SwendsenWang(C, dimension=2, field=field, temperature=critical(field))
 
 for (spins, occupied, satisfied) in Chain(SW, steps=1000):
     &lt;do whatever&gt;
