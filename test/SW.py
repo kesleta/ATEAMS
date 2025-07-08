@@ -6,15 +6,23 @@ from ateams.statistics import constant, critical
 from ateams import Chain
 import json
 import sys
+from pathlib import Path
 
 
 def construct(L, dim, field):
 	# Construct complex object.
-	L = Cubical().fromCorners([L]*dim, field=field)
+	fname = Path(f"./data/cubical.{L}.{dim}.json")
+	if not fname.exists():
+		fname.parent.mkdir(exist_ok=True, parents=True)
+		L = Cubical().fromCorners([L]*dim)
+		L.toFile(fname)
+	else:
+		L = Cubical().fromFile(fname)
+
 
 	# Set up Model and Chain.
-	T = critical(L.field)
-	SW = SwendsenWang(L, dimension=dim//2, temperature=lambda t: -T(t), maxTries=8)
+	T = critical(field)
+	SW = SwendsenWang(L, dimension=dim//2, field=field, temperature=lambda t: -T(t), maxTries=8)
 	N = 100
 	M = Chain(SW, steps=N)
 
@@ -26,6 +34,6 @@ def chain(M, DESC=""):
 
 
 if __name__ == "__main__":
-	M = construct(12, 4, 7)
+	M = construct(6, 4, 7)
 	chain(M)
 

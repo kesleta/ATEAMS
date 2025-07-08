@@ -18,7 +18,7 @@ class Matrices:
 class Cubical:
 	def __init__(self): pass
 
-	def fromCorners(self, corners, field=2, periodic=True):
+	def fromCorners(self, corners, periodic=True):
 		"""
 		Creates a cell complex with the given corners made of cells of the
 		provided dimension.
@@ -26,12 +26,10 @@ class Cubical:
 		Args:
 			corners (list): Corners of the complex; determines the maximal
 				cell dimension.
-			field (int): Characteristic of finite field from which cells take
-				coefficients.
 			periodic (bool): Do we use periodic boundary
 				conditions (i.e. are we making a torus)?
 		"""
-		self._construct(corners, periodic, field)
+		self._construct(corners, periodic)
 		return self
 	
 
@@ -41,9 +39,8 @@ class Cubical:
 	
 
 	def _construct(
-			self, corners, periodic, field, data=None
+			self, corners, periodic, data=None
 		):
-		self.field = field
 		self.dimension = len(corners)
 		self.periodic = periodic
 		self.corners = corners
@@ -100,47 +97,50 @@ class Cubical:
 
 
 	
-	def toFile(self, fp:str):
+	def toFile(self, fp, vertexMap=False):
 		"""
 		JSON-serializes this object and writes it to file so we can reconstruct
 		it later.
 
 		Args:
 			fp (str): Filepath.
+			vertexMap (bool): Do we save the vertex map? Not doing so saves
+				a lot of space.
 		"""
 		# Write compressed boundary matrix and vertex maps to file.
 		absolute = Path(fp).resolve()
 		root = absolute.parent
 		stem = absolute.stem
 		ComplexFile = root/f".{stem}.complex.npz"
-		np.savez_compressed(ComplexFile, **{str(t): v for t, v in self.Boundary.items()})
+		np.savez(ComplexFile, **{str(t): v for t, v in self.Boundary.items()})
 
 		with open(fp, "w") as write:
 			json.dump(
 				{
-					"field": self.field,
 					"dimension": self.dimension,
 					"periodic": int(self.periodic),
 					"corners": self.corners,
 					"Complex": str(ComplexFile),
-					"vertexMap": { str(k): int(v) for k, v in self.vertexMap.items() }
+					"vertexMap": { str(k): int(v) for k, v in self.vertexMap.items() } if vertexMap else { }
 				}, write
 			)
 
-	def fromFile(self, fp:str, vertexMap=False):
+	
+	def fromFile(self, fp:str, vertexMap=False, field=None):
 		"""
 		Reconstructs a serialized Complex.
 
 		Args:
 			fp (str): Filepath.
+			vertexMap (bool): Is there a vertexmap to load?
+			field (int): Reconstructs this lattice with a different field;
+				good for portability.
 		"""
 		with open(fp, "r") as read:
 			# Read file into memory.
 			serialized = json.load(read)
 
 			# Set field and dimension.
-			field = serialized["field"]
-			dimension = int(serialized["dimension"])
 			periodic = bool(serialized["periodic"])
 			corners = serialized["corners"]
 			data = { "Complex": np.load(serialized["Complex"], allow_pickle=True) }
@@ -148,7 +148,7 @@ class Cubical:
 
 			# Construct indices, boundary matrix, and graph.
 			return self._construct(
-				corners, periodic, field, data
+				corners, periodic, data
 			)
 
 
@@ -317,9 +317,8 @@ def cubicalComplex(corners, D, periodic=True):
 	# make creation a bit easier.
 	vertices = np.concatenate([basis, extra])
 	indices = np.arange(len(vertices))
-	tups = [tuple(v) for v in vertices]
 
-	verticesToIndices = { tups[t]: t for t in indices }
+	verticesToIndices = { tuple(vertices[t]): t for t in indices }
 
 	if periodic:
 		# Identify antipodal vertices.
@@ -327,9 +326,9 @@ def cubicalComplex(corners, D, periodic=True):
 
 		# After identification, count the unique values we see, then re-map.
 		unique = np.unique(list(verticesToIndices.values()))
-		vertices = np.arange(len(unique))
-		indices[unique] = vertices
-		verticesToIndices = { t: indices[verticesToIndices[t]] for t in tups }
+		remapped = np.arange(len(unique))
+		indices[unique] = remapped
+		verticesToIndices = { tuple(v): indices[verticesToIndices[tuple(v)]] for v in vertices }
 		
 	# Explode and do some reshaping. We need everything in terms of their
 	# local coordinates, so we'll have to do some re-indexing on the higher-

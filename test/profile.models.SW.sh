@@ -1,19 +1,17 @@
 #!/bin/zsh
 
-autoload colors; colors
 start="${1:-3}"
 stop="${2:-4}"
 dim="${3:-4}"
 fields=(2 3 5 7)
 
-
-source .vars
-
 echo "_________________________"
 echo "| PROFILE SWENDSEN-WANG | ➭➭➭ results in profiles/SwendsenWang"
 echo "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾"
 
-printf "%-5s %-8s %-8s %s" "     " "SCALE" "DIM" "FIELD"
+source .vars
+
+printf "%5s %-${W}s %-${W}s %-${W}s %s" "" $SCALE $DIM $FIELD $CELLS
 echo
 
 for ((L=$start; L<$stop; L++)); do
@@ -33,9 +31,5 @@ for ((L=$start; L<$stop; L++)); do
 	echo
 done
 
-echo -e $PASSDESC
-echo -e $WARNDESC
-echo -e $FAILDESC
-echo
 echo
 echo

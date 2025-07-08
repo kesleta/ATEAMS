@@ -3,11 +3,18 @@ from ateams.complexes import Cubical
 from ateams.models import Bernoulli
 from ateams import Chain
 import os
+from pathlib import Path
 
 
 def construct(L, DIM):
 	# Construct complex object.
-	L = Cubical().fromCorners([L]*DIM)
+	fname = Path(f"./data/cubical.{L}.{DIM}.json")
+	if not fname.exists():
+		fname.parent.mkdir(exist_ok=True, parents=True)
+		L = Cubical().fromCorners([L]*DIM)
+		L.toFile(fname)
+	else:
+		L = Cubical().fromFile(fname)
 
 	# Set up Model and Chain.
 	SW = Bernoulli(L, dimension=DIM//2)

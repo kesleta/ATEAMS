@@ -2,6 +2,10 @@
 from . import always
 from ..common import NumericalInstabilityWarning
 
+import jsonlines as jsl
+import gzip
+import numpy as np
+
 
 class Chain:
     def __init__(self, model, accept=always(), statistics={}, steps=10000):
@@ -9,19 +13,20 @@ class Chain:
         Simulates a Markov chain on the given Model.
 
         Args:
-            model (Model): An instantiated descendant of `Model` (e.g. `HomologicalPercolation`)
+            model (Model): An instantiated descendant of `Model` (e.g. `SwendsenWang`)
                 generating the Markov chain.
-            accept (Callable): A function which consumes the complex, model, and
+            accept (Callable): A function that consumes the complex, model, and
                 state to determine whether we're going to a good place.
-            statistics (dict): A mapping of names to functions which take the complex
-                as an argument. The Chain keeps track of these at each iteration
-                and stores whatever output is given.
+            statistics (dict): A mapping of names to functions which take the complex,
+                model, and state as argument. The Chain keeps track of these at
+                each iteration and stores whatever output is given.
             steps (int): The number of iterations in the chain.
         """
         self.model = model
         self.steps = steps
         self.accept = accept
         self._exitcode = 0
+        self._warnings = 0
 
         # Store stats and things.
         self.functions = statistics
@@ -47,13 +52,14 @@ class Chain:
             # Propose the next state and check whether we want to accept it as
             # the next state or not; assign whichever state is chosen to the
             # Model.
-            try: proposed = self.model.proposal(self.step)
+            try: proposed = self.model._proposal(self.step)
             except NumericalInstabilityWarning:
                 self._exitcode = 2
+                self._warnings += 1
                 proposed = self.state
 
             self.state = proposed if self.accept(self.state, proposed, self.step) else self.state
-            self.model.assign(self.state[0])
+            self.model._assign(self.state[0])
 
             # Compute statistics.
             for name, function in self.functions.items():
@@ -76,12 +82,6 @@ class Chain:
         """
         from tqdm.auto import tqdm
         return tqdm(self, total=self.steps, dynamic_ncols=dynamic_ncols, desc=desc)
-    
-
-
-import jsonlines as jsl
-import gzip
-import numpy as np
 
 
 class Recorder:

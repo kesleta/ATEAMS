@@ -18,9 +18,9 @@
 
 using namespace std;
 
-typedef vector<int> Vector;
-typedef vector<Vector> PersistencePairs;
-typedef vector<Vector> FlatBoundaryMatrix;
+typedef vector<int> Index;
+typedef vector<Index> PersistencePairs;
+typedef vector<Index> FlatBoundaryMatrix;
 typedef map<int,int> Map;
 
 typedef vector<phat::index> Column;
@@ -29,7 +29,7 @@ typedef phat::persistence_pairs Pairs;
 typedef phat::twist_reduction Twist;
 
 
-Vector ReindexBoundaryMatrix(Vector &boundary, Vector filtration, int homology, Vector breaks) {
+Index ReindexBoundaryMatrix(Index &boundary, Index filtration, int homology, Index breaks) {
 	// Decide when we should be editing rows or columns.
 	int cellCount = filtration.size();
 	int low = breaks[homology];
@@ -65,8 +65,8 @@ Vector ReindexBoundaryMatrix(Vector &boundary, Vector filtration, int homology, 
 }
 
 
-FlatBoundaryMatrix Flatten(Vector full, int columns, Vector breaks) {
-	FlatBoundaryMatrix boundary = FlatBoundaryMatrix(columns, Vector());
+FlatBoundaryMatrix Flatten(Index full, int columns, Index breaks) {
+	FlatBoundaryMatrix boundary = FlatBoundaryMatrix(columns, Index());
 	int row, column;
 
 	for (int t=0; t < full.size(); t+=3) {
@@ -89,13 +89,13 @@ FlatBoundaryMatrix Flatten(Vector full, int columns, Vector breaks) {
 }
 
 
-FlatBoundaryMatrix ReindexAndFlatten(Vector _boundary, Vector filtration, int homology, Vector breaks) {
+FlatBoundaryMatrix ReindexAndFlatten(Index _boundary, Index filtration, int homology, Index breaks) {
 	_boundary = ReindexBoundaryMatrix(_boundary, filtration, homology, breaks);
 	return Flatten(_boundary, filtration.size(), breaks);
 }
 
 
-PersistencePairs PHATComputePersistencePairs(Vector _boundary, Vector filtration, int homology, Vector breaks) {
+PersistencePairs PHATComputePersistencePairs(Index _boundary, Index filtration, int homology, Index breaks) {
 	// Build out the boundary matrix.
 	Pairs pairs;
 	FlatBoundaryMatrix boundary = ReindexAndFlatten(_boundary, filtration, homology, breaks);
@@ -123,7 +123,7 @@ PersistencePairs PHATComputePersistencePairs(Vector _boundary, Vector filtration
 	phat::compute_persistence_pairs<Twist>(pairs, Boundary);
 	pairs.sort();
 
-	PersistencePairs Pairs(pairs.get_num_pairs(), Vector(2));
+	PersistencePairs Pairs(pairs.get_num_pairs(), Index(2));
 
 	for (phat::index i=0; i < pairs.get_num_pairs(); i++) {
 		Pairs[i][0] = pairs.get_pair(i).first;

@@ -4,14 +4,21 @@ from ateams.models import InvadedCluster
 from ateams import Chain
 import json
 import sys
+from pathlib import Path
 
 
 def construct(L, dim, field):
 	# Construct complex object.
-	L = Cubical().fromCorners([L]*dim, field=field)
+	fname = Path(f"./data/cubical.{L}.{dim}.json")
+	if not fname.exists():
+		fname.parent.mkdir(exist_ok=True, parents=True)
+		L = Cubical().fromCorners([L]*dim)
+		L.toFile(fname)
+	else:
+		L = Cubical().fromFile(fname)
 
 	# Set up Model and Chain.
-	SW = InvadedCluster(L, dimension=dim//2)
+	SW = InvadedCluster(L, dimension=dim//2, field=field)
 	N = 20
 	M = Chain(SW, steps=N)
 
@@ -23,6 +30,6 @@ def chain(M, DESC=""):
 	return M._exitcode
 
 if __name__ == "__main__":
-	M = construct(21, 2, 2)
+	M = construct(6, 4, 3)
 	chain(M)
 

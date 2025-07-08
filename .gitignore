@@ -14,10 +14,9 @@ ateams.egg-info/
 build/
 
 # Ignore contents, but not directories.
-output/figures/*
-output/matrices/*
-output/profiles/*
-sync.sh
+test/stats
+test/**/*.json
+test/**/*.npz
 
 # Ignore *most* testing stuff.
 test/sync.profiles.sh
@@ -38,3 +37,5 @@ ateams/arithmetic/*.so
 ateams/**/*.html
 ateams/**/*.so
 ateams/complex/*.cpp
+
+!ateams/models/tables/*.html

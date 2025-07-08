@@ -5,13 +5,13 @@ stop="${2:-4}"
 dim="${3:-4}"
 fields=(2 3 5 7)
 
-source .vars
-
 echo "___________________________"
 echo "| PROFILE INVADED-CLUSTER | ➭➭➭ results in profiles/InvadedCluster"
 echo "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾"
 
-printf "%-5s %-8s %-8s %-8s %s" "     " "SCALE" "DIM" "FIELD" "PHAT"
+source .vars
+
+printf "%-5s %-${W}s %-${W}s %-${W}s %-${W}s %s" "" $SCALE $DIM $FIELD $PHAT $CELLS
 echo
 
 for ((L=$start; L<$stop; L++)); do
@@ -34,9 +34,5 @@ done
 width=$(tput cols)
 indent=2
 
-echo -e $PASSDESC
-echo -e $WARNDESC
-echo -e $FAILDESC
-echo
 echo
 echo

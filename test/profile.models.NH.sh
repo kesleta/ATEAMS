@@ -1,18 +1,17 @@
 #!/bin/zsh
 
-autoload colors; colors
 start="${1:-9}"
 stop="${2:-12}"
 cores="${3:-2}"
 fields=(2 3 5 7)
 
-source .vars
-
 echo "____________________"
 echo "| PROFILE NIENHUIS | ➭➭➭ results in profiles/Nienhuis"
 echo "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾"
 
-printf "%-5s %-8s %s" "     " "SCALE" "FIELD"
+source .vars
+
+printf "%5s %-${W}s %-${W}s %-${W}s %s" "" $SCALE $DIM $FIELD $CELLS
 echo
 
 for ((L=$start; L<$stop; L++)); do
@@ -32,9 +31,5 @@ for ((L=$start; L<$stop; L++)); do
 	echo
 done
 
-echo -e $PASSDESC
-echo -e $WARNDESC
-echo -e $FAILDESC
-echo
 echo
 echo

@@ -1,17 +1,16 @@
 #!/bin/zsh
 
-autoload colors; colors
 start="${1:-6}"
 stop="${2:-9}"
 dim="${3:-4}"
-
-source .vars
 
 echo "_____________________"
 echo "| PROFILE BERNOULLI | ➭➭➭ results in profiles/Bernoulli"
 echo "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾"
 
-printf "%-5s %-8s %-8s %s" "     " "SCALE" "DIM"
+source .vars
+
+printf "%-5s %-${W}s %-${W}s %s" "" $SCALE $DIM $CELLS
 echo
 
 for ((L=$start; L<$stop; L++)); do
@@ -27,11 +26,6 @@ for ((L=$start; L<$stop; L++)); do
 			echo -e "$UP$WARN";;
 	esac
 done
-echo
-
-echo -e $PASSDESC
-echo -e $WARNDESC
-echo -e $FAILDESC
 echo
 echo
 echo

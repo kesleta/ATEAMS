@@ -1,4 +1,6 @@
 
+SHELL := /bin/zsh
+
 contribute: build test profile docs
 
 
@@ -32,30 +34,42 @@ LinBox:
 	@cd ../libraries/linbox && make; sudo make install
 
 Glauber: FORCE
-	@cd test && ./profile.models.Glauber.sh 11 12 4
+	# @cd test && ./profile.models.Glauber.sh 19 22 4
+	# @cd test && ./profile.models.Glauber.sh 999 1002 2
 	@cd test && ./profile.models.Glauber.sh
 
 SwendsenWang: FORCE
-	@cd test && ./profile.models.SW.sh 9 12 4
-	@cd test && ./profile.models.SW.sh 499 502 2
+	# @cd test && ./profile.models.SW.sh 4 15 4
+	# @cd test && ./profile.models.SW.sh 499 502 2
+	@cd test && ./profile.models.SW.sh
 
 Nienhuis: FORCE
-	@cd test && ./profile.models.NH.sh 49 52
+	# @cd test && ./profile.models.NH.sh 49 52
+	@cd test && ./profile.models.NH.sh
 
 InvadedCluster: FORCE
-	@cd test && ./profile.models.IC.sh 4 6 4
-	@cd test && ./profile.models.IC.sh 19 22 2
+	# @cd test && ./profile.models.IC.sh 4 8 4
+	# @cd test && ./profile.models.IC.sh 19 22 2
+	@cd test && ./profile.models.IC.sh
 
 Bernoulli: FORCE
-	@cd test && ./profile.models.Bernoulli.sh 6 7 4
-	@cd test && ./profile.models.Bernoulli.sh 49 52 2
+	# @cd test && ./profile.models.Bernoulli.sh 4 9 4
+	# @cd test && ./profile.models.Bernoulli.sh 49 52 2
+	@cd test && ./profile.models.Bernoulli.sh
 
 profile: Glauber SwendsenWang Nienhuis InvadedCluster Bernoulli
+
+killall: FORCE
+	@ps aux | grep -e python -e make -e profile.models | awk '{print $$2}' | xargs kill
 
 
 
 # Build docs.
-docs: FORCE quick
+
+tables: FORCE
+	@cd test/stats && ./stats.tables.sh
+
+docs: FORCE tables
 	./docs.sh
 
 

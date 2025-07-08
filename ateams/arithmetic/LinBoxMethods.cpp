@@ -3,6 +3,8 @@
 #include <linbox/solutions/solve.h>
 #include <linbox/matrix/sparse-matrix.h>
 #include <linbox/ring/modular.h>
+#include <linbox/field/gf2.h>
+#include <linbox/blackbox/zo-gf2.h>
 
 #include <iostream>
 
@@ -10,13 +12,18 @@
 
 using namespace std;
 
-typedef vector<int> Vector;
-typedef Givaro::Modular<int> Field;
-typedef LinBox::SparseMatrix<Field, LinBox::SparseMatrixFormat::SparseSeq> FieldMatrix;
-typedef LinBox::DenseVector<Field> FieldVector;
+typedef vector<int> Index;
+
+typedef Givaro::Modular<int> Zp;
+typedef LinBox::SparseMatrix<Zp, LinBox::SparseMatrixFormat::SparseSeq> ZpMatrix;
+typedef LinBox::DenseVector<Zp> ZpVector;
+
+typedef LinBox::ZeroOne<LinBox::GF2> Z2Matrix;
+typedef LinBox::DenseVector<LinBox::GF2> Z2Vector;
 
 
-bool containsNonzero(FieldVector X) {
+template <typename Vector>
+bool containsNonzero(Vector X) {
 	// Check whether there are nonzero elements in the VVector.
 
 	for (auto it = X.begin(); it != X.end(); ++it) {
@@ -26,13 +33,13 @@ bool containsNonzero(FieldVector X) {
 	return false;
 }
 
-
-FieldMatrix FieldFill(Vector coboundary, int M, int N, Field F) {
+template <typename Matrix, typename Field>
+Matrix FieldFill(Index coboundary, int M, int N, Field F) {
 	// Construct the sparse coboundary matrix.
-	FieldMatrix A(F, M, N);
+	Matrix A(F, M, N);
 
 	for (int t = 0; t < coboundary.size(); t += 3) {
-		Field::Element q;
+		typename Field::Element q;
 		int i, j;
 
 		i = coboundary[t];
@@ -44,10 +51,10 @@ FieldMatrix FieldFill(Vector coboundary, int M, int N, Field F) {
 	return A;
 }
 
-
-Vector populate(FieldMatrix A, FieldVector X) {
+template <typename Matrix, typename Vector>
+Index populate(Matrix A, Vector X) {
 	// Populate a vector with entries from a LinBox vector.
-	Vector x(A.coldim());
+	Index x(A.coldim());
 	
 	for (size_t k = 0; k < A.coldim(); k++) {
 		x[k] = X.getEntry(k);
@@ -57,11 +64,22 @@ Vector populate(FieldMatrix A, FieldVector X) {
 }
 
 
-Vector LanczosKernelSample(Vector coboundary, int M, int N, int p, int maxTries) {
-	// Construct the finite field and construct the matrix.
+Index LanczosKernelSample(Index coboundary, int M, int N, int p, int maxTries) {
+	// Construct the finite field and construct the matrix. If we're over Z/2Z,
+	// use specialized matrices for our operations.
+	typedef ZpMatrix Matrix;
+	typedef ZpVector Vector;
+	typedef Zp Field;
+
+	// if (p < 3) {
+	// 	typedef Z2Matrix Matrix;
+	// 	typedef Z2Vector Vector;
+	// 	typedef LinBox::GF2 Field;
+	// }
+
 	Field F(p);
-	FieldMatrix A = FieldFill(coboundary, M, N, F);
-	FieldVector X(F, A.coldim()), b(F, A.rowdim());
+	Matrix A = FieldFill<Matrix,Field>(coboundary, M, N, F);
+	ZpVector X(F, A.coldim()), b(F, A.rowdim());
 	
 	// Preconditioners in order of severity. We try all but FullDiagonal twice;
 	// if a zero result still occurs, we sample with the FullDiagonal for the
@@ -100,13 +118,13 @@ Vector LanczosKernelSample(Vector coboundary, int M, int N, int p, int maxTries)
 
 
 typedef set<int> Set;
-typedef map<int, Field::Element> Column;
+typedef map<int, Zp::Element> Column;
 typedef map<int,int> Map;
 typedef map<int,Column> ColumnMap;
 typedef vector<Column> BoundaryMatrix;
 typedef vector<Set> Mod2BoundaryMatrix;
 
-Mod2BoundaryMatrix Mod2FillBoundaryMatrix(Vector boundary, int L) {
+Mod2BoundaryMatrix Mod2FillBoundaryMatrix(Index boundary, int L) {
 	// Fills a sparse representation of a boundary matrix. Uses standard maps,
 	// since they're red-black trees that allow for fast min/max lookups (and
 	// are self-balancing on removals); take integer indices to Givaro modular
@@ -127,13 +145,14 @@ Mod2BoundaryMatrix Mod2FillBoundaryMatrix(Vector boundary, int L) {
 }
 
 
-BoundaryMatrix FillBoundaryMatrix(Vector boundary, Field F, int L) {
+
+BoundaryMatrix FillBoundaryMatrix(Index boundary, Zp F, int L) {
 	// Fills a sparse representation of a boundary matrix. Uses standard maps,
 	// since they're red-black trees that allow for fast min/max lookups (and
 	// are self-balancing on removals); take integer indices to Givaro modular
 	// integers.
 	BoundaryMatrix B(L);
-	Field::Element q;
+	Zp::Element q;
 	int row, column;
 
 	for (int t = 0; t < boundary.size(); t += 3) {
@@ -162,7 +181,7 @@ int youngestOf(BalancedStorage column) {
 }
 
 
-Vector ReindexBoundaryMatrix(Vector &boundary, Vector filtration, int homology, Vector breaks) {
+Index ReindexBoundaryMatrix(Index &boundary, Index filtration, int homology, Index breaks) {
 	// Decide when we should be editing rows or columns.
 	int cellCount = filtration.size();
 	int low = breaks[homology];
@@ -199,7 +218,7 @@ Vector ReindexBoundaryMatrix(Vector &boundary, Vector filtration, int homology, 
 
 
 Set Mod2ComputePercolationEvents(
-		Vector boundary, Vector filtration, int homology, Vector breaks
+		Index boundary, Index filtration, int homology, Index breaks
 	) {
 	// Construct the finite field and build the boundary matrix. Similarly to Chen and
 	// Kerber (2011), we store each column of the boundary matrix as a balanced
@@ -213,10 +232,10 @@ Set Mod2ComputePercolationEvents(
 	int cellCount = filtration.size();
 	int topDimension = (homology < breaks.size() ? homology+1 : breaks.size());
 
-	Vector _boundary = ReindexBoundaryMatrix(boundary, filtration, homology, breaks);
+	Index _boundary = ReindexBoundaryMatrix(boundary, filtration, homology, breaks);
 	Mod2BoundaryMatrix Boundary = Mod2FillBoundaryMatrix(_boundary, cellCount);
 
-	Vector nextColumnAdded = Vector(cellCount, 0);
+	Index nextColumnAdded = Index(cellCount, 0);
 	Set cell, youngest, sym, marked;
 
 	int face, high, numBreaks = breaks.size();
@@ -266,7 +285,7 @@ Set Mod2ComputePercolationEvents(
 
 
 Set ComputePercolationEvents(
-		Vector boundary, Vector filtration, int homology, int p, Vector breaks
+		Index boundary, Index filtration, int homology, int p, Index breaks
 	) {
 	// Disable the Z/2Z check for now.	
 	// if (p == 2) { return Mod2ComputePercolationEvents(boundary, filtration, homology, breaks); }
@@ -283,16 +302,16 @@ Set ComputePercolationEvents(
 	int cellCount = filtration.size();
 	int topDimension = (homology < breaks.size() ? homology+1 : breaks.size());
 
-	Field F(p);
-	Vector _boundary = ReindexBoundaryMatrix(boundary, filtration, homology, breaks);
+	Zp F(p);
+	Index _boundary = ReindexBoundaryMatrix(boundary, filtration, homology, breaks);
 	BoundaryMatrix Boundary = FillBoundaryMatrix(_boundary, F, cellCount);
 
-	Vector nextColumnAdded = Vector(cellCount, 0);
+	Index nextColumnAdded = Index(cellCount, 0);
 	Column cell, youngest;
 	Set erase, marked;
 	int face, high, numBreaks = breaks.size();
 
-	Field::Element q, r, s, inv, prod, result;
+	Zp::Element q, r, s, inv, prod, result;
 	F.init(inv);
 	F.init(prod);
 	F.init(result);

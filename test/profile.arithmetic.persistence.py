@@ -34,5 +34,5 @@ cProfile.runctx("Persistence.test(PERSISTENCE, TESTSET)", globals(), locals(), "
 
 fname = f"./profiles/persistence/{L}{'.sparse' if sparse else ''}{'.parallel' if parallel else ''}.txt"
 with open(fname, 'w') as stream:
-    s = pstats.Stats('Profile.prof', stream=stream)
+    s = pstats.Stats(pr, stream=stream)
     s.strip_dirs().sort_stats("time").print_stats()
