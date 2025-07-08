@@ -1,6 +1,5 @@
 
 import numpy as np
-import phat
 import warnings
 
 from math import comb
@@ -13,11 +12,11 @@ from ..common import Matrices, TooSmallWarning, NumericalInstabilityWarning
 from .Model import Model
 
 
-class InvadedCluster(Model):
-	name = "InvadedCluster"
+class InvadedCluster():
+	_name = "InvadedCluster"
 	
 	def __init__(
-			self, C, dimension=1, initial=None, stop=lambda: 1, LinBox=True, maxTries=16,
+			self, C, dimension=1, field=2, initial=None, stop=lambda: 1, LinBox=True, maxTries=16,
 			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
 		):
 		"""
@@ -28,6 +27,7 @@ class InvadedCluster(Model):
 		Args:
 			C (Complex): The `Complex` object on which we'll be running experiments.
 			dimension (int=1): The dimension of cells on which we're percolating.
+			field (int=2): Field characteristic.
 			initial (np.array): A vector of spin assignments to components.
 			stop (function): A function that returns the number of essential cycles
 				found before sampling the next configuration.
@@ -35,19 +35,29 @@ class InvadedCluster(Model):
 				ones. WARNING: using inbuilt methods may dramatically increase
 				computation time.
 			maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
-				vector in the kernel of the coboundary matrix.
+				vector in the kernel of the coboundary matrix \(A\). See more
+				discussion in the `SwendsenWang` model.
 			parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
 			minBlockSize (int=32): If `parallel` is truthy, this is the smallest
 				number of columns processed in parallel.
 			maxBlockSize (int=64): If `parallel` is truthy, this is the largest
 				number of columns processed in parallel.
 			cores (int=4): Number of available CPUs/cores/threads on the machine.
+
+		Below are some performance statistics
+		
+		</br>
+		</br>
+		<center> Samples in \(\mathbb T^2_N\) </center>
+		..include:: ./tables/InvadedCluster.PHATComputePersistencePairs.2.html
+		..include:: ./tables/InvadedCluster.ComputePercolationEvents.2.html
 		"""
 		# Object access.
 		self.complex = C
 		self.dimension = dimension
 		self.stop = stop
 		self._returns = 3
+		self.field = field
 
 
 		# Force-recompute the matrices for a different dimension; creates
@@ -89,8 +99,8 @@ class InvadedCluster(Model):
 
 
 		# If no initial spin configuration is passed, initialize.
-		if not initial: self.spins = self.initial()
-		else: self.spins = (initial%self.complex.field).astype(FINT)
+		if not initial: self.spins = self._initial()
+		else: self.spins = (initial%self.field).astype(FINT)
 
 	
 	def _delegateComputation(self, LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries):
@@ -103,18 +113,18 @@ class InvadedCluster(Model):
 				try:
 					return np.array(LanczosKernelSample(
 						self.matrices.coboundary, zeros, 2*self.dimension,
-						self.faces, self.complex.field, maxTries
+						self.faces, self.field, maxTries
 					), dtype=FINT)
 				except Exception as e:
 					raise NumericalInstabilityWarning(e)
 		
 		# If we're using LinBox and the characteristic of our field is greater
 		# than 2, we use the twist_reduce variant implemented in this library.
-		if LinBox and self.complex.field > 2:
+		if LinBox and self.field > 2:
 			def persist(filtration):
 				essential = ComputePercolationEvents(
 					self.matrices.full, filtration, self.dimension,
-					self.complex.field, self.complex.breaks
+					self.field, self.complex.breaks
 				)
 
 				essential = np.array(list(essential))
@@ -124,7 +134,7 @@ class InvadedCluster(Model):
 		
 		# If we're using LinBox and the field we're computing over *is* two,
 		# use PHAT.
-		elif LinBox and self.complex.field < 3:
+		elif LinBox and self.field < 3:
 			times = set(range(self.cellCount))
 
 			def whittle(pairs):
@@ -146,13 +156,13 @@ class InvadedCluster(Model):
 			
 		if not LinBox:
 			# If we can't/don't want to use LinBox, use inbuilt methods.
-			Reducer = MatrixReduction(self.complex.field, parallel, minBlockSize, maxBlockSize, cores)
-			Persistencer = Persistence(self.complex.field, self.complex.flattened, self.dimension)
+			Reducer = MatrixReduction(self.field, parallel, minBlockSize, maxBlockSize, cores)
+			Persistencer = Persistence(self.field, self.complex.flattened, self.dimension)
 
 			coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
 			rows = self.matrices.coboundary[::3]
 			cols = self.matrices.coboundary[1::3]
-			entries = (self.matrices.coboundary[2::3]%self.complex.field).astype(FINT)
+			entries = (self.matrices.coboundary[2::3]%self.field).astype(FINT)
 
 			coboundary[rows,cols] = entries
 			
@@ -167,13 +177,13 @@ class InvadedCluster(Model):
 		self.persist = persist
 
 
-	def filtrate(self, cochain):
+	def _filtrate(self, cochain):
 		"""
 		Constructs a filtration based on the evaluation of the cochain.
 		"""
 		# Find which cubes get zeroed out (i.e. are sent to zero by the cocycle).
 		boundary = self.complex.Boundary[self.dimension]
-		q = self.complex.field
+		q = self.field
 		
 		coefficients = cochain[boundary]
 		coefficients[:,1::2] = -coefficients[:,1::2]%q
@@ -196,7 +206,7 @@ class InvadedCluster(Model):
 		return filtration, shuffled, satisfied
 
 
-	def initial(self):
+	def _initial(self):
 		"""
 		Computes an initial state for the model's Complex.
 
@@ -204,11 +214,11 @@ class InvadedCluster(Model):
 			A numpy `np.array` representing a vector of spin assignments.
 		"""
 		return self.RNG.integers(
-			0, high=self.complex.field, dtype=FINT, size=self.faces
+			0, high=self.field, dtype=FINT, size=self.faces
 		)
 	
 
-	def proposal(self, time):
+	def _proposal(self, time):
 		"""
 		Proposal scheme for generalized invaded-cluster evolution on the
 		random-cluster model.
@@ -220,7 +230,7 @@ class InvadedCluster(Model):
 			A numpy array representing a vector of spin assignments.
 		"""
 		# Construct the filtration and find the essential cycles.
-		filtration, shuffledIndices, satisfiedIndices = self.filtrate(self.spins)
+		filtration, shuffledIndices, satisfiedIndices = self._filtrate(self.spins)
 		essential = self.persist(filtration)
 
 		j = 0
@@ -243,7 +253,7 @@ class InvadedCluster(Model):
 		return spins, occupied, satisfied
 	
 
-	def assign(self, cocycle):
+	def _assign(self, cocycle):
 		"""
 		Updates mappings from faces to spins and cubes to occupations.
 

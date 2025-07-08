@@ -6,11 +6,11 @@ from ..statistics import constant
 from .Model import Model
 
 
-class Glauber(Model):
-	name = "Glauber"
+class Glauber():
+	_name = "Glauber"
 	
 	def __init__(
-			self, C, dimension=1, temperature=constant(-0.6), initial=None
+			self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None
 		):
 		"""
 		Initializes Glauber dynamics on the Potts model.
@@ -18,11 +18,13 @@ class Glauber(Model):
 		Args:
 			C: The `Complex` object on which we'll be running experiments.
 			dimension (int=1): Dimension on which we'll be building experiments.
+			field (int=2): Field characteristic.
 			temperature (Callable): A temperature schedule function which
 				takes a single positive integer argument `t`, and returns the
 				scheduled temperature at time `t`.
 			initial (np.ndarray): A vector of spin assignments to components.
 		"""
+		self.field = field
 		self.complex = C
 		self.dimension = dimension
 		self.temperature = temperature
@@ -37,11 +39,11 @@ class Glauber(Model):
 		self.RNG = np.random.default_rng()
 
 		# If no initial spin configuration is passed, initialize.
-		if not initial: self.spins = self.initial()
-		else: self.spins = (initial%self.complex.field).astype(FINT)
+		if not initial: self.spins = self._initial()
+		else: self.spins = (initial%self.field).astype(FINT)
 	
 
-	def initial(self):
+	def _initial(self):
 		"""
 		Computes an initial state for the model's Complex.
 
@@ -49,11 +51,11 @@ class Glauber(Model):
 			A numpy `np.array` representing a vector of spin assignments.
 		"""
 		return self.RNG.integers(
-			0, high=self.complex.field, dtype=MINT, size=self.faces
+			0, high=self.field, dtype=MINT, size=self.faces
 		)
 	
 
-	def proposal(self, time):
+	def _proposal(self, time):
 		"""
 		Proposal scheme for generalized Glauber dynamics on the Potts model:
 		uniformly randomly chooses a face in the complex, flips the face's spin,
@@ -68,10 +70,10 @@ class Glauber(Model):
 		# Flip.
 		spins = self.spins[::]
 		flip = self.RNG.integers(self.faces)
-		spins[flip] = (self.RNG.integers(self.complex.field, dtype=FINT))
+		spins[flip] = (self.RNG.integers(self.field, dtype=FINT))
 
 		boundary = self.complex.Boundary[self.dimension]
-		q = self.complex.field
+		q = self.field
 
 		# Evaluate the current spin assignment (cochain).
 		evaluation = spins[boundary]
@@ -104,7 +106,7 @@ class Glauber(Model):
 		return self.spins, satisfied
 	
 
-	def assign(self, cochain):
+	def _assign(self, cochain):
 		"""
 		Updates mappings from faces to spins and cubes to occupations.
 		

@@ -1,4 +1,10 @@
 
+"""
+## Models
+
+.. include:: ./models.md
+"""
+
 from .Bernoulli import Bernoulli
 from .SwendsenWang import SwendsenWang
 from .InvadedCluster import InvadedCluster

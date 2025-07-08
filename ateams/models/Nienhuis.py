@@ -7,11 +7,11 @@ from ..common import FINT, TooSmallWarning, Matrices, Bunch, NumericalInstabilit
 from .Model import Model
 
 
-class Nienhuis(Model):
-	name = "SwendsenWang"
+class Nienhuis():
+	_name = "Nienhuis"
 
 	def __init__(
-			self, C, q1, q2, dimension=2, initial=None, LinBox=True, maxTries=16,
+			self, C, q1, q2, dimension=2, field=2, initial=None, LinBox=True, maxTries=16,
 			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
 		):
 		"""
@@ -23,6 +23,7 @@ class Nienhuis(Model):
 			q1 (float): Edge coupling parameter.
 			q2 (float): Face (i.e. cell) coupling parameter.
 			dimension (int): Dimension targeted by the model.
+			field (int=2): Field characteristic.
 			initial (np.array): A vector of spin assignments to components.
 			LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
 				ones. WARNING: using inbuilt methods may dramatically increase
@@ -40,6 +41,7 @@ class Nienhuis(Model):
 		self.complex = C
 		self.dimension = dimension
 		self._returns = 3
+		self.field = field
 
 		# Force-recompute the matrices for a different dimension; creates
 		# a set of orientations for fast elementwise products. Here, the dimension
@@ -80,8 +82,8 @@ class Nienhuis(Model):
 		self.RNG = np.random.default_rng()
 
 		# If no initial spin configuration is passed, initialize.
-		if not initial: self.spins = self.initial()
-		else: self.spins = (initial%self.complex.field).astype(FINT)
+		if not initial: self.spins = self._initial()
+		else: self.spins = (initial%self.field).astype(FINT)
 
 		# Delegate computation.
 		self._delegateComputation(LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries)
@@ -93,7 +95,7 @@ class Nienhuis(Model):
 			def sample(faceZeros, cellZeros):
 				try:
 					return np.array(SubLanczosKernelSample(
-						self.matrices.coboundary, cellZeros, faceZeros, self.complex.field, maxTries=maxTries
+						self.matrices.coboundary, cellZeros, faceZeros, self.field, maxTries=maxTries
 					), dtype=FINT)
 				except Exception as e:
 					raise NumericalInstabilityWarning(e)
@@ -105,10 +107,10 @@ class Nienhuis(Model):
 			coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
 			rows = self.matrices.coboundary[::3]
 			cols = self.matrices.coboundary[1::3]
-			entries = (self.matrices.coboundary[2::3]%self.complex.field).astype(FINT)
+			entries = (self.matrices.coboundary[2::3]%self.field).astype(FINT)
 
 			coboundary[rows,cols] = entries
-			Reducer = MatrixReduction(self.complex.field, parallel, minBlockSize, maxBlockSize, cores)
+			Reducer = MatrixReduction(self.field, parallel, minBlockSize, maxBlockSize, cores)
 
 			def sample(faceZeros, cellZeros):
 				subbasis = coboundary.take(cellZeros, axis=0).take(faceZeros, axis=1)
@@ -117,7 +119,7 @@ class Nienhuis(Model):
 		self.sample = sample
 
 
-	def initial(self):
+	def _initial(self):
 		"""
 		Computes an initial state for the model's Complex.
 
@@ -125,11 +127,11 @@ class Nienhuis(Model):
 			A numpy array of spin assignments (mod p).
 		"""
 		return self.RNG.integers(
-			0, high=self.complex.field, dtype=FINT, size=self.faces
+			0, high=self.field, dtype=FINT, size=self.faces
 		)
 	
 
-	def proposal(self, time):
+	def _proposal(self, time):
 		"""
 		Proposal scheme for the Nienhuis model.
 
@@ -144,7 +146,7 @@ class Nienhuis(Model):
 		faces = self.RNG.uniform(size=self.faces)
 		threshCells = (cells < self.prob.cell).nonzero()[0]
 		threshFaces = (faces < self.prob.face).nonzero()[0]
-		q = self.complex.field
+		q = self.field
 
 		# Evaluate the current spin configuration (cochain) on the boundary
 		# of our chosen cells, and find which to include.
@@ -174,7 +176,7 @@ class Nienhuis(Model):
 		return spins, faceEnergy, cellEnergy
 
 
-	def assign(self, cocycle):
+	def _assign(self, cocycle):
 		"""
 		Updates mappings from faces to spins and cubes to occupations.
 

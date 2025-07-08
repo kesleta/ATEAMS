@@ -7,8 +7,8 @@ from ..common import Matrices, FINT
 from .Model import Model
 
 
-class Bernoulli(Model):
-	name = "Bernoulli"
+class Bernoulli():
+	_name = "Bernoulli"
 	
 	def __init__(self, C, dimension=1, PHAT=True):
 		"""
@@ -22,13 +22,15 @@ class Bernoulli(Model):
 				ones. WARNING: using inbuilt methods may dramatically increase
 				computation time.
 		"""
-		# Object access.
+		# Object access. Set a field.
 		self.complex = C
 		self.dimension = dimension
 		self._returns = 1
+		self.field = 2
 
-		# Set a phantom spins attribute so we don't break the Chain.
+		# Set a phantom spins attribute so we don't break the Chain
 		self.spins = None
+
 
 		# Force-recompute the matrices for a different dimension; creates
 		# a set of orientations for fast elementwise products.
@@ -89,7 +91,7 @@ class Bernoulli(Model):
 		self.persist = persist
 
 
-	def filtrate(self):
+	def _filtrate(self):
 		"""
 		Constructs a filtration based on the evaluation of the cochain.
 		"""
@@ -104,7 +106,7 @@ class Bernoulli(Model):
 		return filtration, shuffled-low
 
 
-	def initial(self):
+	def _initial(self):
 		"""
 		Computes an initial state for the model's Complex.
 
@@ -112,11 +114,11 @@ class Bernoulli(Model):
 			A numpy `np.array` representing a vector of spin assignments.
 		"""
 		return self.RNG.integers(
-			0, high=self.complex.field, dtype=FINT, size=self.faces
+			0, high=self.field, dtype=FINT, size=self.faces
 		)
 	
 
-	def proposal(self, time):
+	def _proposal(self, time):
 		"""
 		Proposal scheme for generalized invaded-cluster evolution on the
 		random-cluster model.
@@ -128,7 +130,7 @@ class Bernoulli(Model):
 			A numpy array representing a vector of spin assignments.
 		"""
 		# Construct the filtration and find the essential cycles.
-		filtration, shuffled = self.filtrate()
+		filtration, shuffled = self._filtrate()
 		essential = self.persist(filtration)
 
 		j = 0
@@ -144,5 +146,5 @@ class Bernoulli(Model):
 		return occupied
 	
 
-	def assign(self, cocycle): pass
+	def _assign(self, cocycle): pass
 

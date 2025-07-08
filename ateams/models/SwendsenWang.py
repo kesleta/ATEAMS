@@ -8,20 +8,21 @@ from ..statistics import constant
 from .Model import Model
 
 
-class SwendsenWang(Model):
-	name = "SwendsenWang"
+class SwendsenWang():
+	_name = "SwendsenWang"
 
 	def __init__(
-			self, C, dimension=1, temperature=constant(-0.6), initial=None, LinBox=True,
+			self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None, LinBox=True,
 			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4,
 			maxTries=16
 		):
-		"""
+		r"""
 		Initializes Swendsen-Wang evolution on the Potts model.
 
 		Args:
 			C (Complex): The `Complex` object on which we'll be running experiments.
 			dimension (int=1): The dimension of cells on which we're percolating.
+			field (int=2): Field characteristic.
 			temperature (Callable): A temperature schedule function which
 				takes a single positive integer argument `t`, and returns the
 				scheduled temperature at time `t`.
@@ -37,12 +38,38 @@ class SwendsenWang(Model):
 			cores (int=4): Number of available CPUs/cores/threads on the machine.
 			maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
 				vector in the kernel of the coboundary matrix.
+
+
+		If the first vector sampled
+		by the Lanczos algorithm is all zeros, we perform the following
+		steps until a nonzero vector is found, or we exhaust the number
+		of attempts:
+
+		1. sample once from \(A\) with no preconditioner;
+		2. sample up to twice from \(D_0A\), where \(D_0\) is a random diagonal matrix;
+		3. sample up to twice from \(A^\top D_1 A\), where \(D_1\) is a random diagonal matrix;
+		4. sample for the remainder of the attempts from \(D_2 A^\top D_3 A D_2\), where \(D_2, D_3\) are random diagonal matrices.
+			
+		If we spend the entire budget of attempts, it is likely that the
+		result returned is either the all-zeros vector. Included below are
+		performance statistics for various configurations of the `SwendsenWang` model.
+
+		</br>
+		</br>
+		<center> Samples in \(\mathbb T^2_N\) </center>
+		.. include:: ./tables/SwendsenWang.LanczosKernelSample.2.html
+
+		</br>
+		</br>
+		<center> Samples in \(\mathbb T^4_N\) </center>
+		.. include:: ./tables/SwendsenWang.LanczosKernelSample.4.html
 		"""
 		# Object access.
 		self.complex = C
 		self.temperature = temperature
 		self.dimension = dimension
 		self._returns = 2
+		self.field = field
 
 		# Force-recompute the matrices for a different dimension; creates
 		# a set of orientations for fast elementwise products.
@@ -67,8 +94,8 @@ class SwendsenWang(Model):
 		self.RNG = np.random.default_rng()
 
 		# If no initial spin configuration is passed, initialize.
-		if not initial: self.spins = self.initial()
-		else: self.spins = (initial%self.complex.field).astype(FINT)
+		if not initial: self.spins = self._initial()
+		else: self.spins = (initial%self.field).astype(FINT)
 
 		# Delegate computation.
 		self._delegateComputation(LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries)
@@ -86,7 +113,7 @@ class SwendsenWang(Model):
 				try:
 					return np.array(LanczosKernelSample(
 						self.matrices.coboundary, zeros, 2*self.dimension,
-						self.faces, self.complex.field, maxTries=maxTries
+						self.faces, self.field, maxTries=maxTries
 					), dtype=FINT)
 				except Exception as e:
 					raise NumericalInstabilityWarning(e)
@@ -99,10 +126,10 @@ class SwendsenWang(Model):
 			coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
 			rows = self.matrices.coboundary[::3]
 			cols = self.matrices.coboundary[1::3]
-			entries = (self.matrices.coboundary[2::3]%self.complex.field).astype(FINT)
+			entries = (self.matrices.coboundary[2::3]%self.field).astype(FINT)
 
 			coboundary[rows,cols] = entries
-			Reducer = MatrixReduction(self.complex.field, parallel, minBlockSize, maxBlockSize, cores)
+			Reducer = MatrixReduction(self.field, parallel, minBlockSize, maxBlockSize, cores)
 
 			def sample(zeros):
 				return KernelSample(Reducer, coboundary.take(zeros, axis=0)).astype(FINT)
@@ -111,7 +138,7 @@ class SwendsenWang(Model):
 
 
 
-	def initial(self):
+	def _initial(self):
 		"""
 		Computes an initial state for the model's Complex.
 
@@ -119,11 +146,11 @@ class SwendsenWang(Model):
 			A numpy `np.array` representing a vector of spin assignments.
 		"""
 		return self.RNG.integers(
-			0, high=self.complex.field, dtype=FINT, size=self.faces
+			0, high=self.field, dtype=FINT, size=self.faces
 		)
 	
 
-	def proposal(self, time):
+	def _proposal(self, time):
 		"""
 		Proposal scheme for generalized Swendsen-Wang evolution on the Potts model.
 
@@ -142,7 +169,7 @@ class SwendsenWang(Model):
 		uniform = self.RNG.uniform(size=self.cells)
 		include = np.nonzero(uniform < p)[0]
 		boundary = self.complex.Boundary[self.dimension]
-		q = self.complex.field
+		q = self.field
 
 		# Evaluate the current spin assignment (cochain).
 		coefficients = self.spins[boundary[include]]
@@ -160,7 +187,7 @@ class SwendsenWang(Model):
 		return spins, satisfied
 	
 
-	def assign(self, cocycle):
+	def _assign(self, cocycle):
 		"""
 		Updates mappings from faces to spins and cubes to occupations.
 
