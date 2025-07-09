@@ -36,8 +36,7 @@ class Nienhuis():
 			maxBlockSize (int=64): If `parallel` is truthy, this is the largest
 				number of columns processed in parallel.
 			cores (int=4): Number of available CPUs/cores/threads on the machine.
-
-		</br>
+		
 		<center> <button type="button" class="collapsible" id="Nienhuis-SubLanczosKernelSample-2"> Performance in \(\mathbb T^2_N\)</button> </center>
 		..include:: ./tables/Nienhuis.SubLanczosKernelSample.2.html
 		"""

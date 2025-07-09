@@ -59,12 +59,9 @@ class SwendsenWang():
 		CPU. **Warns** indicates the number of `NumericalInstabilityWarning`s caught
 		during the run, and **Zeros** the number of all-zeros vectors returned.
 
-		</br>
-		</br>
 		<center> <button type="button" class="collapsible" id="SwendsenWang-LanczosKernelSample-2"> Performance in \(\mathbb T^2_N\)</button> </center>
 		.. include:: ./tables/SwendsenWang.LanczosKernelSample.2.html
-
-		</br>
+		
 		<center> <button type="button" class="collapsible" id="SwendsenWang-LanczosKernelSample-4"> Performance in \(\mathbb T^4_N\)</button> </center>
 		.. include:: ./tables/SwendsenWang.LanczosKernelSample.4.html
 		"""

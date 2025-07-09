@@ -24,13 +24,10 @@ class Glauber():
 				takes a single positive integer argument `t`, and returns the
 				scheduled temperature at time `t`.
 			initial (np.ndarray): A vector of spin assignments to components.
-
-		</br>
-		</br>
+		
 		<center> <button type="button" class="collapsible" id="Glauber-_proposal-2"> Performance in \(\mathbb T^2_N\)</button> </center>
 		..include:: ./tables/Glauber._proposal.2.html
-
-		</br>
+		
 		<center> <button type="button" class="collapsible" id="Glauber-_proposal-4"> Performance in \(\mathbb T^4_N\)</button> </center>
 		..include:: ./tables/Glauber._proposal.4.html
 		"""

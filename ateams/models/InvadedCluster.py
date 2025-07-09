@@ -49,13 +49,10 @@ class InvadedCluster():
 		a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295
 		CPU. **Warns** indicates the number of `NumericalInstabilityWarning`s caught
 		during the run, and **Zeros** the number of all-zeros vectors returned.
-		
-		</br>
-		</br>
+
 		<center> <button type="button" class="collapsible" id="InvadedCluster-PHATComputePersistencePairs-2">Performance in \(\mathbb T^2_N\) (PHAT)</button> </center>
 		..include:: ./tables/InvadedCluster.PHATComputePersistencePairs.2.html
-
-		</br>
+		
 		<center> <button type="button" class="collapsible" id="InvadedCluster-ComputePercolationEvents-2">Performance in \(\mathbb T^2_N\) (Twist)</button> </center>
 		..include:: ./tables/InvadedCluster.ComputePercolationEvents.2.html
 		"""
