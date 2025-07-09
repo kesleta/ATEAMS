@@ -10,7 +10,7 @@ from .Model import Model
 class Bernoulli():
 	_name = "Bernoulli"
 	
-	def __init__(self, C, dimension=1, PHAT=True):
+	def __init__(self, C, dimension=1, PHAT=True, **kwargs):
 		"""
 		Initializes classic Bernoulli percolation on the provided complex,
 		detecting percolation in the `dimension`-1th homology group.

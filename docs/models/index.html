@@ -19,6 +19,18 @@
 hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
 hljs.highlightAll();
 })</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+$(document).ready(function() {
+const buttons = document.querySelectorAll(".collapsible");
+buttons.forEach(button => {
+var tableId = "#" + button.id + "-table";
+button.addEventListener("click", event => {
+$(tableId).toggle();
+});
+});
+})
+</script>
 <!-- Sidebar edits -->
 <style>
 header > h1 { display: none; }
@@ -53,9 +65,17 @@ scrollbar-width: none;
 </style>
 <!-- table edits -->
 <style>
+.collapsible {
+border: 1px solid black;
+background: none;
+cursor: pointer;
+padding: 2.5px 5px;
+font-weight: bold;
+}
 .dataframe.profile-data-table {
 margin: auto;
 width: 75%;
+display: none;
 }
 .dataframe.profile-data-table thead tr {
 text-align: center !important;
@@ -104,7 +124,7 @@ text-align: center;
 <dl>
 <dt id="ateams.models.Bernoulli"><code class="flex name class">
 <span>class <span class="ident">Bernoulli</span></span>
-<span>(</span><span>C, dimension=1, PHAT=True)</span>
+<span>(</span><span>C, dimension=1, PHAT=True, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes classic Bernoulli percolation on the provided complex,
@@ -127,7 +147,7 @@ computation time.</dd>
 <pre><code class="python">class Bernoulli():
         _name = &#34;Bernoulli&#34;
         
-        def __init__(self, C, dimension=1, PHAT=True):
+        def __init__(self, C, dimension=1, PHAT=True, **kwargs):
                 &#34;&#34;&#34;
                 Initializes classic Bernoulli percolation on the provided complex,
                 detecting percolation in the `dimension`-1th homology group.
@@ -268,7 +288,7 @@ computation time.</dd>
 </dd>
 <dt id="ateams.models.Glauber"><code class="flex name class">
 <span>class <span class="ident">Glauber</span></span>
-<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None)</span>
+<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>**kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes Glauber dynamics on the Potts model.</p>
@@ -286,7 +306,368 @@ takes a single positive integer argument <code>t</code>, and returns the
 scheduled temperature at time <code>t</code>.</dd>
 <dt><strong><code>initial</code></strong> :&ensp;<code>np.ndarray</code></dt>
 <dd>A vector of spin assignments to components.</dd>
-</dl></div>
+</dl>
+<p></br>
+</br>
+<center> <button type="button" class="collapsible" id="Glauber-_proposal-2"> Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span></button> </center></p>
+<table class="dataframe profile-data-table" id="Glauber-_proposal-2-table">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th></th>
+<th></th>
+<th>s/iteration</th>
+</tr>
+<tr>
+<th>Field</th>
+<th>$N$</th>
+<th><code>maxTries</code></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
+<td rowspan="3" valign="top">724</td>
+<td>8</td>
+<td>0.042</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.083</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.083</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1024</td>
+<td>8</td>
+<td>0.086</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.086</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.171</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1448</td>
+<td>8</td>
+<td>0.355</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.172</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.352</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
+<td rowspan="3" valign="top">724</td>
+<td>8</td>
+<td>0.039</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.039</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.039</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1024</td>
+<td>8</td>
+<td>0.078</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.080</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.078</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1448</td>
+<td>8</td>
+<td>0.163</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.168</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.162</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
+<td rowspan="3" valign="top">724</td>
+<td>8</td>
+<td>0.036</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.036</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.036</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1024</td>
+<td>8</td>
+<td>0.073</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.073</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.073</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1448</td>
+<td>8</td>
+<td>0.159</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.146</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.147</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
+<td rowspan="3" valign="top">724</td>
+<td>8</td>
+<td>0.035</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.035</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.035</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1024</td>
+<td>8</td>
+<td>0.071</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.070</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.071</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1448</td>
+<td>8</td>
+<td>0.146</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.149</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.147</td>
+</tr>
+</tbody>
+</table>
+<p></br>
+<center> <button type="button" class="collapsible" id="Glauber-_proposal-4"> Performance in <span><span class="MathJax_Preview">\mathbb T^4_N</span><script type="math/tex">\mathbb T^4_N</script></span></button> </center></p>
+<table class="dataframe profile-data-table" id="Glauber-_proposal-4-table">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th></th>
+<th></th>
+<th>s/iteration</th>
+</tr>
+<tr>
+<th>Field</th>
+<th>$N$</th>
+<th><code>maxTries</code></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
+<td rowspan="3" valign="top">20</td>
+<td>8</td>
+<td>0.050</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.050</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.050</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">30</td>
+<td>8</td>
+<td>0.261</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.261</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.261</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">40</td>
+<td>8</td>
+<td>0.918</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.918</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.919</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
+<td rowspan="3" valign="top">20</td>
+<td>8</td>
+<td>0.046</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.046</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.046</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">30</td>
+<td>8</td>
+<td>0.240</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.240</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.240</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">40</td>
+<td>8</td>
+<td>0.848</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.848</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.848</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
+<td rowspan="3" valign="top">20</td>
+<td>8</td>
+<td>0.021</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.021</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.021</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">30</td>
+<td>8</td>
+<td>0.113</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.113</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.113</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">40</td>
+<td>8</td>
+<td>0.403</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.403</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.403</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
+<td rowspan="3" valign="top">20</td>
+<td>8</td>
+<td>0.021</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.021</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.021</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">30</td>
+<td>8</td>
+<td>0.110</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.110</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.110</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">40</td>
+<td>8</td>
+<td>0.393</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.393</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.393</td>
+</tr>
+</tbody>
+</table></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -295,7 +676,8 @@ scheduled temperature at time <code>t</code>.</dd>
         _name = &#34;Glauber&#34;
         
         def __init__(
-                        self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None
+                        self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None,
+                        **kwargs
                 ):
                 &#34;&#34;&#34;
                 Initializes Glauber dynamics on the Potts model.
@@ -308,6 +690,15 @@ scheduled temperature at time <code>t</code>.</dd>
                                 takes a single positive integer argument `t`, and returns the
                                 scheduled temperature at time `t`.
                         initial (np.ndarray): A vector of spin assignments to components.
+
+                &lt;/br&gt;
+                &lt;/br&gt;
+                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;Glauber-_proposal-2&#34;&gt; Performance in \(\mathbb T^2_N\)&lt;/button&gt; &lt;/center&gt;
+                ..include:: ./tables/Glauber._proposal.2.html
+
+                &lt;/br&gt;
+                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;Glauber-_proposal-4&#34;&gt; Performance in \(\mathbb T^4_N\)&lt;/button&gt; &lt;/center&gt;
+                ..include:: ./tables/Glauber._proposal.4.html
                 &#34;&#34;&#34;
                 self.field = field
                 self.complex = C
@@ -406,7 +797,7 @@ scheduled temperature at time <code>t</code>.</dd>
 </dd>
 <dt id="ateams.models.InvadedCluster"><code class="flex name class">
 <span>class <span class="ident">InvadedCluster</span></span>
-<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>initial=None,<br>stop=&lt;function InvadedCluster.&lt;lambda&gt;&gt;,<br>LinBox=True,<br>maxTries=16,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
+<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>initial=None,<br>stop=&lt;function InvadedCluster.&lt;lambda&gt;&gt;,<br>LinBox=True,<br>maxTries=16,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4,<br>**kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes the plaquette invaded-cluster algorithm on the provided
@@ -451,8 +842,8 @@ CPU. <strong>Warns</strong> indicates the number of <code>NumericalInstabilityWa
 during the run, and <strong>Zeros</strong> the number of all-zeros vectors returned.</p>
 <p></br>
 </br>
-<center> <strong> Samples in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span> with PHAT </strong> </center></p>
-<table class="dataframe profile-data-table">
+<center> <button type="button" class="collapsible" id="InvadedCluster-PHATComputePersistencePairs-2">Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span> (PHAT)</button> </center></p>
+<table class="dataframe profile-data-table" id="InvadedCluster-PHATComputePersistencePairs-2-table">
 <thead>
 <tr style="text-align: right;">
 <th></th>
@@ -509,6 +900,146 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
 <td>10.658</td>
 </tr>
 </tbody>
+</table>
+<p></br>
+<center> <button type="button" class="collapsible" id="InvadedCluster-ComputePercolationEvents-2">Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span> (Twist)</button> </center></p>
+<table class="dataframe profile-data-table" id="InvadedCluster-ComputePercolationEvents-2-table">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th></th>
+<th></th>
+<th>s/iteration</th>
+</tr>
+<tr>
+<th>Field</th>
+<th>$N$</th>
+<th><code>maxTries</code></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
+<td rowspan="3" valign="top">64</td>
+<td>8</td>
+<td>0.234</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.249</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.248</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">90</td>
+<td>8</td>
+<td>0.858</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.899</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.793</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">128</td>
+<td>8</td>
+<td>3.213</td>
+</tr>
+<tr>
+<td>16</td>
+<td>3.322</td>
+</tr>
+<tr>
+<td>32</td>
+<td>3.317</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
+<td rowspan="3" valign="top">64</td>
+<td>8</td>
+<td>0.236</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.240</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.236</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">90</td>
+<td>8</td>
+<td>0.797</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.762</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.804</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">128</td>
+<td>8</td>
+<td>2.703</td>
+</tr>
+<tr>
+<td>16</td>
+<td>2.634</td>
+</tr>
+<tr>
+<td>32</td>
+<td>2.599</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
+<td rowspan="3" valign="top">64</td>
+<td>8</td>
+<td>0.289</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.293</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.298</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">90</td>
+<td>8</td>
+<td>0.881</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.902</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.893</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">128</td>
+<td>8</td>
+<td>2.823</td>
+</tr>
+<tr>
+<td>16</td>
+<td>2.869</td>
+</tr>
+<tr>
+<td>32</td>
+<td>2.862</td>
+</tr>
+</tbody>
 </table></div>
 <details class="source">
 <summary>
@@ -519,7 +1050,7 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
         
         def __init__(
                         self, C, dimension=1, field=2, initial=None, stop=lambda: 1, LinBox=True, maxTries=16,
-                        parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
+                        parallel=False, minBlockSize=32, maxBlockSize=64, cores=4, **kwargs
                 ):
                 &#34;&#34;&#34;
                 Initializes the plaquette invaded-cluster algorithm on the provided
@@ -554,8 +1085,12 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
                 
                 &lt;/br&gt;
                 &lt;/br&gt;
-                &lt;center&gt; &lt;strong&gt; Samples in \(\mathbb T^2_N\) with PHAT &lt;/strong&gt; &lt;/center&gt;
+                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;InvadedCluster-PHATComputePersistencePairs-2&#34;&gt;Performance in \(\mathbb T^2_N\) (PHAT)&lt;/button&gt; &lt;/center&gt;
                 ..include:: ./tables/InvadedCluster.PHATComputePersistencePairs.2.html
+
+                &lt;/br&gt;
+                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;InvadedCluster-ComputePercolationEvents-2&#34;&gt;Performance in \(\mathbb T^2_N\) (Twist)&lt;/button&gt; &lt;/center&gt;
+                ..include:: ./tables/InvadedCluster.ComputePercolationEvents.2.html
                 &#34;&#34;&#34;
                 # Object access.
                 self.complex = C
@@ -773,7 +1308,7 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
 </dd>
 <dt id="ateams.models.Nienhuis"><code class="flex name class">
 <span>class <span class="ident">Nienhuis</span></span>
-<span>(</span><span>C,<br>q1,<br>q2,<br>dimension=2,<br>field=2,<br>initial=None,<br>LinBox=True,<br>maxTries=16,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4)</span>
+<span>(</span><span>C,<br>q1,<br>q2,<br>dimension=2,<br>field=2,<br>initial=None,<br>LinBox=True,<br>maxTries=16,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4,<br>**kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes the self-dual Nienhuis model.</p>
@@ -809,7 +1344,263 @@ number of columns processed in parallel.</dd>
 number of columns processed in parallel.</dd>
 <dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
 <dd>Number of available CPUs/cores/threads on the machine.</dd>
-</dl></div>
+</dl>
+<p></br>
+<center> <button type="button" class="collapsible" id="Nienhuis-SubLanczosKernelSample-2"> Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span></button> </center></p>
+<table class="dataframe profile-data-table" id="Nienhuis-SubLanczosKernelSample-2-table">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th></th>
+<th></th>
+<th>s/iteration</th>
+<th>Warns</th>
+<th>Zeros</th>
+</tr>
+<tr>
+<th>Field</th>
+<th>$N$</th>
+<th><code>maxTries</code></th>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
+<td rowspan="3" valign="top">724</td>
+<td>8</td>
+<td>0.642</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.881</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>1.566</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1024</td>
+<td>8</td>
+<td>1.421</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>2.139</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>2.693</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1448</td>
+<td>8</td>
+<td>3.105</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>4.384</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>6.266</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
+<td rowspan="3" valign="top">724</td>
+<td>8</td>
+<td>0.453</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.484</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.723</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1024</td>
+<td>8</td>
+<td>1.005</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>1.078</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>1.266</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1448</td>
+<td>8</td>
+<td>2.329</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>2.672</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>2.462</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
+<td rowspan="3" valign="top">724</td>
+<td>8</td>
+<td>0.420</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.417</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.559</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1024</td>
+<td>8</td>
+<td>0.917</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.915</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.907</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1448</td>
+<td>8</td>
+<td>2.026</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>2.040</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>2.027</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
+<td rowspan="3" valign="top">724</td>
+<td>8</td>
+<td>0.425</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.415</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.418</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1024</td>
+<td>8</td>
+<td>0.906</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.928</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.931</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">1448</td>
+<td>8</td>
+<td>2.051</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16</td>
+<td>2.043</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32</td>
+<td>2.064</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -819,7 +1610,7 @@ number of columns processed in parallel.</dd>
 
         def __init__(
                         self, C, q1, q2, dimension=2, field=2, initial=None, LinBox=True, maxTries=16,
-                        parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
+                        parallel=False, minBlockSize=32, maxBlockSize=64, cores=4, **kwargs
                 ):
                 &#34;&#34;&#34;
                 Initializes the self-dual Nienhuis model.
@@ -843,6 +1634,10 @@ number of columns processed in parallel.</dd>
                         maxBlockSize (int=64): If `parallel` is truthy, this is the largest
                                 number of columns processed in parallel.
                         cores (int=4): Number of available CPUs/cores/threads on the machine.
+
+                &lt;/br&gt;
+                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;Nienhuis-SubLanczosKernelSample-2&#34;&gt; Performance in \(\mathbb T^2_N\)&lt;/button&gt; &lt;/center&gt;
+                ..include:: ./tables/Nienhuis.SubLanczosKernelSample.2.html
                 &#34;&#34;&#34;
                 # Object access.
                 self.complex = C
@@ -998,7 +1793,7 @@ number of columns processed in parallel.</dd>
 </dd>
 <dt id="ateams.models.SwendsenWang"><code class="flex name class">
 <span>class <span class="ident">SwendsenWang</span></span>
-<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>LinBox=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4,<br>maxTries=16)</span>
+<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>LinBox=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4,<br>maxTries=16,<br>**kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes Swendsen-Wang evolution on the Potts model.</p>
@@ -1045,7 +1840,7 @@ of attempts:</p>
 <li>sample for the remainder of the attempts from <span><span class="MathJax_Preview">D_2 A^\top D_3 A D_2</span><script type="math/tex">D_2 A^\top D_3 A D_2</script></span>, where <span><span class="MathJax_Preview">D_2, D_3</span><script type="math/tex">D_2, D_3</script></span> are random diagonal matrices.</li>
 </ol>
 <p>If we spend the entire budget of attempts, it is likely that the
-result returned is either the all-zeros vector.</p>
+result returned is the all-zeros vector.</p>
 <p>Included below are performance statistics for various configurations of
 <code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code>. Each configuration completed 100 iterations on Pangolin,
 a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295
@@ -1053,8 +1848,8 @@ CPU. <strong>Warns</strong> indicates the number of <code>NumericalInstabilityWa
 during the run, and <strong>Zeros</strong> the number of all-zeros vectors returned.</p>
 <p></br>
 </br>
-<center> <strong> Samples in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span> </strong> </center></p>
-<table class="dataframe profile-data-table">
+<center> <button type="button" class="collapsible" id="SwendsenWang-LanczosKernelSample-2"> Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span></button> </center></p>
+<table class="dataframe profile-data-table" id="SwendsenWang-LanczosKernelSample-2-table">
 <thead>
 <tr style="text-align: right;">
 <th></th>
@@ -1309,9 +2104,8 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
 </tbody>
 </table>
 <p></br>
-</br>
-<center> <strong> Samples in <span><span class="MathJax_Preview">\mathbb T^4_N</span><script type="math/tex">\mathbb T^4_N</script></span> </strong> </center></p>
-<table class="dataframe profile-data-table">
+<center> <button type="button" class="collapsible" id="SwendsenWang-LanczosKernelSample-4"> Performance in <span><span class="MathJax_Preview">\mathbb T^4_N</span><script type="math/tex">\mathbb T^4_N</script></span></button> </center></p>
+<table class="dataframe profile-data-table" id="SwendsenWang-LanczosKernelSample-4-table">
 <thead>
 <tr style="text-align: right;">
 <th></th>
@@ -1574,8 +2368,8 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
 
         def __init__(
                         self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None, LinBox=True,
-                        parallel=False, minBlockSize=32, maxBlockSize=64, cores=4,
-                        maxTries=16
+                        parallel=False, minBlockSize=32, maxBlockSize=64, cores=4, maxTries=16,
+                        **kwargs
                 ):
                 r&#34;&#34;&#34;
                 Initializes Swendsen-Wang evolution on the Potts model.
@@ -1612,7 +2406,7 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
                 4. sample for the remainder of the attempts from \(D_2 A^\top D_3 A D_2\), where \(D_2, D_3\) are random diagonal matrices.
                         
                 If we spend the entire budget of attempts, it is likely that the
-                result returned is either the all-zeros vector.
+                result returned is the all-zeros vector.
                 
                 Included below are performance statistics for various configurations of
                 `SwendsenWang`. Each configuration completed 100 iterations on Pangolin,
@@ -1622,12 +2416,11 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
 
                 &lt;/br&gt;
                 &lt;/br&gt;
-                &lt;center&gt; &lt;strong&gt; Samples in \(\mathbb T^2_N\) &lt;/strong&gt; &lt;/center&gt;
+                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;SwendsenWang-LanczosKernelSample-2&#34;&gt; Performance in \(\mathbb T^2_N\)&lt;/button&gt; &lt;/center&gt;
                 .. include:: ./tables/SwendsenWang.LanczosKernelSample.2.html
 
                 &lt;/br&gt;
-                &lt;/br&gt;
-                &lt;center&gt; &lt;strong&gt; Samples in \(\mathbb T^4_N\) &lt;/strong&gt; &lt;/center&gt;
+                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;SwendsenWang-LanczosKernelSample-4&#34;&gt; Performance in \(\mathbb T^4_N\)&lt;/button&gt; &lt;/center&gt;
                 .. include:: ./tables/SwendsenWang.LanczosKernelSample.4.html
                 &#34;&#34;&#34;
                 # Object access.

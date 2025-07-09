@@ -12,7 +12,7 @@ class Nienhuis():
 
 	def __init__(
 			self, C, q1, q2, dimension=2, field=2, initial=None, LinBox=True, maxTries=16,
-			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
+			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4, **kwargs
 		):
 		"""
 		Initializes the self-dual Nienhuis model.
@@ -36,6 +36,10 @@ class Nienhuis():
 			maxBlockSize (int=64): If `parallel` is truthy, this is the largest
 				number of columns processed in parallel.
 			cores (int=4): Number of available CPUs/cores/threads on the machine.
+
+		</br>
+		<center> <button type="button" class="collapsible" id="Nienhuis-SubLanczosKernelSample-2"> Performance in \(\mathbb T^2_N\)</button> </center>
+		..include:: ./tables/Nienhuis.SubLanczosKernelSample.2.html
 		"""
 		# Object access.
 		self.complex = C

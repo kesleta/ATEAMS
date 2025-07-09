@@ -19,6 +19,18 @@
 hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
 hljs.highlightAll();
 })</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+$(document).ready(function() {
+const buttons = document.querySelectorAll(".collapsible");
+buttons.forEach(button => {
+var tableId = "#" + button.id + "-table";
+button.addEventListener("click", event => {
+$(tableId).toggle();
+});
+});
+})
+</script>
 <!-- Sidebar edits -->
 <style>
 header > h1 { display: none; }
@@ -53,9 +65,17 @@ scrollbar-width: none;
 </style>
 <!-- table edits -->
 <style>
+.collapsible {
+border: 1px solid black;
+background: none;
+cursor: pointer;
+padding: 2.5px 5px;
+font-weight: bold;
+}
 .dataframe.profile-data-table {
 margin: auto;
 width: 75%;
+display: none;
 }
 .dataframe.profile-data-table thead tr {
 text-align: center !important;
@@ -118,10 +138,10 @@ field = 5
 C = Cubical().fromCorners([10]*4)
 SW = SwendsenWang(C, dimension=2, field=field, temperature=critical(field))
 
-for (spins, occupied, satisfied) in Chain(SW, steps=1000):
+for (spins, occupied) in Chain(SW, steps=1000):
     &lt;do whatever&gt;
 </code></pre>
-<p>The plaquette Swendsen-Wang is, besides Glauber, the most efficient implementation in this library; the above chain (excluding the time required to construct the complex) runs in ~10 seconds using LinBox on an Apple M2. There are ${\approx}2.4 \times 10^9$ total entries in the boundary matrix for this particular $4$-torus, but only ${\approx}2.4 \times 10^5$ are nonzero, for a density of ${\approx}0.01\%$; the LinBox features <em>immensely</em> reduce the time required to perform the matrix-reduction computations.</p>
+<p>The plaquette Swendsen-Wang is, besides Glauber, the most efficient implementation in this library; the above chain (excluding the time required to construct the complex) runs in ~10 seconds using LinBox on an Apple M2. There are ${\approx}2.4 \times 10^9$ total entries in the boundary matrix for this particular $4$-torus, but only ${\approx}2.4 \times 10^5$ are nonzero, for a density of ${\approx}0.01\%$; the LinBox features <em>immensely</em> reduce the time required to perform the matrix-reduction computations. Additional performance information for each model is included in <a href="https://apizzimenti.github.io/ATEAMS/models/index.html">the documentation</a>.</p>
 <p>You can turn on a progress bar for your simulation using the</p>
 <pre><code class="language-python">...
 for (spins, occupied, satisfied) in Chain(HP, steps=10).progress():

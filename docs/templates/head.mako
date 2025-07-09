@@ -1,4 +1,19 @@
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<script>
+	$(document).ready(function() {
+		const buttons = document.querySelectorAll(".collapsible");
+
+		buttons.forEach(button => {
+			var tableId = "#" + button.id + "-table";
+			button.addEventListener("click", event => {
+				$(tableId).toggle();
+			});
+		});
+	})
+</script>
+
 <!-- Sidebar edits -->
 <style>
 	header > h1 { display: none; }
@@ -40,9 +55,18 @@
 
 <!-- table edits -->
 <style>
+	.collapsible {
+		border: 1px solid black;
+		background: none;
+		cursor: pointer;
+		padding: 2.5px 5px;
+		font-weight: bold;
+	}
+
 	.dataframe.profile-data-table {
 		margin: auto;
 		width: 75%;
+		display: none;
 	}
 
 	.dataframe.profile-data-table thead tr {

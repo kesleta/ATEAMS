@@ -13,8 +13,8 @@ class SwendsenWang():
 
 	def __init__(
 			self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None, LinBox=True,
-			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4,
-			maxTries=16
+			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4, maxTries=16,
+			**kwargs
 		):
 		r"""
 		Initializes Swendsen-Wang evolution on the Potts model.
@@ -51,7 +51,7 @@ class SwendsenWang():
 		4. sample for the remainder of the attempts from \(D_2 A^\top D_3 A D_2\), where \(D_2, D_3\) are random diagonal matrices.
 			
 		If we spend the entire budget of attempts, it is likely that the
-		result returned is either the all-zeros vector.
+		result returned is the all-zeros vector.
 		
 		Included below are performance statistics for various configurations of
 		`SwendsenWang`. Each configuration completed 100 iterations on Pangolin,
@@ -61,12 +61,11 @@ class SwendsenWang():
 
 		</br>
 		</br>
-		<center> <strong> Samples in \(\mathbb T^2_N\) </strong> </center>
+		<center> <button type="button" class="collapsible" id="SwendsenWang-LanczosKernelSample-2"> Performance in \(\mathbb T^2_N\)</button> </center>
 		.. include:: ./tables/SwendsenWang.LanczosKernelSample.2.html
 
 		</br>
-		</br>
-		<center> <strong> Samples in \(\mathbb T^4_N\) </strong> </center>
+		<center> <button type="button" class="collapsible" id="SwendsenWang-LanczosKernelSample-4"> Performance in \(\mathbb T^4_N\)</button> </center>
 		.. include:: ./tables/SwendsenWang.LanczosKernelSample.4.html
 		"""
 		# Object access.

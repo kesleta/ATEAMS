@@ -36,10 +36,10 @@ field = 5
 C = Cubical().fromCorners([10]*4)
 SW = SwendsenWang(C, dimension=2, field=field, temperature=critical(field))
 
-for (spins, occupied, satisfied) in Chain(SW, steps=1000):
+for (spins, occupied) in Chain(SW, steps=1000):
 	<do whatever>
 ```
-The plaquette Swendsen-Wang is, besides Glauber, the most efficient implementation in this library; the above chain (excluding the time required to construct the complex) runs in ~10 seconds using LinBox on an Apple M2. There are ${\approx}2.4 \times 10^9$ total entries in the boundary matrix for this particular $4$-torus, but only ${\approx}2.4 \times 10^5$ are nonzero, for a density of ${\approx}0.01\%$; the LinBox features _immensely_ reduce the time required to perform the matrix-reduction computations.
+The plaquette Swendsen-Wang is, besides Glauber, the most efficient implementation in this library; the above chain (excluding the time required to construct the complex) runs in ~19 seconds using LinBox on an Apple M2. There are ${\approx}2.4 \times 10^9$ total entries in the boundary matrix for this particular $4$-torus, but only ${\approx}2.4 \times 10^5$ are nonzero, for a density of ${\approx}0.01\%$; the LinBox features _immensely_ reduce the time required to perform the matrix-reduction computations. Additional performance information for each model is included in [the documentation](https://apizzimenti.github.io/ATEAMS/models/index.html).
 
 
 You can turn on a progress bar for your simulation using the

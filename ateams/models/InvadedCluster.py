@@ -17,7 +17,7 @@ class InvadedCluster():
 	
 	def __init__(
 			self, C, dimension=1, field=2, initial=None, stop=lambda: 1, LinBox=True, maxTries=16,
-			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4
+			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4, **kwargs
 		):
 		"""
 		Initializes the plaquette invaded-cluster algorithm on the provided
@@ -52,8 +52,12 @@ class InvadedCluster():
 		
 		</br>
 		</br>
-		<center> <strong> Samples in \(\mathbb T^2_N\) with PHAT </strong> </center>
+		<center> <button type="button" class="collapsible" id="InvadedCluster-PHATComputePersistencePairs-2">Performance in \(\mathbb T^2_N\) (PHAT)</button> </center>
 		..include:: ./tables/InvadedCluster.PHATComputePersistencePairs.2.html
+
+		</br>
+		<center> <button type="button" class="collapsible" id="InvadedCluster-ComputePercolationEvents-2">Performance in \(\mathbb T^2_N\) (Twist)</button> </center>
+		..include:: ./tables/InvadedCluster.ComputePercolationEvents.2.html
 		"""
 		# Object access.
 		self.complex = C

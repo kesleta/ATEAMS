@@ -67,7 +67,7 @@ killall: FORCE
 # Build docs.
 
 tables: FORCE
-	@cd test/stats && ./stats.tables.sh
+	@cd test/stats && ./stats.sync.sh && ./stats.tables.sh
 
 docs: FORCE tables
 	./docs.sh
