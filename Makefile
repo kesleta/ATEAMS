@@ -7,11 +7,11 @@ contribute: build test profile docs
 gauntlet: quick test profile
 
 
-quick: fast
+quick: PHATMethods LinBoxMethods
 	@python setup.py build_ext --inplace
 
 
-build: clean fast
+build: clean PHATMethods LinBoxMethods
 	python setup.py build_ext --inplace > build.log 2>&1 
 
 
@@ -20,12 +20,12 @@ test: FORCE
 	@cd test && ./test.arithmetic.bettis.sh
 
 
-PHAT:
+PHATMethods:
 	@sudo cp -r ateams/arithmetic/include/PHAT /usr/local/include/phat
 	@sudo clang++ -shared -fPIC -std=c++17 -o /usr/local/lib/libPHATMethods.so ateams/arithmetic/PHATMethods.cpp -v -O3 -ffast-math
 
 
-fast: PHAT
+LinBoxMethods:
 	@sudo clang++ `pkg-config --libs linbox` -shared -fPIC -std=c++17 -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp -v -O3 -ffast-math
 
 # Individual model profiles.

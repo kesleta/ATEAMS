@@ -126,15 +126,13 @@ class Cubical:
 			)
 
 	
-	def fromFile(self, fp:str, vertexMap=False, field=None):
+	def fromFile(self, fp:str, vertexMap=False):
 		"""
 		Reconstructs a serialized Complex.
 
 		Args:
 			fp (str): Filepath.
 			vertexMap (bool): Is there a vertexmap to load?
-			field (int): Reconstructs this lattice with a different field;
-				good for portability.
 		"""
 		with open(fp, "r") as read:
 			# Read file into memory.

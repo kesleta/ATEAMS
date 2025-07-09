@@ -239,15 +239,13 @@ text-align: center;
                         )
 
         
-        def fromFile(self, fp:str, vertexMap=False, field=None):
+        def fromFile(self, fp:str, vertexMap=False):
                 &#34;&#34;&#34;
                 Reconstructs a serialized Complex.
 
                 Args:
                         fp (str): Filepath.
                         vertexMap (bool): Is there a vertexmap to load?
-                        field (int): Reconstructs this lattice with a different field;
-                                good for portability.
                 &#34;&#34;&#34;
                 with open(fp, &#34;r&#34;) as read:
                         # Read file into memory.
@@ -283,7 +281,7 @@ conditions (i.e. are we making a torus)?</dd>
 </dl></div>
 </dd>
 <dt id="ateams.complexes.Cubical.fromFile"><code class="name flex">
-<span>def <span class="ident">fromFile</span></span>(<span>self, fp: str, vertexMap=False, field=None)</span>
+<span>def <span class="ident">fromFile</span></span>(<span>self, fp: str, vertexMap=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reconstructs a serialized Complex.</p>
@@ -293,9 +291,6 @@ conditions (i.e. are we making a torus)?</dd>
 <dd>Filepath.</dd>
 <dt><strong><code>vertexMap</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Is there a vertexmap to load?</dd>
-<dt><strong><code>field</code></strong> :&ensp;<code>int</code></dt>
-<dd>Reconstructs this lattice with a different field;
-good for portability.</dd>
 </dl></div>
 </dd>
 <dt id="ateams.complexes.Cubical.recomputeBoundaryMatrices"><code class="name flex">
