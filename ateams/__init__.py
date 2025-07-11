@@ -2,7 +2,6 @@
 """
 ## ATEAMS
 
-.. include:: ./index.md
 .. include:: ./../README.md
 """
 

@@ -44,17 +44,11 @@ class InvadedCluster():
 				number of columns processed in parallel.
 			cores (int=4): Number of available CPUs/cores/threads on the machine.
 
-		Included below are performance statistics for various configurations of
-		`InvadedCluster`. Each configuration completed 100 iterations on Pangolin,
-		a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295
-		CPU. **Warns** indicates the number of `NumericalInstabilityWarning`s caught
-		during the run, and **Zeros** the number of all-zeros vectors returned.
+		<center> <button type="button" class="collapsible" id="InvadedCluster-Persistence-2">Performance in \(\mathbb T^2_N\)</button> </center>
+		..include:: ./tables/InvadedCluster.Persistence.2.html
 
-		<center> <button type="button" class="collapsible" id="InvadedCluster-PHATComputePersistencePairs-2">Performance in \(\mathbb T^2_N\) (PHAT)</button> </center>
-		..include:: ./tables/InvadedCluster.PHATComputePersistencePairs.2.html
-		
-		<center> <button type="button" class="collapsible" id="InvadedCluster-ComputePercolationEvents-2">Performance in \(\mathbb T^2_N\) (Twist)</button> </center>
-		..include:: ./tables/InvadedCluster.ComputePercolationEvents.2.html
+		<center> <button type="button" class="collapsible" id="InvadedCluster-Persistence-4">Performance in \(\mathbb T^4_N\)</button> </center>
+		..include:: ./tables/InvadedCluster.Persistence.4.html
 		"""
 		# Object access.
 		self.complex = C

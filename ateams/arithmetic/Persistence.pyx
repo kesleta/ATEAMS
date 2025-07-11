@@ -27,7 +27,7 @@ cdef class Persistence:
 			list[list[int]] flattened,
 			int homology=-1
 		):
-		"""
+		r"""
 		Args:
 			characteristic (int): Characteristic of the finite field over which
 				we do computations.

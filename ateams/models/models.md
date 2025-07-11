@@ -3,3 +3,5 @@ A _model_ programmatically specifies a probability distribution over a combinato
 
 The `SwendsenWang`, `InvadedCluster`, and `Nienhuis` models require performant sparse linear algebra over finite fields, for which we turn to [LinBox](https://github.com/linbox-team/linbox). The `InvadedCluster` and `Bernoulli` models require fast computation of persistent homology, for which we use [PHAT](https://www.sciencedirect.com/science/article/pii/S0747717116300098) (when sampling over $\mathbb Z/2\mathbb Z$) and a home-brew variant of [the "twist" algorithm proposed by Chen and Kerber](https://www.geometrie.tugraz.at/kerber/kerber_papers/ck-phcwat-11.pdf). Only the `Glauber` dynamics model is implemented in "pure Python," though it relies exclusively on NumPy.
 
+The documentation for each model comes with performance information, viewable by clicking (e.g.) the "Performance over $\mathbb T^2_N$" button. Each configuration completed 100 iterations on Pangolin, a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295 CPU.
+

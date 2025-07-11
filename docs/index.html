@@ -110,12 +110,11 @@ text-align: center;
 </header>
 <section id="section-intro">
 <h2 id="ateams">ATEAMS</h2>
-<p>The <strong>A</strong>lgebraic <strong>t</strong>opology-<strong>e</strong>nabled <strong>a</strong>lgorith<strong>m</strong>s for <strong>s</strong>pin systems (<strong>ATEAMS</strong>) library is a high-performance software suite for conducting experiments on complex spin models. The main attractions are the <em>plaquette <a href="http://arxiv.org/abs/cond-mat/9605103">invaded-cluster</a></em> and <em>plaquette <a href="https://link.aps.org/doi/10.1103/PhysRevLett.58.86">Swendsen-Wang</a></em> algorithms for simulating Markov chains on cubical complexs of any dimension.</p>
 <p><a href="https://doi.org/10.5281/zenodo.14284172"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.14284172.svg"></a>
 <a href="https://apizzimenti.github.io/ATEAMS/"><img alt="docs" src="https://img.shields.io/badge/%E2%93%98-Documentation-%230099cd"></a> </p>
-<p>ATEAMS is designed for high-performance simulation of the <em>Potts</em> and <em>random-cluster</em> models in cubical complexes of arbitrary dimension and scale. The linear algebra subroutines supporting these programs are tailored to this application — matrix reduction over finite fields — using <a href="https://github.com/linbox-team/linbox">LinBox</a>.</p>
-<p><a href="https://apizzimenti.github.io/ATEAMS/"><strong>Documentation</strong></a> • <a href="#installing-ateams"><strong>Install ATEAMS</strong></a> • <a href="#dependencies"><strong>Install dependencies</strong></a> • <a href="#contributing"><strong>Contributing</strong></a> • <a href="#citing"><strong>Citing</strong></a></p>
-<h2 id="example-use">Example Use</h2>
+<p><strong>A</strong>lgebraic <strong>T</strong>opology-<strong>E</strong>nabled <strong>A</strong>lgorith<strong>M</strong>s for <strong>S</strong>pin systems (<strong>ATEAMS</strong>) is a software suite designed for high-performance simulation of generalized <em>Potts</em> and <em>random-cluster</em> models in combinatorial complexes of arbitrary dimension and scale. The linear algebra subroutines supporting these programs are tailored to this application — matrix reduction over finite fields — using <a href="https://github.com/linbox-team/linbox">LinBox</a> and PHAT [<a href="https://www.sciencedirect.com/science/article/pii/S0747717116300098">1</a>,<a href="https://bitbucket.org/phat-code/phat/src/master/">2</a>].</p>
+<p><a href="#dependencies"><strong>Install dependencies</strong></a> $\longrightarrow$ <a href="#installing-ateams"><strong>Install ATEAMS</strong></a> $\longrightarrow$ <a href="https://apizzimenti.github.io/ATEAMS/"><strong>Documentation</strong></a> $\longrightarrow$ <a href="#contributing"><strong>Contributing</strong></a> $\longrightarrow$ <a href="#citing"><strong>Citing</strong></a></p>
+<h2 id="demo">Demo</h2>
 <p>Simulating the $1$-dimensional plaquette random cluster model on a $10 \times 10 \times 10$ cubical $3$-torus with coefficients in the finite field $\mathbb F_3$ looks like:</p>
 <pre><code class="language-python">from ateams.complexes import Cubical
 from ateams.models import InvadedCluster
@@ -126,7 +125,7 @@ C = Cubical().fromCorners([10]*3)
 IC = InvadedCluster(C, dimension=1, field=field)
 
 for (spins, occupied, satisfied) in Chain(IC, steps=10):
-    &lt;do whatever&gt;
+    pass
 </code></pre>
 <p>and the $2$-dimensional plaquette Swendsen-Wang algorithm at criticality on a scale $10$ cubical $4$-torus with coefficients in $\mathbb F_5$ looks like</p>
 <pre><code class="language-python">from ateams.complexes import Cubical
@@ -139,22 +138,21 @@ C = Cubical().fromCorners([10]*4)
 SW = SwendsenWang(C, dimension=2, field=field, temperature=critical(field))
 
 for (spins, occupied) in Chain(SW, steps=1000):
-    &lt;do whatever&gt;
+    pass
 </code></pre>
-<p>The plaquette Swendsen-Wang is, besides Glauber, the most efficient implementation in this library; the above chain (excluding the time required to construct the complex) runs in ~19 seconds using LinBox on an Apple M2. There are ${\approx}2.4 \times 10^9$ total entries in the boundary matrix for this particular $4$-torus, but only ${\approx}2.4 \times 10^5$ are nonzero, for a density of ${\approx}0.01\%$; the LinBox features <em>immensely</em> reduce the time required to perform the matrix-reduction computations. Additional performance information for each model is included in <a href="https://apizzimenti.github.io/ATEAMS/models/index.html">the documentation</a>.</p>
+<p><a href="https://apizzimenti.github.io/ATEAMS/models/index.html#ateams.models.SwendsenWang"><code>SwendsenWang</code></a> is, after <a href="https://apizzimenti.github.io/ATEAMS/models/index.html#ateams.models.Glauber"><code>Glauber</code></a>, the most efficient implementation in ATEAMS. The above chain terminates in ~19 seconds on an Apple M2. Additional performance information for each model is included in <a href="https://apizzimenti.github.io/ATEAMS/models/index.html">the documentation</a>.</p>
 <p>You can turn on a progress bar for your simulation using the</p>
-<pre><code class="language-python">...
-for (spins, occupied, satisfied) in Chain(HP, steps=10).progress():
-    &lt;do whatever&gt;
+<pre><code class="language-python">for (spins, occupied, satisfied) in Chain(HP, steps=10).progress():
+    pass
 </code></pre>
 <p>pattern.</p>
 <h2 id="installation">Installation</h2>
 <h3 id="prerequisites">Prerequisites</h3>
 <ol>
 <li>Patience. </li>
-<li>Python $\geq$ 3.10. To manage different versions of Python on your machine, we recommend <a href="https://github.com/pyenv/pyenv">pyenv</a>.</li>
+<li>Python $\geq$ 3.9. To manage different versions of Python on your machine, we recommend <a href="https://github.com/pyenv/pyenv">pyenv</a>.</li>
 <li>A C/C++ compiler. <strong>Clang is recommended; please ensure your machine's default compiler is Clang.</strong></li>
-<li><a href="https://www.gnu.org/software/make/">GNU Make</a> (or a Windows variant&hellip;) to build and install the library, and to build any changes you might make. <em>(This is optional for Windows users, as these commands can be run manually when using raw Windows. If that's undesirable, the Linux Subsystem for Windows is a useful workaround.)</em></li>
+<li><a href="https://www.gnu.org/software/make/">GNU Make</a> (or a Windows variant&hellip;) to build and install the library, and to build any changes you might make. <em>(This is optional for Windows users. The recipes in the Makefile can be performed manually, but it will take much longer. If that's undesirable, the Linux Subsystem for Windows is a useful workaround.)</em></li>
 <li>Standard tools (pkg-config, autoconf, libtool, etc.) for building and maintaining C++ libraries. For Windows, the Visual Studio BuildTools (which include Clang/LLVM) may be required.</li>
 <li>If you want to keep your sanity, a computer running macOS or a flavor of Linux.</li>
 </ol>
@@ -175,39 +173,46 @@ $ make install
 <p><strong>Should you run into errors,</strong> the <code>make install</code> recipe performs the following operations in the order they're listed:</p>
 <ol>
 <li>Attempts to compile the Python $\leftrightarrow$ Cython $\leftrightarrow$ LinBox C++ interface at <code>ATEAMS/ateams/arithmetic/LinBoxMethods.cpp</code>, building it as a shared library and storing it at <code>/usr/local/lib/libLinBoxMethods.so</code>.</li>
-<li>Attempts to compile the Cython components of ATEAMS.</li>
-<li>Attempts to install PHAT.</li>
+<li>Attempts to compile the Python $\leftrightarrow$ Cython $\leftrightarrow$ LinBox C++ interface at <code>ATEAMS/ateams/arithmetic/PHATMethods.cpp</code>, building it as a shared library and storing it at <code>/usr/local/lib/libPHATMethods.so</code>.</li>
+<li>Attempts to compile the Cython components of ATEAMS, spitting the log into a file called <code>build.log</code>.</li>
 <li>Runs <code>setup.py</code> and installs the ATEAMS package as a local development package, so it is importable system-wide.</li>
-<li>Tests arithmetic and profiles the four main models of the library in varying configurations.</li>
-<li>Builds local documentation.</li>
+<li>Tests arithmetic and profiles the five main models of the library in varying configurations.</li>
 </ol>
 <p><strong>Done manually, these steps are:</strong></p>
-<pre><code>$ sudo clang++ `pkg-config --libs linbox` -shared -fPIC -std=c++17 -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp -v -O3 -ffast-math
+<pre><code>$ rm -rf ./build
+$ sudo clang++ `pkg-config --libs linbox` -shared -fPIC -std=c++17 -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp -v -O3 -ffast-math
+  ...
+
+$ sudo cp -r ateams/arithmetic/include/PHAT /usr/local/include/phat
+$ sudo clang++ -shared -fPIC -std=c++17 -o /usr/local/lib/libPHATMethods.so ateams/arithmetic/PHATMethods.cpp -v -O3 -ffast-math
   ...
 
 $ python setup.py build_ext --inplace &gt; build.log 2&gt;&amp;1 
-$ pip install pybind11 wheel setuptools
-$ pip install --use-deprecated=legacy-resolver --no-binary :all: phat
 $ python setup.py develop
   ...
 
-$ cd test &amp;&amp; ./test.arithmetic.matrices.sh
-$ cd test &amp;&amp; ./test.arithmetic.bettis.sh
-$ cd test &amp;&amp; ./profile.models.NH.sh 99 102 32 64 2
-$ cd test &amp;&amp; ./profile.models.SW.sh 7 11 32 64 2
-$ cd test &amp;&amp; ./profile.models.IC.sh 3 5 32 64 2
+$ cd test
+$ ./profile.models.Glauber.sh 19 22 4
+$ ./profile.models.Glauber.sh 999 1002 2
+$ ./profile.models.SW.sh 4 7 4
+$ ./profile.models.SW.sh 499 502 2
+$ ./profile.models.NH.sh 49 52
+$ ./profile.models.IC.sh 4 7 4
+$ ./profile.models.IC.sh 19 22 2
+$ ./profile.models.Bernoulli.sh 4 7 4
+$ ./profile.models.Bernoulli.sh 19 22 2
   ...
-
-$ ./docs.sh
 </code></pre>
 <h3 id="dependencies">Dependencies</h3>
-<p>ATEAMS relies on <a href="https://github.com/apizzimenti/linbox">LinBox</a> — this link goes to our GitHub fork of LinBox, which addresses a small matrix preconditioning bug; otherwise, the library is unchanged from <a href="https://github.com/linbox-team/linbox">its original source</a>. LinBox relies on <a href="https://github.com/linbox-team/fflas-ffpack">fflas-ffpack</a>, <a href="https://github.com/linbox-team/givaro">Givaro</a>, <a href="https://github.com/OpenMathLib/OpenBLAS">OpenBLAS</a>, and <a href="https://gmplib.org/">GMP</a>. <strong>It is recommended that you install these dependencies to make sure you get the most out of this toolkit.</strong></p>
+<p>ATEAMS relies on LinBox. <a href="https://github.com/apizzimenti/linbox">This link goes to our GitHub fork of LinBox</a>, which addresses a small preconditioning bug and modifies its numerical instability warning system so Cython knows when problems arise; otherwise, the library is unchanged from <a href="https://github.com/linbox-team/linbox">its original source</a>. LinBox relies on <a href="https://github.com/linbox-team/fflas-ffpack">fflas-ffpack</a>, <a href="https://github.com/linbox-team/givaro">Givaro</a>, <a href="https://github.com/OpenMathLib/OpenBLAS">OpenBLAS</a>, and <a href="https://gmplib.org/">GMP</a>. <strong>To get the most out of this toolkit, we highly recommended that you install these dependencies.</strong></p>
 <h4 id="gmp">GMP</h4>
 <ol>
 <li><a href="https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz">Download GMP 6.3.0 from here</a>.</li>
 <li>Follow the <a href="https://gmplib.org/manual/Installing-GMP">installation instructions here</a>, passing the <code>--enable-cxx</code> flag to the <code>./configure</code> script and setting the install prefix to <code>/usr/local</code> (or wherever you'd like). In summary, the installation looks like</li>
 </ol>
-<pre><code>$ ./configure --prefix=/usr/local --enable-cxx
+<pre><code>$ wget -c gmplib.org/download/gmp/gmp-6.3.0.tar.xz -O - | tar -xJ
+$ cd gmp-6.3.0
+$ ./configure --prefix=/usr/local --enable-cxx
   ...
 
 $ make; make check; sudo make install
@@ -220,12 +225,18 @@ $ pkg-config --libs gmp gmpxx
 <li>for macOS users, <a href="https://formulae.brew.sh/formula/openblas">the openblas formula on homebrew</a> is recommended. It will be installed wherever formulae are typically installed on your computer (e.g. <code>/opt/homebrew/Cellar/openblas/0.3.29/lib</code>). <em>If you choose this option, you are done installing OpenBLAS.</em></li>
 <li>for Linux (e.g. Ubuntu), it's recommended to build OpenBLAS from source. The latest version known to work with all following dependencies is 0.3.29, <a href="https://github.com/OpenMathLib/OpenBLAS/releases/tag/v0.3.29">which can be found here</a>. After downloading and decompressing the tarball, navigate into the directory and run <code>make</code>.</li>
 </ul>
-<p>Regardless of how you install, OpenBLAS should register with <code>pkg-config</code>:</p>
-<pre><code>$ pkg-config --libs openblas
+<p>Regardless of how you install, OpenBLAS should register with <code>pkg-config</code>. In summary: on macOS,</p>
+<pre><code>$ brew install openblas
+$ pkg-config --libs openblas
   -L/opt/homebrew/Cellar/openblas/0.3.29/lib -lopenblas
 </code></pre>
-<p>or </p>
-<pre><code>$ pkg-config --libs openblas
+<p>or on Linux,</p>
+<pre><code>$ wget -c github.com/OpenMathLib/OpenBLAS/releases/download/v0.3.29/OpenBLAS-0.3.29.tar.gz -O - | tar -xz
+$ cd OpenBLAS-0.3.29
+$ make
+  ...
+
+$ pkg-config --libs openblas
   -L/usr/local/lib -lopenblas
 </code></pre>
 <h4 id="givaro">Givaro</h4>
@@ -237,13 +248,7 @@ $ pkg-config --libs gmp gmpxx
 </ol>
 <p>In summary,</p>
 <pre><code>$ git clone https://github.com/linbox-team/givaro.git
-  Cloning into 'givaro'...
-  remote: Enumerating objects: 18294, done.
-  remote: Counting objects: 100% (1329/1329), done.
-  remote: Compressing objects: 100% (473/473), done.
-  remote: Total 18294 (delta 914), reused 1188 (delta 854), pack-reused 16965 (from 1)
-  Receiving objects: 100% (18294/18294), 5.94 MiB | 43.46 MiB/s, done.
-  Resolving deltas: 100% (14499/14499), done.
+  Cloning into 'givaro'... done.
 
 $ cd givaro
 $ ./autogen.sh --prefix=/usr/local
@@ -273,19 +278,13 @@ $ pkg-config --libs givaro
 </ul>
 </li>
 <li>Run <code>make</code>.</li>
-<li><em>Optionally</em>, run <code>make autotune</code>. This takes a really long time, but can help speed things up on your machine.</li>
+<li><em>Optionally</em>, run <code>make autotune</code>.</li>
 <li>Run <code>sudo make install; make check</code>.</li>
 <li>If/when things go wrong, check <a href="https://github.com/linbox-team/fflas-ffpack/blob/master/INSTALL">the fflas-ffpack installation notes</a>.</li>
 </ol>
 <p>In summary,</p>
 <pre><code>$ git clone https://github.com/linbox-team/fflas-ffpack.git
-  Cloning into 'fflas-ffpack'...
-  remote: Enumerating objects: 20678, done.
-  remote: Counting objects: 100% (454/454), done.
-  remote: Compressing objects: 100% (181/181), done.
-  remote: Total 20678 (delta 357), reused 306 (delta 273), pack-reused 20224 (from 4)
-  Receiving objects: 100% (20678/20678), 10.29 MiB | 40.70 MiB/s, done.
-  Resolving deltas: 100% (16729/16729), done.
+  Cloning into 'fflas-ffpack'... done.
 
 $ cd fflas-ffpack
 $ ./autogen.sh --prefix=/usr/local --with-blas-libs=&lt;libs&gt; --with-blas-cflags=&lt;cflags&gt;
@@ -309,13 +308,7 @@ $ pkg-config --libs fflas-ffpack
 </ol>
 <p>In summary,</p>
 <pre><code>$ git clone https://github.com/apizzimenti/linbox.git
-  Cloning into 'linbox'...
-  remote: Enumerating objects: 79797, done.
-  remote: Counting objects: 100% (417/417), done.
-  remote: Compressing objects: 100% (176/176), done.
-  remote: Total 79797 (delta 286), reused 250 (delta 241), pack-reused 79380 (from 2)
-  Receiving objects: 100% (79797/79797), 223.82 MiB | 59.50 MiB/s, done.
-  Resolving deltas: 100% (63484/63484), done.
+  Cloning into 'linbox'... done.
 
 $ cd linbox
 $ git checkout bug/bad-checks
@@ -329,16 +322,17 @@ $ pkg-config --libs linbox
   -L/usr/local/lib -llinbox -L/&lt;path-to-openblas&gt; -lopenblas -lgivaro -lgmpxx -lgmp
 </code></pre>
 <h4 id="phat">PHAT</h4>
-<p>We use the <a href="https://bitbucket.org/phat-code/phat">Persistent Homology Algorithms Toolbox (PHAT)</a> to compute persistence over $\mathbb Z/2\mathbb Z$. Included in the <code>ATEAMS/ateams/arithmetic/include/PHAT</code> folder are all the header files for the PHAT library (as of writing) which will be copied to <code>/usr/local/include/phat</code> whenever <code>make install</code> (or <code>make PHAT</code>) is executed. We build an additional C++ interface in <code>PHATMethods.cpp</code>, which is linked against by the Cython compiler and made available to the Python modules in the library &mdash; specifically, native PHAT lets us remarkably speed up persistence computation in the <code>Bernoulli</code> and <code>InvadedCluster</code> models.</p>
+<p>We use the <a href="https://bitbucket.org/phat-code/phat">Persistent Homology Algorithms Toolbox (PHAT)</a> to compute persistence over $\mathbb Z/2\mathbb Z$. Included in the <code>ATEAMS/ateams/arithmetic/include/PHAT</code> folder are all the header files for the PHAT library (as of writing) which will be copied to <code>/usr/local/include/phat</code> whenever <code>make install</code> (or <code>make PHATMethods</code>) is executed. We build an additional C++ interface in <code>PHATMethods.cpp</code>, which is linked against by the Cython compiler and made available to the Python modules in the library &mdash; specifically, native PHAT lets us remarkably speed up persistence computation in the <code>Bernoulli</code> and <code>InvadedCluster</code> models.</p>
+<p>Now, you can move on to <a href="#installing-ateams">installing ATEAMS itself</a>!</p>
 <h2 id="contributing">Contributing</h2>
 <ul>
-<li><strong>Do not push directly to this repository: use the pull request model.</strong></li>
-<li>Follow the standard practices already used in this library, including documentation using <a href="https://peps.python.org/pep-0008/">PEP8</a> and <a href="https://peps.python.org/pep-0257/">PEP257</a> guidelines.</li>
+<li><strong>Do not push directly to this repository: use the fork + pull request model.</strong></li>
+<li>Follow the standard practices already used in this library, including documentation according to <a href="https://peps.python.org/pep-0008/">PEP8</a> and <a href="https://peps.python.org/pep-0257/">PEP257</a> guidelines.</li>
 <li>When writing new Cython/C/C++ code, please include its compilation in the <code>build</code> recipe of the Makefile. If you want C/C++ code to interface with Cython, ensure <code>setup.py</code> is correctly configured to find shared libraries.</li>
-<li>When creating mathematical computation routines, create a testing file in the <code>test</code> directory following the <code>test.&lt;submodule&gt;.&lt;routine&gt;.py</code>/<code>test.&lt;submodule&gt;.&lt;routine&gt;.sh</code> convention. To run existing tests, run <code>make test</code>; to run tests you design, add them to the <code>test</code> recipe in the <code>Makefile</code>. <strong>Please ensure that your routines are tested against ground truth; for example, test new matrix reduction routines against <code>NumPy</code>/<code>SciPy</code>/<code>Galois</code> routines, not against routines already in this library.</strong> <em>(For examples, take a look in the <code>test</code> directory.)</em></li>
+<li>When creating mathematical computation routines, create a testing file in the <code>test</code> directory following the <code>test.&lt;submodule&gt;.&lt;routine&gt;.py</code>/<code>test.&lt;submodule&gt;.&lt;routine&gt;.sh</code> convention. To run existing tests, run <code>make test</code>; to run tests you design, add them to the <code>test</code> recipe in the <code>Makefile</code>. <strong>Please ensure that your routines are tested against ground truth; for example, test new matrix reduction routines against <code>NumPy</code>/<code>SciPy</code> routines, not against routines already in this library.</strong> <em>(For examples, take a look in the <code>test</code> directory.)</em></li>
 <li>When creating new simulation models or new computation routines, create a profiling file in the <code>test</code> directory following the <code>&lt;model-or-routine&gt;.py</code>/<code>profile.&lt;submodule&gt;.&lt;model-or-routine&gt;.py</code>/<code>profile.&lt;submodule&gt;.&lt;model-or-routine&gt;.sh</code> convention. To profile existing code, run <code>make profile</code>; to run profiles you design, add them to the <code>profile</code> recipe in the <code>Makefile</code>. <em>(For examples, take a look in the <code>test</code> directory.)</em></li>
 <li>To run all tests and all profiles, run <code>make gauntlet</code>.</li>
-<li>Before opening a new pull request, run <code>make contribute</code> to perform a clean rebuild of the C/C++ backend and documentation.</li>
+<li>Before opening a new pull request, run <code>make contribute</code> to perform a clean rebuild of the Cython/C/C++ backend and documentation.</li>
 </ul>
 <h2 id="citing">Citing</h2>
 <h3 id="bibtex">BibTeX</h3>
@@ -350,6 +344,36 @@ $ pkg-config --libs linbox
     doi={10.5281/zenodo.14284172}
 }
 </code></pre>
+<h2 id="references">References</h2>
+<ol>
+<li>
+<p>Bauer, Ulrich, Michael Kerber, Jan Reininghaus, and Hubert Wagner. 2017. “PHAT — Persistent Homology Algorithms Toolbox.” <em>Journal of Symbolic Computation</em> 78 (January): 76–90. <a href="https://doi.org/10.1016/j.jsc.2016.03.008">https://doi.org/10.1016/j.jsc.2016.03.008</a>, <a href="https://bitbucket.org/phat-code/">https://bitbucket.org/phat-code/</a>.</p>
+</li>
+<li>
+<p>Chen, Chao, and Michael Kerber. 2011. “Persistent Homology Computation with a Twist.” In <em>Proceedings 27th European Workshop on Computational Geometry</em>, 11:197–200.</p>
+</li>
+<li>
+<p>Duncan, Paul, and Benjamin Schweinhart. 2025. “Topological Phases in the Plaquette Random-Cluster Model and Potts Lattice Gauge Theory.” <em>Communications in Mathematical Physics</em>. <a href="https://arxiv.org/abs/10.48550/arXiv.2207.08339">arxiv.org/abs/10.48550/arXiv.2207.08339</a>.</p>
+</li>
+<li>
+<p>Edelsbrunner, Herbert, and John Harer. 2010. <em>Computational Topology: An Introduction</em>. American Mathematical Soc.</p>
+</li>
+<li>
+<p>The LinBox group. 2021. <em>LinBox</em>. v1.7.0 ed. <a href="http://github.com/linbox-team/linbox">http://github.com/linbox-team/linbox</a>.</p>
+</li>
+<li>
+<p>Hatcher, Allen. 2002. <em>Algebraic Topology</em>. Cambridge University Press.</p>
+</li>
+<li>
+<p>Machta, J., Y. S. Choi, A. Lucke, T. Schweizer, and L. M. Chayes. 1996. “Invaded Cluster Algorithm for Potts Models.” <em>Physical Review E</em> 54 (2). <a href="https://doi.org/10.1103/PhysRevE.54.1332">https://doi.org/10.1103/PhysRevE.54.1332</a>.</p>
+</li>
+<li>
+<p>Swendsen, Robert H., and Jian-Sheng Wang. 1987. “Nonuniversal Critical Dynamics in Monte Carlo Simulations.” <em>Physical Review Letters</em> 58 (2). <a href="https://doi.org/10.1103/PhysRevLett.58.86">https://doi.org/10.1103/PhysRevLett.58.86</a>.</p>
+</li>
+<li>
+<p>Zomorodian, Afra J. 2005. <em>Topology for Computing</em>. Cambridge University Press.</p>
+</li>
+</ol>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
@@ -396,14 +420,14 @@ proof.appendChild(square);
 }
 </script>
 <header>
-<a class="homelink" rel="home" title="ATEAM" href="https://github.com/apizzimenti/ateam">
-<img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
+<a class="homelink" rel="home" title="ATEAMS" href="https://github.com/apizzimenti/ATEAMS">
+<img class="resize" src="https://github.com/apizzimenti/ATEAMS/blob/feature/performant-sparse/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
 </a>
 </header>
 <div class="toc">
 <ul>
 <li><a href="#ateams">ATEAMS</a></li>
-<li><a href="#example-use">Example Use</a></li>
+<li><a href="#demo">Demo</a></li>
 <li><a href="#installation">Installation</a><ul>
 <li><a href="#prerequisites">Prerequisites</a></li>
 <li><a href="#installing-ateams">Installing ATEAMS</a></li>
@@ -423,6 +447,7 @@ proof.appendChild(square);
 <li><a href="#bibtex">BibTeX</a></li>
 </ul>
 </li>
+<li><a href="#references">References</a></li>
 </ul>
 </div>
 <ul id="index">

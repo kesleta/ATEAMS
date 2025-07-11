@@ -13,6 +13,10 @@ ateams.egg-info/
 *.log
 build/
 
+references.bib
+refs.md
+_refs.md
+
 # Ignore contents, but not directories.
 test/stats
 test/**/*.json

@@ -112,6 +112,7 @@ text-align: center;
 <h2 id="models">Models</h2>
 <p>A <em>model</em> programmatically specifies a probability distribution over a combinatorial object like a graph, cubical complex, or polytope. Given one of these objects (e.g. <code><a title="ateams.complexes.Cubical" href="../complexes/index.html#ateams.complexes.Cubical">Cubical</a></code>), each model implements a <em>proposal function</em> for sampling from the distribution it specifies. For example, <code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code> represents the Edwards-Sokal coupling of the <a href="https://link.springer.com/article/10.1007/s00220-025-05322-5"><em>plaquette random cluster model</em> and <em>Potts lattice gauge theory</em></a> on subcomplexes of the $d$-fold, scale-$N$ cubical torus $\mathbb T^d_N$; its proposal function is a generalized version of the <a href="https://link.aps.org/doi/10.1103/PhysRevLett.58.86"><em>Swendsen-Wang algorithm</em></a>.</p>
 <p>The <code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code>, <code><a title="ateams.models.InvadedCluster" href="#ateams.models.InvadedCluster">InvadedCluster</a></code>, and <code><a title="ateams.models.Nienhuis" href="#ateams.models.Nienhuis">Nienhuis</a></code> models require performant sparse linear algebra over finite fields, for which we turn to <a href="https://github.com/linbox-team/linbox">LinBox</a>. The <code><a title="ateams.models.InvadedCluster" href="#ateams.models.InvadedCluster">InvadedCluster</a></code> and <code><a title="ateams.models.Bernoulli" href="#ateams.models.Bernoulli">Bernoulli</a></code> models require fast computation of persistent homology, for which we use <a href="https://www.sciencedirect.com/science/article/pii/S0747717116300098">PHAT</a> (when sampling over $\mathbb Z/2\mathbb Z$) and a home-brew variant of <a href="https://www.geometrie.tugraz.at/kerber/kerber_papers/ck-phcwat-11.pdf">the "twist" algorithm proposed by Chen and Kerber</a>. Only the <code><a title="ateams.models.Glauber" href="#ateams.models.Glauber">Glauber</a></code> dynamics model is implemented in "pure Python," though it relies exclusively on NumPy.</p>
+<p>The documentation for each model comes with performance information, viewable by clicking (e.g.) the "Performance over $\mathbb T^2_N$" button. Each configuration completed 100 iterations on Pangolin, a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295 CPU.</p>
 </section>
 <section>
 </section>
@@ -314,11 +315,13 @@ scheduled temperature at time <code>t</code>.</dd>
 <th></th>
 <th></th>
 <th></th>
+<th></th>
 <th>s/iteration</th>
 </tr>
 <tr>
 <th>Field</th>
 <th>$N$</th>
+<th>Cells</th>
 <th><code>maxTries</code></th>
 <th></th>
 </tr>
@@ -327,6 +330,7 @@ scheduled temperature at time <code>t</code>.</dd>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
+<td rowspan="3" valign="top">1,048,352</td>
 <td>8</td>
 <td>0.042</td>
 </tr>
@@ -340,6 +344,7 @@ scheduled temperature at time <code>t</code>.</dd>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
+<td rowspan="3" valign="top">2,097,152</td>
 <td>8</td>
 <td>0.086</td>
 </tr>
@@ -353,6 +358,7 @@ scheduled temperature at time <code>t</code>.</dd>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
+<td rowspan="3" valign="top">4,193,408</td>
 <td>8</td>
 <td>0.355</td>
 </tr>
@@ -367,6 +373,7 @@ scheduled temperature at time <code>t</code>.</dd>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
+<td rowspan="3" valign="top">1,048,352</td>
 <td>8</td>
 <td>0.039</td>
 </tr>
@@ -380,6 +387,7 @@ scheduled temperature at time <code>t</code>.</dd>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
+<td rowspan="3" valign="top">2,097,152</td>
 <td>8</td>
 <td>0.078</td>
 </tr>
@@ -393,6 +401,7 @@ scheduled temperature at time <code>t</code>.</dd>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
+<td rowspan="3" valign="top">4,193,408</td>
 <td>8</td>
 <td>0.163</td>
 </tr>
@@ -407,6 +416,7 @@ scheduled temperature at time <code>t</code>.</dd>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
+<td rowspan="3" valign="top">1,048,352</td>
 <td>8</td>
 <td>0.036</td>
 </tr>
@@ -420,6 +430,7 @@ scheduled temperature at time <code>t</code>.</dd>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
+<td rowspan="3" valign="top">2,097,152</td>
 <td>8</td>
 <td>0.073</td>
 </tr>
@@ -433,6 +444,7 @@ scheduled temperature at time <code>t</code>.</dd>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
+<td rowspan="3" valign="top">4,193,408</td>
 <td>8</td>
 <td>0.159</td>
 </tr>
@@ -447,6 +459,7 @@ scheduled temperature at time <code>t</code>.</dd>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
+<td rowspan="3" valign="top">1,048,352</td>
 <td>8</td>
 <td>0.035</td>
 </tr>
@@ -460,6 +473,7 @@ scheduled temperature at time <code>t</code>.</dd>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
+<td rowspan="3" valign="top">2,097,152</td>
 <td>8</td>
 <td>0.071</td>
 </tr>
@@ -473,6 +487,7 @@ scheduled temperature at time <code>t</code>.</dd>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
+<td rowspan="3" valign="top">4,193,408</td>
 <td>8</td>
 <td>0.146</td>
 </tr>
@@ -493,176 +508,18 @@ scheduled temperature at time <code>t</code>.</dd>
 <th></th>
 <th></th>
 <th></th>
+<th></th>
 <th>s/iteration</th>
 </tr>
 <tr>
 <th>Field</th>
 <th>$N$</th>
+<th>Cells</th>
 <th><code>maxTries</code></th>
 <th></th>
 </tr>
 </thead>
 <tbody>
-<tr>
-<td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
-<td rowspan="3" valign="top">20</td>
-<td>8</td>
-<td>0.050</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.050</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.050</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">30</td>
-<td>8</td>
-<td>0.261</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.261</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.261</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">40</td>
-<td>8</td>
-<td>0.918</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.918</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.919</td>
-</tr>
-<tr>
-<td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
-<td rowspan="3" valign="top">20</td>
-<td>8</td>
-<td>0.046</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.046</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.046</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">30</td>
-<td>8</td>
-<td>0.240</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.240</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.240</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">40</td>
-<td>8</td>
-<td>0.848</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.848</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.848</td>
-</tr>
-<tr>
-<td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
-<td rowspan="3" valign="top">20</td>
-<td>8</td>
-<td>0.021</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.021</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.021</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">30</td>
-<td>8</td>
-<td>0.113</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.113</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.113</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">40</td>
-<td>8</td>
-<td>0.403</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.403</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.403</td>
-</tr>
-<tr>
-<td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
-<td rowspan="3" valign="top">20</td>
-<td>8</td>
-<td>0.021</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.021</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.021</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">30</td>
-<td>8</td>
-<td>0.110</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.110</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.110</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">40</td>
-<td>8</td>
-<td>0.393</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.393</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.393</td>
-</tr>
 </tbody>
 </table></div>
 <details class="source">
@@ -829,15 +686,11 @@ number of columns processed in parallel.</dd>
 <dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
 <dd>Number of available CPUs/cores/threads on the machine.</dd>
 </dl>
-<p>Included below are performance statistics for various configurations of
-<code><a title="ateams.models.InvadedCluster" href="#ateams.models.InvadedCluster">InvadedCluster</a></code>. Each configuration completed 100 iterations on Pangolin,
-a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295
-CPU. <strong>Warns</strong> indicates the number of <code>NumericalInstabilityWarning</code>s caught
-during the run, and <strong>Zeros</strong> the number of all-zeros vectors returned.</p>
-<p><center> <button type="button" class="collapsible" id="InvadedCluster-PHATComputePersistencePairs-2">Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span> (PHAT)</button> </center></p>
-<table class="dataframe profile-data-table" id="InvadedCluster-PHATComputePersistencePairs-2-table">
+<p><center> <button type="button" class="collapsible" id="InvadedCluster-Persistence-2">Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span></button> </center></p>
+<table class="dataframe profile-data-table" id="InvadedCluster-Persistence-2-table">
 <thead>
 <tr style="text-align: right;">
+<th></th>
 <th></th>
 <th></th>
 <th></th>
@@ -846,6 +699,7 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
 <tr>
 <th>Field</th>
 <th>$N$</th>
+<th>Cells</th>
 <th><code>maxTries</code></th>
 <th></th>
 </tr>
@@ -853,92 +707,51 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
 <tbody>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
-<td rowspan="3" valign="top">724</td>
+<td rowspan="3" valign="top">128</td>
+<td rowspan="3" valign="top">65,536</td>
 <td>8</td>
-<td>2.155</td>
+<td>0.045</td>
 </tr>
 <tr>
 <td>16</td>
-<td>2.255</td>
+<td>0.046</td>
 </tr>
 <tr>
 <td>32</td>
-<td>2.161</td>
+<td>0.046</td>
 </tr>
 <tr>
-<td rowspan="3" valign="top">1024</td>
+<td rowspan="3" valign="top">181</td>
+<td rowspan="3" valign="top">131,044</td>
 <td>8</td>
-<td>4.921</td>
+<td>0.099</td>
 </tr>
 <tr>
 <td>16</td>
-<td>4.663</td>
+<td>0.099</td>
 </tr>
 <tr>
 <td>32</td>
-<td>4.915</td>
+<td>0.100</td>
 </tr>
 <tr>
-<td rowspan="3" valign="top">1448</td>
+<td rowspan="3" valign="top">256</td>
+<td rowspan="3" valign="top">262,144</td>
 <td>8</td>
-<td>10.527</td>
+<td>0.218</td>
 </tr>
 <tr>
 <td>16</td>
-<td>10.442</td>
+<td>0.215</td>
 </tr>
 <tr>
 <td>32</td>
-<td>10.658</td>
+<td>0.218</td>
 </tr>
-</tbody>
-</table>
-<p><center> <button type="button" class="collapsible" id="InvadedCluster-ComputePercolationEvents-2">Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span> (Twist)</button> </center></p>
-<table class="dataframe profile-data-table" id="InvadedCluster-ComputePercolationEvents-2-table">
-<thead>
-<tr style="text-align: right;">
-<th></th>
-<th></th>
-<th></th>
-<th>s/iteration</th>
-</tr>
-<tr>
-<th>Field</th>
-<th>$N$</th>
-<th><code>maxTries</code></th>
-<th></th>
-</tr>
-</thead>
-<tbody>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
-<td rowspan="3" valign="top">64</td>
-<td>8</td>
-<td>0.234</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.249</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.248</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">90</td>
-<td>8</td>
-<td>0.858</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.899</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.793</td>
-</tr>
-<tr>
 <td rowspan="3" valign="top">128</td>
+<td rowspan="3" valign="top">65,536</td>
 <td>8</td>
 <td>3.213</td>
 </tr>
@@ -951,34 +764,37 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
 <td>3.317</td>
 </tr>
 <tr>
+<td rowspan="3" valign="top">181</td>
+<td rowspan="3" valign="top">131,044</td>
+<td>8</td>
+<td>13.224</td>
+</tr>
+<tr>
+<td>16</td>
+<td>12.031</td>
+</tr>
+<tr>
+<td>32</td>
+<td>12.720</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">256</td>
+<td rowspan="3" valign="top">262,144</td>
+<td>8</td>
+<td>56.187</td>
+</tr>
+<tr>
+<td>16</td>
+<td>54.478</td>
+</tr>
+<tr>
+<td>32</td>
+<td>54.579</td>
+</tr>
+<tr>
 <td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
-<td rowspan="3" valign="top">64</td>
-<td>8</td>
-<td>0.236</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.240</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.236</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">90</td>
-<td>8</td>
-<td>0.797</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.762</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.804</td>
-</tr>
-<tr>
 <td rowspan="3" valign="top">128</td>
+<td rowspan="3" valign="top">65,536</td>
 <td>8</td>
 <td>2.703</td>
 </tr>
@@ -991,34 +807,37 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
 <td>2.599</td>
 </tr>
 <tr>
+<td rowspan="3" valign="top">181</td>
+<td rowspan="3" valign="top">131,044</td>
+<td>8</td>
+<td>9.586</td>
+</tr>
+<tr>
+<td>16</td>
+<td>9.533</td>
+</tr>
+<tr>
+<td>32</td>
+<td>9.525</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">256</td>
+<td rowspan="3" valign="top">262,144</td>
+<td>8</td>
+<td>37.984</td>
+</tr>
+<tr>
+<td>16</td>
+<td>37.388</td>
+</tr>
+<tr>
+<td>32</td>
+<td>37.966</td>
+</tr>
+<tr>
 <td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
-<td rowspan="3" valign="top">64</td>
-<td>8</td>
-<td>0.289</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.293</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.298</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">90</td>
-<td>8</td>
-<td>0.881</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.902</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.893</td>
-</tr>
-<tr>
 <td rowspan="3" valign="top">128</td>
+<td rowspan="3" valign="top">65,536</td>
 <td>8</td>
 <td>2.823</td>
 </tr>
@@ -1029,6 +848,70 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
 <tr>
 <td>32</td>
 <td>2.862</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">181</td>
+<td rowspan="3" valign="top">131,044</td>
+<td>8</td>
+<td>9.391</td>
+</tr>
+<tr>
+<td>16</td>
+<td>9.189</td>
+</tr>
+<tr>
+<td>32</td>
+<td>9.170</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">256</td>
+<td rowspan="3" valign="top">262,144</td>
+<td>8</td>
+<td>33.722</td>
+</tr>
+<tr>
+<td>16</td>
+<td>33.819</td>
+</tr>
+<tr>
+<td>32</td>
+<td>35.525</td>
+</tr>
+</tbody>
+</table>
+<p><center> <button type="button" class="collapsible" id="InvadedCluster-Persistence-4">Performance in <span><span class="MathJax_Preview">\mathbb T^4_N</span><script type="math/tex">\mathbb T^4_N</script></span></button> </center></p>
+<table class="dataframe profile-data-table" id="InvadedCluster-Persistence-4-table">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th></th>
+<th></th>
+<th></th>
+<th>s/iteration</th>
+</tr>
+<tr>
+<th>Field</th>
+<th>$N$</th>
+<th>Cells</th>
+<th><code>maxTries</code></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="3" valign="top">$\mathbb Z/2\mathbb Z$</td>
+<td rowspan="3" valign="top">10</td>
+<td rowspan="3" valign="top">160,000</td>
+<td>8</td>
+<td>0.420</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.334</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.327</td>
 </tr>
 </tbody>
 </table></div>
@@ -1068,17 +951,11 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
                                 number of columns processed in parallel.
                         cores (int=4): Number of available CPUs/cores/threads on the machine.
 
-                Included below are performance statistics for various configurations of
-                `InvadedCluster`. Each configuration completed 100 iterations on Pangolin,
-                a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295
-                CPU. **Warns** indicates the number of `NumericalInstabilityWarning`s caught
-                during the run, and **Zeros** the number of all-zeros vectors returned.
+                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;InvadedCluster-Persistence-2&#34;&gt;Performance in \(\mathbb T^2_N\)&lt;/button&gt; &lt;/center&gt;
+                ..include:: ./tables/InvadedCluster.Persistence.2.html
 
-                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;InvadedCluster-PHATComputePersistencePairs-2&#34;&gt;Performance in \(\mathbb T^2_N\) (PHAT)&lt;/button&gt; &lt;/center&gt;
-                ..include:: ./tables/InvadedCluster.PHATComputePersistencePairs.2.html
-                
-                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;InvadedCluster-ComputePercolationEvents-2&#34;&gt;Performance in \(\mathbb T^2_N\) (Twist)&lt;/button&gt; &lt;/center&gt;
-                ..include:: ./tables/InvadedCluster.ComputePercolationEvents.2.html
+                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;InvadedCluster-Persistence-4&#34;&gt;Performance in \(\mathbb T^4_N\)&lt;/button&gt; &lt;/center&gt;
+                ..include:: ./tables/InvadedCluster.Persistence.4.html
                 &#34;&#34;&#34;
                 # Object access.
                 self.complex = C
@@ -1340,16 +1217,14 @@ number of columns processed in parallel.</dd>
 <th></th>
 <th></th>
 <th></th>
+<th></th>
 <th>s/iteration</th>
-<th>Warns</th>
-<th>Zeros</th>
 </tr>
 <tr>
 <th>Field</th>
 <th>$N$</th>
+<th>Cells</th>
 <th><code>maxTries</code></th>
-<th></th>
-<th></th>
 <th></th>
 </tr>
 </thead>
@@ -1357,234 +1232,174 @@ number of columns processed in parallel.</dd>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
+<td rowspan="3" valign="top">524,176</td>
 <td>8</td>
 <td>0.642</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>0.881</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>1.566</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
+<td rowspan="3" valign="top">1,048,576</td>
 <td>8</td>
 <td>1.421</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>2.139</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>2.693</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
+<td rowspan="3" valign="top">2,096,704</td>
 <td>8</td>
 <td>3.105</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>4.384</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>6.266</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
+<td rowspan="3" valign="top">524,176</td>
 <td>8</td>
 <td>0.453</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>0.484</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>0.723</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
+<td rowspan="3" valign="top">1,048,576</td>
 <td>8</td>
 <td>1.005</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>1.078</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>1.266</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
+<td rowspan="3" valign="top">2,096,704</td>
 <td>8</td>
 <td>2.329</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>2.672</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>2.462</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
+<td rowspan="3" valign="top">524,176</td>
 <td>8</td>
 <td>0.420</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>0.417</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>0.559</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
+<td rowspan="3" valign="top">1,048,576</td>
 <td>8</td>
 <td>0.917</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>0.915</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>0.907</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
+<td rowspan="3" valign="top">2,096,704</td>
 <td>8</td>
 <td>2.026</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>2.040</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>2.027</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
+<td rowspan="3" valign="top">524,176</td>
 <td>8</td>
 <td>0.425</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>0.415</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>0.418</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
+<td rowspan="3" valign="top">1,048,576</td>
 <td>8</td>
 <td>0.906</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>0.928</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>0.931</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
+<td rowspan="3" valign="top">2,096,704</td>
 <td>8</td>
 <td>2.051</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>2.043</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>2.064</td>
-<td>0</td>
-<td>0</td>
 </tr>
 </tbody>
 </table></div>
@@ -1827,11 +1642,6 @@ of attempts:</p>
 </ol>
 <p>If we spend the entire budget of attempts, it is likely that the
 result returned is the all-zeros vector.</p>
-<p>Included below are performance statistics for various configurations of
-<code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code>. Each configuration completed 100 iterations on Pangolin,
-a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295
-CPU. <strong>Warns</strong> indicates the number of <code>NumericalInstabilityWarning</code>s caught
-during the run, and <strong>Zeros</strong> the number of all-zeros vectors returned.</p>
 <p><center> <button type="button" class="collapsible" id="SwendsenWang-LanczosKernelSample-2"> Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span></button> </center></p>
 <table class="dataframe profile-data-table" id="SwendsenWang-LanczosKernelSample-2-table">
 <thead>
@@ -1839,16 +1649,14 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
 <th></th>
 <th></th>
 <th></th>
+<th></th>
 <th>s/iteration</th>
-<th>Warns</th>
-<th>Zeros</th>
 </tr>
 <tr>
 <th>Field</th>
 <th>$N$</th>
+<th>Cells</th>
 <th><code>maxTries</code></th>
-<th></th>
-<th></th>
 <th></th>
 </tr>
 </thead>
@@ -1856,234 +1664,174 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
+<td rowspan="3" valign="top">1,048,352</td>
 <td>8</td>
 <td>0.483</td>
-<td>0</td>
-<td>2</td>
 </tr>
 <tr>
 <td>16</td>
 <td>0.886</td>
-<td>0</td>
-<td>1</td>
 </tr>
 <tr>
 <td>32</td>
 <td>1.701</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
+<td rowspan="3" valign="top">2,097,152</td>
 <td>8</td>
 <td>1.190</td>
-<td>0</td>
-<td>3</td>
 </tr>
 <tr>
 <td>16</td>
 <td>1.969</td>
-<td>0</td>
-<td>1</td>
 </tr>
 <tr>
 <td>32</td>
 <td>3.351</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
+<td rowspan="3" valign="top">4,193,408</td>
 <td>8</td>
 <td>2.432</td>
-<td>0</td>
-<td>3</td>
 </tr>
 <tr>
 <td>16</td>
 <td>4.349</td>
-<td>0</td>
-<td>2</td>
 </tr>
 <tr>
 <td>32</td>
 <td>5.320</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
+<td rowspan="3" valign="top">1,048,352</td>
 <td>8</td>
 <td>0.306</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>0.376</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>0.372</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
+<td rowspan="3" valign="top">2,097,152</td>
 <td>8</td>
 <td>0.751</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>0.915</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>0.919</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
+<td rowspan="3" valign="top">4,193,408</td>
 <td>8</td>
 <td>1.376</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>1.657</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>2.898</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
+<td rowspan="3" valign="top">1,048,352</td>
 <td>8</td>
 <td>0.246</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>0.249</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>0.237</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
+<td rowspan="3" valign="top">2,097,152</td>
 <td>8</td>
 <td>0.551</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>0.567</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>0.506</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
+<td rowspan="3" valign="top">4,193,408</td>
 <td>8</td>
 <td>1.332</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>1.357</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>1.537</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
+<td rowspan="3" valign="top">1,048,352</td>
 <td>8</td>
 <td>0.254</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>0.245</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>0.246</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
+<td rowspan="3" valign="top">2,097,152</td>
 <td>8</td>
 <td>0.529</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>0.537</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>0.526</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
+<td rowspan="3" valign="top">4,193,408</td>
 <td>8</td>
 <td>1.319</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>16</td>
 <td>1.301</td>
-<td>0</td>
-<td>0</td>
 </tr>
 <tr>
 <td>32</td>
 <td>1.395</td>
-<td>0</td>
-<td>0</td>
 </tr>
 </tbody>
 </table>
@@ -2094,251 +1842,189 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
 <th></th>
 <th></th>
 <th></th>
+<th></th>
 <th>s/iteration</th>
-<th>Warns</th>
-<th>Zeros</th>
 </tr>
 <tr>
 <th>Field</th>
 <th>$N$</th>
+<th>Cells</th>
 <th><code>maxTries</code></th>
-<th></th>
-<th></th>
 <th></th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
-<td rowspan="3" valign="top">20</td>
+<td rowspan="3" valign="top">10</td>
+<td rowspan="3" valign="top">60,000</td>
 <td>8</td>
-<td>0.176</td>
-<td>11</td>
-<td>11</td>
+<td>0.030</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.187</td>
-<td>6</td>
-<td>6</td>
+<td>0.057</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.189</td>
-<td>3</td>
-<td>3</td>
+<td>0.080</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">20</td>
+<td rowspan="3" valign="top">960,000</td>
+<td>8</td>
+<td>0.667</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.997</td>
+</tr>
+<tr>
+<td>32</td>
+<td>1.385</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">30</td>
+<td rowspan="3" valign="top">4,860,000</td>
 <td>8</td>
-<td>1.085</td>
-<td>12</td>
-<td>12</td>
+<td>4.624</td>
 </tr>
 <tr>
 <td>16</td>
-<td>1.103</td>
-<td>6</td>
-<td>6</td>
+<td>6.628</td>
 </tr>
 <tr>
 <td>32</td>
-<td>1.160</td>
-<td>3</td>
-<td>3</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">40</td>
-<td>8</td>
-<td>4.264</td>
-<td>12</td>
-<td>12</td>
-</tr>
-<tr>
-<td>16</td>
-<td>4.360</td>
-<td>5</td>
-<td>5</td>
-</tr>
-<tr>
-<td>32</td>
-<td>4.499</td>
-<td>2</td>
-<td>2</td>
+<td>9.562</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
-<td rowspan="3" valign="top">20</td>
+<td rowspan="3" valign="top">10</td>
+<td rowspan="3" valign="top">60,000</td>
 <td>8</td>
-<td>0.126</td>
-<td>12</td>
-<td>0</td>
+<td>0.021</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.179</td>
-<td>6</td>
-<td>6</td>
+<td>0.020</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.125</td>
-<td>2</td>
-<td>0</td>
+<td>0.019</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">20</td>
+<td rowspan="3" valign="top">960,000</td>
+<td>8</td>
+<td>0.449</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.447</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.386</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">30</td>
+<td rowspan="3" valign="top">4,860,000</td>
 <td>8</td>
-<td>1.088</td>
-<td>12</td>
-<td>12</td>
+<td>3.167</td>
 </tr>
 <tr>
 <td>16</td>
-<td>1.053</td>
-<td>4</td>
-<td>4</td>
+<td>3.185</td>
 </tr>
 <tr>
 <td>32</td>
-<td>1.051</td>
-<td>2</td>
-<td>2</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">40</td>
-<td>8</td>
-<td>3.934</td>
-<td>11</td>
-<td>11</td>
-</tr>
-<tr>
-<td>16</td>
-<td>3.815</td>
-<td>4</td>
-<td>4</td>
-</tr>
-<tr>
-<td>32</td>
-<td>3.961</td>
-<td>2</td>
-<td>2</td>
+<td>5.080</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
-<td rowspan="3" valign="top">20</td>
+<td rowspan="3" valign="top">10</td>
+<td rowspan="3" valign="top">60,000</td>
 <td>8</td>
-<td>0.128</td>
-<td>9</td>
-<td>0</td>
+<td>0.015</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.134</td>
-<td>6</td>
-<td>0</td>
+<td>0.015</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.136</td>
-<td>3</td>
-<td>0</td>
+<td>0.015</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">20</td>
+<td rowspan="3" valign="top">960,000</td>
+<td>8</td>
+<td>0.345</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.371</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.333</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">30</td>
+<td rowspan="3" valign="top">4,860,000</td>
 <td>8</td>
-<td>0.939</td>
-<td>12</td>
-<td>0</td>
+<td>2.516</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.867</td>
-<td>6</td>
-<td>0</td>
+<td>2.901</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.913</td>
-<td>2</td>
-<td>0</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">40</td>
-<td>8</td>
-<td>3.506</td>
-<td>11</td>
-<td>0</td>
-</tr>
-<tr>
-<td>16</td>
-<td>3.654</td>
-<td>6</td>
-<td>0</td>
-</tr>
-<tr>
-<td>32</td>
-<td>3.331</td>
-<td>2</td>
-<td>0</td>
+<td>2.762</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
-<td rowspan="3" valign="top">20</td>
+<td rowspan="3" valign="top">10</td>
+<td rowspan="3" valign="top">60,000</td>
 <td>8</td>
-<td>0.149</td>
-<td>12</td>
-<td>0</td>
+<td>0.014</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.143</td>
-<td>5</td>
-<td>0</td>
+<td>0.015</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.135</td>
-<td>2</td>
-<td>0</td>
+<td>0.015</td>
+</tr>
+<tr>
+<td rowspan="3" valign="top">20</td>
+<td rowspan="3" valign="top">960,000</td>
+<td>8</td>
+<td>0.339</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.341</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.336</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">30</td>
+<td rowspan="3" valign="top">4,860,000</td>
 <td>8</td>
-<td>0.984</td>
-<td>12</td>
-<td>0</td>
+<td>2.685</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.833</td>
-<td>4</td>
-<td>0</td>
+<td>2.993</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.969</td>
-<td>2</td>
-<td>0</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">40</td>
-<td>8</td>
-<td>3.855</td>
-<td>12</td>
-<td>0</td>
-</tr>
-<tr>
-<td>16</td>
-<td>3.552</td>
-<td>5</td>
-<td>0</td>
-</tr>
-<tr>
-<td>32</td>
-<td>3.579</td>
-<td>2</td>
-<td>0</td>
+<td>3.054</td>
 </tr>
 </tbody>
 </table></div>
@@ -2390,12 +2076,6 @@ during the run, and <strong>Zeros</strong> the number of all-zeros vectors retur
                         
                 If we spend the entire budget of attempts, it is likely that the
                 result returned is the all-zeros vector.
-                
-                Included below are performance statistics for various configurations of
-                `SwendsenWang`. Each configuration completed 100 iterations on Pangolin,
-                a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295
-                CPU. **Warns** indicates the number of `NumericalInstabilityWarning`s caught
-                during the run, and **Zeros** the number of all-zeros vectors returned.
 
                 &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;SwendsenWang-LanczosKernelSample-2&#34;&gt; Performance in \(\mathbb T^2_N\)&lt;/button&gt; &lt;/center&gt;
                 .. include:: ./tables/SwendsenWang.LanczosKernelSample.2.html
@@ -2559,8 +2239,8 @@ proof.appendChild(square);
 }
 </script>
 <header>
-<a class="homelink" rel="home" title="ATEAM" href="https://github.com/apizzimenti/ateam">
-<img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
+<a class="homelink" rel="home" title="ATEAMS" href="https://github.com/apizzimenti/ATEAMS">
+<img class="resize" src="https://github.com/apizzimenti/ATEAMS/blob/feature/performant-sparse/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
 </a>
 </header>
 <div class="toc">

@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-// #include "LinBoxMethods.h"
+#include "LinBoxMethods.h"
 
 using namespace std;
 
@@ -81,7 +81,7 @@ Index LanczosKernelSample(Index coboundary, int M, int N, int p, int maxTries) {
 	Matrix A = FieldFill<Matrix,Field>(coboundary, M, N, F);
 	ZpVector X(F, A.coldim()), b(F, A.rowdim());
 	
-	// Preconditioners in order of severity. We try all but FullDiagonal twice;
+	// Preconditioners in order of strength. We try all but FullDiagonal twice;
 	// if a zero result still occurs, we sample with the FullDiagonal for the
 	// remaining attempts.
 	LinBox::Method::Lanczos LANC;

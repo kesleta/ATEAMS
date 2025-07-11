@@ -52,12 +52,6 @@ class SwendsenWang():
 			
 		If we spend the entire budget of attempts, it is likely that the
 		result returned is the all-zeros vector.
-		
-		Included below are performance statistics for various configurations of
-		`SwendsenWang`. Each configuration completed 100 iterations on Pangolin,
-		a Dell Precision 5280 workstation with an 18-core@1.305GhZ Intel Xeon W-2295
-		CPU. **Warns** indicates the number of `NumericalInstabilityWarning`s caught
-		during the run, and **Zeros** the number of all-zeros vectors returned.
 
 		<center> <button type="button" class="collapsible" id="SwendsenWang-LanczosKernelSample-2"> Performance in \(\mathbb T^2_N\)</button> </center>
 		.. include:: ./tables/SwendsenWang.LanczosKernelSample.2.html

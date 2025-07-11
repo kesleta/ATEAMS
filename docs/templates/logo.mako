@@ -20,7 +20,7 @@
 
 
 <header>
-	<a class="homelink" rel="home" title="ATEAM" href="https://github.com/apizzimenti/ateam">
-		<img class="resize" src="https://github.com/apizzimenti/ateam/blob/feature/persistence/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
+	<a class="homelink" rel="home" title="ATEAMS" href="https://github.com/apizzimenti/ATEAMS">
+		<img class="resize" src="https://github.com/apizzimenti/ATEAMS/blob/feature/performant-sparse/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
 	</a>
 </header>
