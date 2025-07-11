@@ -315,8 +315,9 @@ def cubicalComplex(corners, D, periodic=True):
 	# make creation a bit easier.
 	vertices = np.concatenate([basis, extra])
 	indices = np.arange(len(vertices))
+	tups = [tuple(v) for v in vertices]
 
-	verticesToIndices = { tuple(vertices[t]): t for t in indices }
+	verticesToIndices = { tups[t]: t for t in indices }
 
 	if periodic:
 		# Identify antipodal vertices.
@@ -324,9 +325,9 @@ def cubicalComplex(corners, D, periodic=True):
 
 		# After identification, count the unique values we see, then re-map.
 		unique = np.unique(list(verticesToIndices.values()))
-		remapped = np.arange(len(unique))
-		indices[unique] = remapped
-		verticesToIndices = { tuple(v): indices[verticesToIndices[tuple(v)]] for v in vertices }
+		vertices = np.arange(len(unique))
+		indices[unique] = vertices
+		verticesToIndices = { t: indices[verticesToIndices[t]] for t in tups }
 		
 	# Explode and do some reshaping. We need everything in terms of their
 	# local coordinates, so we'll have to do some re-indexing on the higher-
