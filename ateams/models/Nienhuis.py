@@ -4,7 +4,6 @@ import warnings
 
 from ..arithmetic import MatrixReduction, SubLanczosKernelSample, KernelSample
 from ..common import FINT, TooSmallWarning, Matrices, Bunch, NumericalInstabilityWarning
-from .Model import Model
 
 
 class Nienhuis():

@@ -272,7 +272,7 @@ Now, you can move on to [installing ATEAMS itself](#installing-ateams)!
 	title={{ATEAMS: Algebraic Topology-Enabled AlgorithMs for Spin systems}},
 	author={Duncan, Paul and Pizzimenti, Anthony E. and Schweinhart, Benjamin},
 	url={https://github.com/apizzimenti/ATEAMS},
-	version={2.0.0},
+	version={2.0.1},
 	doi={10.5281/zenodo.14284172}
 }
 ```

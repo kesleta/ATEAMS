@@ -3,7 +3,6 @@ import numpy as np
 
 from ..common import MINT, FINT
 from ..statistics import constant
-from .Model import Model
 
 
 class Glauber():

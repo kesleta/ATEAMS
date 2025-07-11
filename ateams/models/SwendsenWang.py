@@ -5,7 +5,6 @@ import warnings
 from ..arithmetic import LanczosKernelSample, KernelSample, MatrixReduction
 from ..common import MINT, FINT, Matrices, TooSmallWarning, NumericalInstabilityWarning
 from ..statistics import constant
-from .Model import Model
 
 
 class SwendsenWang():

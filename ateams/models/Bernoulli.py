@@ -4,7 +4,6 @@ from math import comb
 
 from ..arithmetic import ComputePersistencePairs, Persistence
 from ..common import Matrices, FINT
-from .Model import Model
 
 
 class Bernoulli():

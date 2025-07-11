@@ -9,7 +9,6 @@ from ..arithmetic import (
 	Persistence, KernelSample, FINT, ComputePersistencePairs
 )
 from ..common import Matrices, TooSmallWarning, NumericalInstabilityWarning
-from .Model import Model
 
 
 class InvadedCluster():
