@@ -30,6 +30,6 @@ def chain(M, DESC=""):
 	return M._exitcode
 
 if __name__ == "__main__":
-	M = construct(6, 4, 3)
+	M = construct(3, 4, 3)
 	chain(M)
 
