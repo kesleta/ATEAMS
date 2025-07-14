@@ -33,8 +33,12 @@ $(tableId).toggle();
 </script>
 <!-- Sidebar edits -->
 <style>
-#content a {
+a:hover {
 text-decoration: underline;
+}
+a, a:visited {
+color: #058;
+transition: none;
 }
 header > h1 { display: none; }
 .toc { display: none; }
@@ -114,25 +118,73 @@ text-align: center;
 <section id="section-intro">
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt><code class="name"><a title="ateams.statistics.accepts" href="accepts.html">ateams.statistics.accepts</a></code></dt>
+<dt id="ateams.statistics.always"><code class="name flex">
+<span>def <span class="ident">always</span></span>(<span>model=None, distribution=None, burnIn=None)</span>
+</code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>An acceptance function which always accepts the proposed state; we do nothing
+with the arguments to this function.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>model</code></strong> :&ensp;<code>Model</code></dt>
+<dd>Optional argument; does nothing.</dd>
+<dt><strong><code>distribution</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>Optional argument; does nothing.</dd>
+<dt><strong><code>burnIn</code></strong> :&ensp;<code>int</code></dt>
+<dd>Optional argument; does nothing.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A function which always returns True.</p></div>
 </dd>
-<dt><code class="name"><a title="ateams.statistics.autocorrelation" href="autocorrelation.html">ateams.statistics.autocorrelation</a></code></dt>
+<dt id="ateams.statistics.autocorrelation"><code class="name flex">
+<span>def <span class="ident">autocorrelation</span></span>(<span>data)</span>
+</code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Computes the autocorrelation of a given observable.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>Iterable</code></dt>
+<dd>An iterable, indexed by sample times, containing data
+from a given observable.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>An <code>np.ndarray</code> of autocorrelation data.</p></div>
 </dd>
-<dt><code class="name"><a title="ateams.statistics.schedules" href="schedules.html">ateams.statistics.schedules</a></code></dt>
+<dt id="ateams.statistics.constant"><code class="name flex">
+<span>def <span class="ident">constant</span></span>(<span>temperature)</span>
+</code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>A constant annealing schedule.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>temperature</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature to be returned.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A function passed to a model constructor.</p></div>
+</dd>
+<dt id="ateams.statistics.critical"><code class="name flex">
+<span>def <span class="ident">critical</span></span>(<span>field)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A constant annealing schedule which calculates the critical temperature
+of the model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>field</code></strong> :&ensp;<code>int</code></dt>
+<dd>The order of the field we're over.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A function passed to a Model constructor that returns the critical
+temperature of the Potts model.</p></div>
 </dd>
 </dl>
-</section>
-<section>
-</section>
-<section>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -536,11 +588,12 @@ proof.appendChild(square);
 <li><code><a title="ateams" href="../index.html">ateams</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
-<ul>
-<li><code><a title="ateams.statistics.accepts" href="accepts.html">ateams.statistics.accepts</a></code></li>
-<li><code><a title="ateams.statistics.autocorrelation" href="autocorrelation.html">ateams.statistics.autocorrelation</a></code></li>
-<li><code><a title="ateams.statistics.schedules" href="schedules.html">ateams.statistics.schedules</a></code></li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="ateams.statistics.always" href="#ateams.statistics.always">always</a></code></li>
+<li><code><a title="ateams.statistics.autocorrelation" href="#ateams.statistics.autocorrelation">autocorrelation</a></code></li>
+<li><code><a title="ateams.statistics.constant" href="#ateams.statistics.constant">constant</a></code></li>
+<li><code><a title="ateams.statistics.critical" href="#ateams.statistics.critical">critical</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

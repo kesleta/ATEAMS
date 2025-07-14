@@ -145,7 +145,6 @@ Set ComputePercolationEvents(
 			cell = Boundary[j];
 
 			while (!cell.empty() && nextColumnAdded[youngestOf(cell)] != 0) {
-
 				// Get the "youngest" cell in the boundary and subtract it from
 				// the current cell.
 				youngest = Boundary[nextColumnAdded[youngestOf(cell)]];

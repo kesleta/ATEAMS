@@ -16,10 +16,15 @@
 
 <!-- Sidebar edits -->
 <style>
-	#content a {
+	a:hover {
 		text-decoration: underline;
 	}
-	
+
+	a, a:visited {
+		color: #058;
+		transition: none;
+	}
+
 	header > h1 { display: none; }
 	.toc { display: none; }
 
