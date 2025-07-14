@@ -16,6 +16,10 @@
 
 <!-- Sidebar edits -->
 <style>
+	#content a {
+		text-decoration: underline;
+	}
+	
 	header > h1 { display: none; }
 	.toc { display: none; }
 
