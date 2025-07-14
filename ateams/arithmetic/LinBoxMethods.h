@@ -1,5 +1,14 @@
 
+#include <set>
+#include <vector>
 using namespace std;
 
-std::vector<int> LanczosKernelSample(std::vector<int> coboundary, int M, int N, int p, int maxTries);
-std::set<int> ComputePercolationEvents(std::vector<int> boundary, std::vector<int> filtration, int homology, int p, vector<int> breaks);
+typedef set<int> Set;
+typedef vector<int> Index;
+typedef vector<char> Lookup;
+typedef vector<Lookup> Table;
+typedef map<int,char> Column;
+typedef vector<Column> BoundaryMatrix;
+
+Index LanczosKernelSample(Index coboundary, int M, int N, int p, int maxTries);
+Set ComputePercolationEvents(Table addition, Table multiplication, Lookup negation, Lookup inversion, BoundaryMatrix Boundary, Index breaks, int cellCount, int topDimension, int homology);

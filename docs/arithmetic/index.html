@@ -111,50 +111,12 @@ text-align: center;
 <section id="section-intro">
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
-<dl>
-<dt><code class="name"><a title="ateams.arithmetic.BuiltinWrapper" href="BuiltinWrapper.html">ateams.arithmetic.BuiltinWrapper</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="ateams.arithmetic.LinBoxWrapper" href="LinBoxWrapper.html">ateams.arithmetic.LinBoxWrapper</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="ateams.arithmetic.PHATWrapper" href="PHATWrapper.html">ateams.arithmetic.PHATWrapper</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
 </section>
 <section>
 </section>
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="ateams.arithmetic.ComputePercolationEvents"><code class="name flex">
-<span>def <span class="ident">ComputePercolationEvents</span></span>(<span>boundary, filtration, homology, p, breaks)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Uses a variant of the Chen/Kerber (2011) and PHAT (2017) twist_reduce algorithm
-to compute the persistent homology of the complex specified by the flat boundary
-matrix and the filtration over the field <span><span class="MathJax_Preview">\mathbb{Z}/p\mathbb{Z}</span><script type="math/tex">\mathbb{Z}/p\mathbb{Z}</script></span>.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>boundary</code></strong></dt>
-<dd>Full boundary matrix (i.e. <code>Cubical.matrices.full</code>).</dd>
-<dt><strong><code>filtration</code></strong></dt>
-<dd>A list of indices specifying the order in which the cells
-in the complex will be added. The assumed order is adding cells
-in order of dimension.</dd>
-<dt><strong><code>homology</code></strong></dt>
-<dd>The homology group for which persistence is computed.</dd>
-<dt><strong><code>p</code></strong></dt>
-<dd>Characteristic of the field <span><span class="MathJax_Preview">\mathbb{Z}/p\mathbb{Z}</span><script type="math/tex">\mathbb{Z}/p\mathbb{Z}</script></span>.</dd>
-<dt><strong><code>breaks</code></strong></dt>
-<dd>Index locations for cells of each degree (i.e. <code>Cubical.breaks</code>).</dd>
-</dl></div>
-</dd>
 <dt id="ateams.arithmetic.ComputePersistencePairs"><code class="name flex">
 <span>def <span class="ident">ComputePersistencePairs</span></span>(<span>boundary, filtration, homology, breaks)</span>
 </code></dt>
@@ -387,7 +349,7 @@ if not specified, the homology of the codimension-1 skeleton is
 reported.</dd>
 </dl>
 <p>The <code><a title="ateams.arithmetic.Persistence.ComputePercolationEvents" href="#ateams.arithmetic.Persistence.ComputePercolationEvents">Persistence.ComputePercolationEvents()</a></code> method computes the birth
-times of giant cycles given a complete filtration — that is, a filtration
+times of giant cycles given a complete filtration — that is, a filtration
 where the terminal element is the entire cubical complex. For example,
 the code below finds the birth times of giant cycles on the default
 <span><span class="MathJax_Preview">3 \times 3</span><script type="math/tex">3 \times 3</script></span> cubical torus: the filtration stored in <code>filtration</code>
@@ -524,6 +486,71 @@ algorithm introduced by Chen and Kerber (2011) and the one used in PHAT
 </dd>
 </dl>
 </dd>
+<dt id="ateams.arithmetic.Twist"><code class="flex name class">
+<span>class <span class="ident">Twist</span></span>
+<span>(</span><span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Implements the <code>twist_reduce</code> algorithm from Chen and Kerber (2011) and
+PHAT (2017). Implemented as a class so we minimally re-compute boundary
+matrix things; we also move away from NumPy integers and toward C-style
+ones for compatibility.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>characteristic</code></strong> :&ensp;<code>char</code></dt>
+<dd>Characteristic of the finite field <span><span class="MathJax_Preview">\mathbb Z/p\mathbb Z</span><script type="math/tex">\mathbb Z/p\mathbb Z</script></span>.</dd>
+<dt><strong><code>boundary</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>The full flattened boundary matrix. Given a
+complex <code>C</code> (e.g. <code><a title="ateams.complexes.Cubical" href="../complexes/index.html#ateams.complexes.Cubical">Cubical</a></code>), <code>C.matrices.full</code>.</dd>
+<dt><strong><code>breaks</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>Indices at which cells of a new dimension begin
+in <code>boundary</code>. Given a complex <code>C</code> (e.g. <code><a title="ateams.complexes.Cubical" href="../complexes/index.html#ateams.complexes.Cubical">Cubical</a></code>), <code>C.breaks</code>.</dd>
+<dt><strong><code>cellCount</code></strong> :&ensp;<code>int</code></dt>
+<dd>Total number of cells in the complex. Given a model
+<code>M</code> (e.g. <code><a title="ateams.models.SwendsenWang" href="../models/index.html#ateams.models.SwendsenWang">SwendsenWang</a></code>), <code>M.cellCount</code>.</dd>
+<dt><strong><code>dimension</code></strong> :&ensp;<code>int</code></dt>
+<dd>Dimension of percolation. Given a model <code>M</code> (e.g.
+<code><a title="ateams.models.SwendsenWang" href="../models/index.html#ateams.models.SwendsenWang">SwendsenWang</a></code>), <code>M.dimension</code>.</dd>
+</dl>
+<p>For example,</p>
+<pre><code class="language-python">from ateams.complexes import Cubical
+from ateams.arithmetic import Twist
+import numpy as np
+
+# Create a lattice; set the cell count, dimension, field characteristic.
+C = Cubical().fromCorners([3,3])
+cellCount = len(C.flattened)
+dimension = 1
+field = 3
+
+# Create the Twist object.
+Twister = Twist(field, C.matrices.full, C.breaks, cellCount, dimension)
+
+# Construct a filtration and compute the percolation events.
+filtration = np.arange(cellCount)
+essential = Twist.ComputePercolationEvents(filtration)
+</code></pre>
+<p>In this case, <code>essential</code> should be <code>{0, 17, 35, 21}</code>, and the times <span><span class="MathJax_Preview">17</span><script type="math/tex">17</script></span>
+and <span><span class="MathJax_Preview">21</span><script type="math/tex">21</script></span> are the essential <span><span class="MathJax_Preview">1</span><script type="math/tex">1</script></span>-dimensional cycles.</p></div>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.arithmetic.Twist.ComputePercolationEvents"><code class="name flex">
+<span>def <span class="ident">ComputePercolationEvents</span></span>(<span>self, filtration)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Given a filtration &mdash; i.e. a reordering of the columns of the full
+boundary matrix &mdash; gives times at which essential cycles of dimension
+<code>dimension</code> were created.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filtration</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>An array of column indices.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A set containing indices at which essential cycles appear.</p></div>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -557,16 +584,8 @@ proof.appendChild(square);
 <li><code><a title="ateams" href="../index.html">ateams</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
-<ul>
-<li><code><a title="ateams.arithmetic.BuiltinWrapper" href="BuiltinWrapper.html">ateams.arithmetic.BuiltinWrapper</a></code></li>
-<li><code><a title="ateams.arithmetic.LinBoxWrapper" href="LinBoxWrapper.html">ateams.arithmetic.LinBoxWrapper</a></code></li>
-<li><code><a title="ateams.arithmetic.PHATWrapper" href="PHATWrapper.html">ateams.arithmetic.PHATWrapper</a></code></li>
-</ul>
-</li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="ateams.arithmetic.ComputePercolationEvents" href="#ateams.arithmetic.ComputePercolationEvents">ComputePercolationEvents</a></code></li>
 <li><code><a title="ateams.arithmetic.ComputePersistencePairs" href="#ateams.arithmetic.ComputePersistencePairs">ComputePersistencePairs</a></code></li>
 <li><code><a title="ateams.arithmetic.Kernel" href="#ateams.arithmetic.Kernel">Kernel</a></code></li>
 <li><code><a title="ateams.arithmetic.KernelSample" href="#ateams.arithmetic.KernelSample">KernelSample</a></code></li>
@@ -592,6 +611,12 @@ proof.appendChild(square);
 <li><code><a title="ateams.arithmetic.Persistence.ComputePercolationEvents" href="#ateams.arithmetic.Persistence.ComputePercolationEvents">ComputePercolationEvents</a></code></li>
 <li><code><a title="ateams.arithmetic.Persistence.ReindexBoundary" href="#ateams.arithmetic.Persistence.ReindexBoundary">ReindexBoundary</a></code></li>
 <li><code><a title="ateams.arithmetic.Persistence.TwistComputePercolationEvents" href="#ateams.arithmetic.Persistence.TwistComputePercolationEvents">TwistComputePercolationEvents</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ateams.arithmetic.Twist" href="#ateams.arithmetic.Twist">Twist</a></code></h4>
+<ul class="">
+<li><code><a title="ateams.arithmetic.Twist.ComputePercolationEvents" href="#ateams.arithmetic.Twist.ComputePercolationEvents">ComputePercolationEvents</a></code></li>
 </ul>
 </li>
 </ul>

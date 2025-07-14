@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.3">
-<title>ateams.arithmetic.LinBoxWrapper API documentation</title>
+<title>ateams.arithmetic.Twist API documentation</title>
 <meta name="description" content="">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
@@ -106,7 +106,7 @@ text-align: center;
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>ateams.arithmetic.LinBoxWrapper</code></h1>
+<h1 class="title">Module <code>ateams.arithmetic.Twist</code></h1>
 </header>
 <section id="section-intro">
 </section>
@@ -115,62 +115,28 @@ text-align: center;
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="ateams.arithmetic.LinBoxWrapper.LanczosKernelSample"><code class="name flex">
-<span>def <span class="ident">LanczosKernelSample</span></span>(<span>coboundary, zeros, faces, columns, p, maxTries=8)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Uses the LinBox (Block?) Lanczos black-box solver to get a uniform
-random element of the kernel of the coboundary.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>coboundary</code></strong></dt>
-<dd>Memory-contiguous one-dimensional coboundary array,
-like that of the <code>Cubical</code> Complex object.</dd>
-<dt><strong><code>zeros</code></strong></dt>
-<dd>Memory-contiguous array of row indices that will be included
-in the coboundary submatrix.</dd>
-<dt><strong><code>faces</code></strong></dt>
-<dd>The number of faces per plaquette.</dd>
-<dt><strong><code>columns</code></strong></dt>
-<dd>Integer representing the number of columns in the coboundary
-submatrix; should be the total number of faces in the complex.</dd>
-<dt><strong><code>p</code></strong></dt>
-<dd>Characteristic of the field <span><span class="MathJax_Preview">\mathbb Z/p\mathbb Z</span><script type="math/tex">\mathbb Z/p\mathbb Z</script></span>.</dd>
-<dt><strong><code>maxTries</code></strong></dt>
-<dd>How many times do we try to get a nonzero solution from
-the black-box solver? Default is 8.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A C++ <code>std::vector</code> with spin assignments.</p></div>
-</dd>
-<dt id="ateams.arithmetic.LinBoxWrapper.SubLanczosKernelSample"><code class="name flex">
-<span>def <span class="ident">SubLanczosKernelSample</span></span>(<span>coboundary, zeroRows, zeroColumns, p, maxTries=8)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Uses the LinBox (Block?) Lanczos black-box solver to get a uniform
-random element of the kernel of the coboundary.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>coboundary</code></strong></dt>
-<dd>Memory-contiguous one-dimensional coboundary array,
-like that of the <code>Cubical</code> Complex object.</dd>
-<dt><strong><code>zeros</code></strong></dt>
-<dd>Memory-contiguous array of row indices that will be included
-in the coboundary submatrix.</dd>
-<dt><strong><code>p</code></strong></dt>
-<dd>Characteristic of the field <span><span class="MathJax_Preview">\mathbb Z/p\mathbb Z</span><script type="math/tex">\mathbb Z/p\mathbb Z</script></span>.</dd>
-<dt><strong><code>maxTries</code></strong></dt>
-<dd>How many times do we try to get a nonzero solution from
-the black-box solver? Default is 8.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A C++ <code>std::vector</code> with spin assignments.</p></div>
-</dd>
-</dl>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="ateams.arithmetic.Twist.Twist"><code class="flex name class">
+<span>class <span class="ident">Twist</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the persistent homology of a complex with coefficients
+in an arbitrary finite field.</p></div>
+<h3>Methods</h3>
+<dl>
+<dt id="ateams.arithmetic.Twist.Twist.ComputePercolationEvents"><code class="name flex">
+<span>def <span class="ident">ComputePercolationEvents</span></span>(<span>self, filtration)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -203,10 +169,14 @@ proof.appendChild(square);
 <li><code><a title="ateams.arithmetic" href="index.html">ateams.arithmetic</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-functions">Functions</a></h3>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="ateams.arithmetic.Twist.Twist" href="#ateams.arithmetic.Twist.Twist">Twist</a></code></h4>
 <ul class="">
-<li><code><a title="ateams.arithmetic.LinBoxWrapper.LanczosKernelSample" href="#ateams.arithmetic.LinBoxWrapper.LanczosKernelSample">LanczosKernelSample</a></code></li>
-<li><code><a title="ateams.arithmetic.LinBoxWrapper.SubLanczosKernelSample" href="#ateams.arithmetic.LinBoxWrapper.SubLanczosKernelSample">SubLanczosKernelSample</a></code></li>
+<li><code><a title="ateams.arithmetic.Twist.Twist.ComputePercolationEvents" href="#ateams.arithmetic.Twist.Twist.ComputePercolationEvents">ComputePercolationEvents</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

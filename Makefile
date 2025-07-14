@@ -8,7 +8,7 @@ DIR := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 clean:
 	@rm -rf ./build
 
-quick: PHATMethods LinBoxMethods
+quick: FORCE
 	@python setup.py build_ext --inplace
 
 
@@ -72,7 +72,7 @@ tables: FORCE
 	@echo "This will hang if you aren't logged in as anthony on Pangolin."
 	@cd test/stats && ./stats.sync.sh && ./stats.tables.sh
 
-docs: FORCE
+docs: FORCE quick
 	@pdoc ateams --force --html --template-dir docs/templates --output-dir=docs
 	@rsync -a docs/ateams/ docs/
 	@rm -rf docs/ateams

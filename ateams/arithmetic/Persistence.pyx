@@ -38,10 +38,10 @@ cdef class Persistence:
 				reported.
 
 		The `Persistence.ComputePercolationEvents` method computes the birth
-		times of giant cycles given a complete filtration — that is, a filtration
+		times of giant cycles given a complete filtration — that is, a filtration
 		where the terminal element is the entire cubical complex. For example,
 		the code below finds the birth times of giant cycles on the default
-		\(3 \\times 3\) cubical torus: the filtration stored in `filtration`
+		\(3 \times 3\) cubical torus: the filtration stored in `filtration`
 		adds each cube to the cubical complex in order of construction. At
 		completion, `events` contains the times `{17, 21}` which correspond to
 		crossings of the meridian and equator of the torus, respectively.

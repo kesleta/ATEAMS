@@ -1,22 +1,10 @@
 
 # distutils: language=c++
 
-from ..common cimport INDEXFLAT
+from ..common cimport INDEXFLAT, Vectorize
 from .PHATMethods cimport PHATComputePersistencePairs as _PHATComputePersistencePairs
 
 from libcpp.vector cimport vector as Vector
-
-
-cdef Vector[int] Vectorize(INDEXFLAT A) noexcept:
-	cdef int i, L;
-	cdef Vector[int] B;
-
-	L = A.shape[0];
-	B = Vector[int](L);
-
-	for i in range(L): B[i] = A[i];
-
-	return B;
 
 
 cpdef Vector[Vector[int]] PHATComputePersistencePairs(INDEXFLAT boundary, INDEXFLAT filtration, int homology, INDEXFLAT breaks) noexcept:

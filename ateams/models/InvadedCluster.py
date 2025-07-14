@@ -5,10 +5,10 @@ import warnings
 from math import comb
 
 from ..arithmetic import (
-	ComputePercolationEvents, LanczosKernelSample, MatrixReduction,
-	Persistence, KernelSample, FINT, ComputePersistencePairs
+	Twist, LanczosKernelSample, MatrixReduction,
+	Persistence, KernelSample, ComputePersistencePairs
 )
-from ..common import Matrices, TooSmallWarning, NumericalInstabilityWarning
+from ..common import Matrices, TooSmallWarning, NumericalInstabilityWarning, FINT
 
 
 class InvadedCluster():
@@ -118,12 +118,10 @@ class InvadedCluster():
 		# If we're using LinBox and the characteristic of our field is greater
 		# than 2, we use the twist_reduce variant implemented in this library.
 		if LinBox and self.field > 2:
-			def persist(filtration):
-				essential = ComputePercolationEvents(
-					self.matrices.full, filtration, self.dimension,
-					self.field, self.complex.breaks
-				)
+			Twister = Twist(self.field, self.matrices.full, self.complex.breaks, self.cellCount, self.dimension)
 
+			def persist(filtration):
+				essential = Twister.ComputePercolationEvents(filtration)
 				essential = np.array(list(essential))
 				essential.sort()
 				
@@ -145,10 +143,7 @@ class InvadedCluster():
 				)
 			
 			def persist(filtration):
-				essential = ComputePersistencePairs(
-					self.matrices.full, filtration, self.dimension, self.complex.breaks
-				)
-
+				essential = ComputePersistencePairs(self.matrices.full, filtration, self.dimension, self.complex.breaks)
 				return whittle(essential)
 			
 		if not LinBox:
