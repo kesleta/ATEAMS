@@ -2,7 +2,7 @@
 # distutils: language=c++
 
 from ..common cimport INDEXFLAT, Set, Column, Lookup, BoundaryMatrix, AnyMap, Table, Vectorize
-from .LinBoxMethods cimport ComputePercolationEvents
+from .LinBoxMethods cimport ComputePercolationEvents, ZpComputePercolationEvents
 
 from libc.math cimport pow
 
@@ -180,4 +180,22 @@ cdef class Twist:
 		return ComputePercolationEvents(
 			self.addition, self.multiplication, self.negation, self.inversion,
 			self.workingBoundary, self.breaks, self.cellCount, self.topDimension, self.dimension
+		);
+	
+	cpdef Set ZpComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
+		"""
+		Given a filtration --- i.e. a reordering of the columns of the full
+		boundary matrix --- gives times at which essential cycles of dimension
+		`dimension` were created.
+
+		Args:
+			filtration (np.ndarray): An array of column indices.
+
+		Returns:
+			A set containing indices at which essential cycles appear.
+		"""
+		self.workingBoundary = self.ReindexBoundaryMatrix(filtration);
+
+		return ZpComputePercolationEvents(
+			self.characteristic, self.workingBoundary, self.breaks, self.cellCount, self.topDimension, self.dimension
 		);

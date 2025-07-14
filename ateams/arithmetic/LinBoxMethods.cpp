@@ -120,6 +120,122 @@ int youngestOf(BalancedStorage column) {
 }
 
 
+typedef map<int,Zp::Element> ZpColumn;
+typedef vector<ZpColumn> ZpBoundaryMatrix;
+
+
+ZpBoundaryMatrix ZpFillBoundaryMatrix(BoundaryMatrix Boundary, Zp Field) {
+	ZpBoundaryMatrix B(Boundary.size());
+	Zp::Element q;
+	Column column;
+	ZpColumn pcolumn;
+	int face;
+
+	for (int t = 0; t < Boundary.size(); t++) {
+		column = Boundary[t];
+		pcolumn = ZpColumn();
+
+		for (auto it=column.begin(); it != column.end(); it++) {
+			face = it->first;
+			Field.init(q, it->second);
+			pcolumn[face] = q;
+		}
+
+		B[t] = pcolumn;
+	}
+
+	return B;
+}
+
+
+Set ZpComputePercolationEvents(
+		int field, BoundaryMatrix _boundary, Index breaks, int cellCount, int topDimension, int homology
+	) {
+	Zp F(field);
+	ZpBoundaryMatrix Boundary = ZpFillBoundaryMatrix(_boundary, F);
+
+	Index nextColumnAdded = Index(cellCount, 0);
+	ZpColumn cell, youngest;
+	Set marked = Set();
+	int face, high, numBreaks = breaks.size();
+
+	Zp::Element q, r, s, inv, neg, prod, result;
+	F.init(q);
+	F.init(r);
+	F.init(s);
+	// char q, r, s, inv, prod, result;
+
+	for (int d = topDimension; d > homology-1; d--) {
+
+		high = (d+1 >= numBreaks ? cellCount : breaks[d+1]);
+
+		for (int j = breaks[d]; j < high; j++) {
+			// If we're of the wrong dimension, keep going.
+			// if (dim(j, breaks) != d) { continue; }
+			cell = Boundary[j];
+
+			while (!cell.empty() && nextColumnAdded[youngestOf(cell)] != 0) {
+				// Get the "youngest" cell in the boundary and subtract it from
+				// the current cell.
+				youngest = Boundary[nextColumnAdded[youngestOf(cell)]];
+
+				// Get the multiplicative inverse of the coefficient and do
+				// arithmetic over the row.
+				q = youngest[youngestOf(cell)];
+				F.inv(inv, q);
+
+				for (auto it=youngest.begin(); it != youngest.end(); ++it) {
+					face = it->first;
+					s = it->second;
+
+					// Take the product of inv(q) with the entry of this row;
+					// if this is row youngestOf(cell), then this product is 1
+					// (it's a pivot). If the current cell shares this face, do
+					// the subtraction; otherwise, just add a new coefficient.
+					F.mul(prod, inv, s);
+					// prod = multiplication[inv][s];
+
+					if (cell.count(face) > 0) {
+						F.sub(result, cell[face], prod);
+						// result = addition[cell[face]][negation[prod]];
+
+						if (F.isZero(result)) {
+							cell.erase(face);
+						} else {
+							cell[face] = result;
+						}
+					} else {
+						F.neg(result, prod);
+						cell[face] = result;
+					}
+				}
+			}
+			// Check whether we've eliminated the column. For some god damn reason
+			// we have to re-set the entry of the Boundary??? Why?????? Scope??? wtf
+			if (!cell.empty()) {
+				Boundary[j] = cell;
+				nextColumnAdded[youngestOf(cell)] = j;
+				Boundary[youngestOf(cell)] = ZpColumn();
+			} else {
+				marked.insert(j);
+			}
+		}
+	}
+
+	// Find the essential birth times by checking whether the column is marked
+	// (i.e. is a cycle) and has no younger columns to add. (For some reason,
+	// 0 gets left out here. Not sure why...)
+	Set essential = Set();
+	essential.insert(0);
+
+	for (auto it = marked.begin(); it != marked.end(); it++) {
+		if (nextColumnAdded[*it] == 0) essential.insert(*it);
+	}
+
+	return essential;
+}
+
+
 Set ComputePercolationEvents(
 		Table addition, Table multiplication, Lookup negation, Lookup inversion,
 		BoundaryMatrix Boundary, Index breaks, int cellCount, int topDimension, int homology

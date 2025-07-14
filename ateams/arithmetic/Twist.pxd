@@ -17,3 +17,4 @@ cdef class Twist:
 	cdef BoundaryMatrix FillBoundaryMatrix(self, INDEXFLAT boundary) noexcept
 	cdef BoundaryMatrix ReindexBoundaryMatrix(self, INDEXFLAT filtration) noexcept
 	cpdef Set ComputePercolationEvents(self, INDEXFLAT filtration) noexcept
+	cpdef Set ZpComputePercolationEvents(self, INDEXFLAT filtration) noexcept

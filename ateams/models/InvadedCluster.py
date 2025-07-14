@@ -121,7 +121,7 @@ class InvadedCluster():
 			Twister = Twist(self.field, self.matrices.full, self.complex.breaks, self.cellCount, self.dimension)
 
 			def persist(filtration):
-				essential = Twister.ComputePercolationEvents(filtration)
+				essential = Twister.ZpComputePercolationEvents(filtration)
 				essential = np.array(list(essential))
 				essential.sort()
 				
