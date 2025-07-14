@@ -93,7 +93,7 @@ contribute: build profile docs
 install: dependencies _install profile
 
 dependencies: FORCE
-	@pip install Cython scipy jsonlines numpy packaging
+	@pip install -r requirements.txt
 
 _install: FORCE build
 	python setup.py develop

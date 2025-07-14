@@ -1,0 +1,6 @@
+Cython
+numpy
+scipy
+tqdm
+jsonlines
+packaging
