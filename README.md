@@ -48,7 +48,8 @@ You can turn on a progress bar for your simulation using the
 for (spins, occupied, satisfied) in Chain(HP, steps=10).progress():
 	pass
 ```
-pattern.
+pattern. To see how various configurations of each model perform on your machine,
+run `make profile`.
 
 ## Installation
 
@@ -96,6 +97,7 @@ $ sudo cp -r ateams/arithmetic/include/PHAT /usr/local/include/phat
 $ sudo clang++ -shared -fPIC -std=c++17 -o /usr/local/lib/libPHATMethods.so ateams/arithmetic/PHATMethods.cpp -v -O3 -ffast-math
   ...
 
+$ pip install -r requirements.txt
 $ python setup.py build_ext --inplace > build.log 2>&1 
 $ python setup.py develop
   ...
