@@ -90,7 +90,10 @@ contribute: build profile docs
 #################
 #### INSTALL ####
 #################
-install: _install profile
+install: dependencies _install profile
+
+dependencies: FORCE
+	@pip install Cython scipy jsonlines numpy packaging
 
 _install: FORCE build
 	python setup.py develop
