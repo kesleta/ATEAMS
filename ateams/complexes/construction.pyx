@@ -1,19 +1,19 @@
 
 # distutils: language=c++
 
-from ..common cimport INDEX, MINT, AnyVector, Vector
+from ..common cimport INDEX, MINT, FlatBoundaryMatrix, Index, INDEXTYPE
 
 
-cpdef AnyVector[Vector] boundaryMatrices(MINT[:,:] cubes, MINT[:] coefficients):
+cpdef FlatBoundaryMatrix boundaryMatrices(MINT[:,:] cubes, MINT[:] coefficients):
 	cdef INDEX boundary;
 	cdef int i, j, face, M, N;
-	cdef Vector Boundary, Coboundary;
-	cdef AnyVector[Vector] Matrices;
+	cdef Index Boundary, Coboundary;
+	cdef FlatBoundaryMatrix Matrices;
 
 	# Instantiate vectors so we don't have to allocate memory all at once.
-	Boundary = Vector();
-	Coboundary = Vector();
-	Matrices = AnyVector[Vector](2);
+	Boundary = Index();
+	Coboundary = Index();
+	Matrices = FlatBoundaryMatrix(2);
 
 	M = cubes.shape[0];
 	N = cubes.shape[1];
@@ -40,9 +40,9 @@ cpdef AnyVector[Vector] boundaryMatrices(MINT[:,:] cubes, MINT[:] coefficients):
 	return Matrices;
 
 
-cpdef Vector fullBoundaryMatrix(list boundary, dict coefficients):
+cpdef Index fullBoundaryMatrix(list boundary, dict coefficients):
 	cdef int M, i, N, j, face;
-	cdef Vector Boundary = Vector();
+	cdef Index Boundary = Index();
 
 	M = len(boundary);
 	
@@ -63,6 +63,6 @@ cpdef Vector fullBoundaryMatrix(list boundary, dict coefficients):
 			face = faces[j];
 			Boundary.push_back(face);
 			Boundary.push_back(i);
-			Boundary.push_back(<int>coefficients[N//2][j]);
+			Boundary.push_back(<INDEXTYPE>coefficients[N//2][j]);
 
 	return Boundary;

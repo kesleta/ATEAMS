@@ -1,6 +1,6 @@
 
-from ..common cimport Index, Pairs
+from ..common cimport Index, PersistencePairs
 
 cdef extern from "PHATMethods.h":
-	Pairs PHATComputePersistencePairs(Index boundary, Index filtration, int homology, Index breaks) noexcept
+	PersistencePairs PHATComputePersistencePairs(Index boundary, Index filtration, int homology, Index breaks) noexcept
 

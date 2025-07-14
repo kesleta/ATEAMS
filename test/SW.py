@@ -34,6 +34,6 @@ def chain(M, DESC=""):
 
 
 if __name__ == "__main__":
-	M = construct(20, 4, 5)
+	M = construct(3, 4, 5)
 	chain(M)
 

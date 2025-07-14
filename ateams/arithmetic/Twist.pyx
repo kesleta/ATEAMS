@@ -1,7 +1,7 @@
 
 # distutils: language=c++
 
-from ..common cimport INDEXFLAT, Set, Column, Lookup, BoundaryMatrix, AnyMap, Table, Vectorize
+from ..common cimport INDEXFLAT, Vectorize, DATATYPE, BoundaryMatrix, Column, Map
 from .LinBoxMethods cimport ComputePercolationEvents, ZpComputePercolationEvents
 
 from libc.math cimport pow
@@ -86,8 +86,8 @@ cdef class Twist:
 		# Addition, multiplication tables.
 		for i in range(p):
 			for j in range(p):
-				addition[i][j] = <char>((i+j)%p);
-				multiplication[i][j] = <char>((i*j)%p);
+				addition[i][j] = <DATATYPE>((i+j)%p);
+				multiplication[i][j] = <DATATYPE>((i*j)%p);
 
 		self.addition = addition;
 		self.multiplication = multiplication;
@@ -100,8 +100,8 @@ cdef class Twist:
 		inverse[0] = 0;
 
 		for i in range(1, p):
-			negation[i] = <char>(p-i);
-			inverse[i] = <char>(pow(i, p-2)%p);
+			negation[i] = <DATATYPE>(p-i);
+			inverse[i] = <DATATYPE>(pow(i, p-2)%p);
 
 		self.negation = negation;
 		self.inversion = inverse;
@@ -120,7 +120,7 @@ cdef class Twist:
 			column = boundary[t+1];
 			q = boundary[t+2];
 
-			if (q != 0): B[column][row] = <char>((q+p)%p);
+			if (q != 0): B[column][row] = <DATATYPE>((q+p)%p);
 
 		return B;
 
@@ -134,7 +134,7 @@ cdef class Twist:
 		cdef char q;
 
 		# Construct an index mapper.
-		cdef AnyMap[int,int] IndexMap = AnyMap[int,int]();
+		cdef Map IndexMap = Map();
 		for t in range(low, higher): IndexMap[filtration[t]] = t;
 
 		# Loop over the appropriate cells, moving or reindexing where necessary.

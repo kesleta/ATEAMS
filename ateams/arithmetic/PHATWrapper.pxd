@@ -1,6 +1,6 @@
 
 # distutils: language=c++
 
-from ..common cimport INDEXFLAT, Vectorize, Pairs, Vector
+from ..common cimport INDEXFLAT, PersistencePairs
 
-cpdef Pairs PHATComputePersistencePairs(INDEXFLAT boundary, INDEXFLAT filtration, int homology, INDEXFLAT breaks) noexcept
+cpdef PersistencePairs PHATComputePersistencePairs(INDEXFLAT boundary, INDEXFLAT filtration, int homology, INDEXFLAT breaks) noexcept

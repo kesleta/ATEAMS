@@ -17,8 +17,8 @@
 using namespace std;
 
 
-typedef vector<phat::index> Column;
-typedef phat::boundary_matrix<phat::bit_tree_pivot_column> BoundaryMatrix;
+typedef vector<phat::index> PHATColumn;
+typedef phat::boundary_matrix<phat::bit_tree_pivot_column> PHATBoundaryMatrix;
 typedef phat::persistence_pairs Pairs;
 typedef phat::twist_reduction Twist;
 
@@ -93,14 +93,14 @@ PersistencePairs PHATComputePersistencePairs(Index _boundary, Index filtration, 
 	// Build out the boundary matrix.
 	Pairs pairs;
 	FlatBoundaryMatrix boundary = ReindexAndFlatten(_boundary, filtration, homology, breaks);
-	BoundaryMatrix Boundary;
-	Column faces;
-	int numFaces, numColumns = boundary.size();
+	PHATBoundaryMatrix Boundary;
+	PHATColumn faces;
+	int numFaces, numPHATColumns = boundary.size();
 
 	// Count the number of columns.
-	Boundary.set_num_cols(numColumns);
+	Boundary.set_num_cols(numPHATColumns);
 
-	for (int t=0; t < numColumns; t++) {
+	for (int t=0; t < numPHATColumns; t++) {
 		// Fill in the faces for this column. Should be fine dealing with empty
 		// columns (i.e. vertices).
 		numFaces = boundary[t].size();

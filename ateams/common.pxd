@@ -5,6 +5,10 @@ from libcpp.set cimport set as AnySet
 from libcpp.vector cimport vector as AnyVector
 from libcpp.map cimport map as AnyMap
 from libcpp cimport bool
+from libc.stdint cimport int32_t
+
+ctypedef int32_t INDEXTYPE
+ctypedef char DATATYPE
 
 import numpy as np
 cimport numpy as np
@@ -21,22 +25,27 @@ ctypedef MINT[::1] INDEXFLAT
 ctypedef FFINT[::1] FLATCONTIG
 ctypedef FFINT[:,::1] TABLECONTIG
 
-ctypedef AnyVector[int] Vector;
-ctypedef AnyVector[int] Index;
-ctypedef AnyVector[char] Lookup;
-ctypedef AnyVector[AnyVector[char]] Table;
-ctypedef AnyMap[int, char] Column;
+
+ctypedef AnySet[INDEXTYPE] Set;
+ctypedef AnyMap[INDEXTYPE,INDEXTYPE] Map;
+ctypedef AnyVector[INDEXTYPE] Index;
+
+ctypedef AnyVector[DATATYPE] Lookup;
+ctypedef AnyVector[Lookup] Table;
+
+ctypedef AnyVector[Index] PersistencePairs;
+
+ctypedef AnyMap[INDEXTYPE,DATATYPE] Column;
 ctypedef AnyVector[Column] BoundaryMatrix;
-ctypedef AnyVector[Vector] Pairs;
-ctypedef AnySet[int] Set;
+ctypedef AnyVector[Index] FlatBoundaryMatrix;
 
 
-cdef inline Vector Vectorize(INDEXFLAT A) noexcept:
+cdef inline Index Vectorize(INDEXFLAT A) noexcept:
 	cdef int i, L;
-	cdef Vector B;
+	cdef Index B;
 
 	L = A.shape[0];
-	B = Vector(L);
+	B = Index(L);
 
 	for i in range(L): B[i] = A[i];
 
