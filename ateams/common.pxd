@@ -4,11 +4,13 @@
 from libcpp.set cimport set as AnySet
 from libcpp.vector cimport vector as AnyVector
 from libcpp.map cimport map as AnyMap
+from libcpp cimport bool
 
 import numpy as np
 cimport numpy as np
 
-# ctypedef int MINT
+# Cython memoryview types. We should be switching to chars (or, really, abandoning
+# these types altogether).
 ctypedef np.int64_t MINT
 ctypedef np.int16_t FFINT
 ctypedef FFINT[:] FLAT
@@ -25,15 +27,16 @@ ctypedef AnyVector[char] Lookup;
 ctypedef AnyVector[AnyVector[char]] Table;
 ctypedef AnyMap[int, char] Column;
 ctypedef AnyVector[Column] BoundaryMatrix;
+ctypedef AnyVector[Vector] Pairs;
 ctypedef AnySet[int] Set;
 
 
-cdef inline AnyVector[int] Vectorize(INDEXFLAT A) noexcept:
+cdef inline Vector Vectorize(INDEXFLAT A) noexcept:
 	cdef int i, L;
-	cdef AnyVector[int] B;
+	cdef Vector B;
 
 	L = A.shape[0];
-	B = AnyVector[int](L);
+	B = Vector(L);
 
 	for i in range(L): B[i] = A[i];
 

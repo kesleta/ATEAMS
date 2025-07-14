@@ -1,23 +1,18 @@
 
 # distutils: language=c++
 
-from ..common cimport MINT, INDEXFLAT
+from ..common cimport int, INDEXFLAT, Vector, Set, AnyMap
 from .LinBoxMethods cimport (
 	LanczosKernelSample as _LanczosKernelSample
 )
 
-from libcpp.vector cimport vector as Vector
-from libcpp.set cimport set as Set
-from libcpp.unordered_map cimport unordered_map as Map
 
-
-
-cdef Vector[int] ZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeros, int faces, int columns):
+cdef Vector ZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeros, int faces, int columns):
 	cdef int i, t, L, M, N;
 	cdef int cube;
-	cdef Vector[int] submatrix;
-	cdef Set[MINT] zeroset;
-	cdef Map[MINT, MINT] zeromap;
+	cdef Vector submatrix;
+	cdef Set zeroset;
+	cdef AnyMap[int, int] zeromap;
 
 	# Initialize zeroset and zeromap.
 	L = zeros.shape[0];
@@ -32,7 +27,7 @@ cdef Vector[int] ZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeros, int faces, int colu
 	# is faces*cells, the total number of entries is faces*cells*3.
 	M = 3*faces*L;
 	t = 0;
-	submatrix = Vector[int](M);
+	submatrix = Vector(M);
 
 	for i in range(0, A.shape[0], 3):
 		cube = A[i];
@@ -46,12 +41,12 @@ cdef Vector[int] ZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeros, int faces, int colu
 	return submatrix
 
 
-cdef Vector[int] SubZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeroRows, INDEXFLAT zeroColumns):
+cdef Vector SubZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeroRows, INDEXFLAT zeroColumns):
 	cdef int i, t, L, M, N;
 	cdef int cell, face;
-	cdef Vector[int] submatrix;
-	cdef Set[MINT] zeroRowSet, zeroColumnSet;
-	cdef Map[MINT, MINT] zeroRowMap, zeroColumnMap;
+	cdef Vector submatrix;
+	cdef Set zeroRowSet, zeroColumnSet;
+	cdef AnyMap[int, int] zeroRowMap, zeroColumnMap;
 
 	# Initialize the set/map for zero rows.
 	L = zeroRows.shape[0];
@@ -69,7 +64,7 @@ cdef Vector[int] SubZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeroRows, INDEXFLAT zer
 
 	# Create the submatrix. Maybe could do some better memory allocation on this
 	# but that's a chore for later Anthony.
-	submatrix = Vector[int]();
+	submatrix = Vector();
 
 	for i in range(0, A.shape[0], 3):
 		cell = A[i];
@@ -83,7 +78,7 @@ cdef Vector[int] SubZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeroRows, INDEXFLAT zer
 	return submatrix
 
 
-cpdef Vector[int] SubLanczosKernelSample(
+cpdef Vector SubLanczosKernelSample(
 		INDEXFLAT coboundary, INDEXFLAT zeroRows, INDEXFLAT zeroColumns,
 		int p, int maxTries=8
 	) except *:
@@ -103,11 +98,11 @@ cpdef Vector[int] SubLanczosKernelSample(
 	Returns:
 		A C++ `std::vector` with spin assignments.
 	"""
-	cdef Vector[int] submatrix = SubZeroSubmatrix(coboundary, zeroRows, zeroColumns);
+	cdef Vector submatrix = SubZeroSubmatrix(coboundary, zeroRows, zeroColumns);
 	return _LanczosKernelSample(submatrix, zeroRows.shape[0], zeroColumns.shape[0], p, maxTries);
 
 
-cpdef Vector[int] LanczosKernelSample(
+cpdef Vector LanczosKernelSample(
 		INDEXFLAT coboundary, INDEXFLAT zeros, int faces, int columns, int p,
 		int maxTries=8
 	) except *:
@@ -130,11 +125,11 @@ cpdef Vector[int] LanczosKernelSample(
 	Returns:
 		A C++ `std::vector` with spin assignments.
 	"""
-	cdef Vector[int] sample, submatrix = ZeroSubmatrix(coboundary, zeros, faces, columns);
+	cdef Vector sample, submatrix = ZeroSubmatrix(coboundary, zeros, faces, columns);
 	return _LanczosKernelSample(submatrix, zeros.shape[0], columns, p, maxTries);
 
 
-# cpdef Set[int] ComputePercolationEvents(INDEXFLAT boundary, INDEXFLAT filtration, int homology, int p, INDEXFLAT breaks) noexcept:
+# cpdef Set ComputePercolationEvents(INDEXFLAT boundary, INDEXFLAT filtration, int homology, int p, INDEXFLAT breaks) noexcept:
 # 	"""
 # 	Uses a variant of the Chen/Kerber (2011) and PHAT (2017) twist_reduce algorithm
 # 	to compute the persistent homology of the complex specified by the flat boundary
@@ -149,8 +144,8 @@ cpdef Vector[int] LanczosKernelSample(
 # 		p: Characteristic of the field \(\mathbb{Z}/p\mathbb{Z}\).
 # 		breaks: Index locations for cells of each degree (i.e. `Cubical.breaks`).
 # 	"""
-# 	cdef Vector[int] _boundary = Vectorize(boundary);
-# 	cdef Vector[int] _filtration = Vectorize(filtration);
-# 	cdef Vector[int] _breaks = Vectorize(breaks);
+# 	cdef Vector _boundary = Vectorize(boundary);
+# 	cdef Vector _filtration = Vectorize(filtration);
+# 	cdef Vector _breaks = Vectorize(breaks);
 
 # 	return _ComputePercolationEvents(_boundary, _filtration, homology, p, _breaks);

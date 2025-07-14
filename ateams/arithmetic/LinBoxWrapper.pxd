@@ -1,9 +1,5 @@
 
+from ..common cimport INDEXFLAT, Index, Vector
 
-from ..common cimport INDEXFLAT
-
-from libcpp.vector cimport vector as Vector
-from libcpp.set cimport set as Set
-
-cpdef Vector[int] LanczosKernelSample(INDEXFLAT coboundary, INDEXFLAT zeros, int faces, int columns, int p, int maxTries=*) except *
-cpdef Vector[int] SubLanczosKernelSample(INDEXFLAT coboundary, INDEXFLAT zeroRows, INDEXFLAT zeroColumns, int p, int maxTries=*) except *
+cpdef Index LanczosKernelSample(INDEXFLAT coboundary, INDEXFLAT zeros, int faces, int columns, int p, int maxTries=*) except *
+cpdef Index SubLanczosKernelSample(INDEXFLAT coboundary, INDEXFLAT zeroRows, INDEXFLAT zeroColumns, int p, int maxTries=*) except *

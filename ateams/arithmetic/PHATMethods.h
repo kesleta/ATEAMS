@@ -1,4 +1,13 @@
 
+#include <vector>
+#include <map>
+
 using namespace std;
 
-std::vector<std::vector<int>> PHATComputePersistencePairs(std::vector<int> boundary, std::vector<int> filtration, int homology, std::vector<int> breaks);
+typedef vector<int> Index;
+typedef vector<Index> PersistencePairs;
+typedef vector<Index> FlatBoundaryMatrix;
+typedef map<int,int> Map;
+
+
+PersistencePairs PHATComputePersistencePairs(Index boundary, Index filtration, int homology, Index breaks);

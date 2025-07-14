@@ -5,19 +5,15 @@
 #include <linbox/ring/modular.h>
 #include <linbox/field/gf2.h>
 #include <linbox/blackbox/zo-gf2.h>
-
 #include <iostream>
 
 #include "LinBoxMethods.h"
 
 using namespace std;
 
-typedef vector<int> Index;
-
 typedef Givaro::Modular<int> Zp;
 typedef LinBox::SparseMatrix<Zp, LinBox::SparseMatrixFormat::SparseSeq> ZpMatrix;
 typedef LinBox::DenseVector<Zp> ZpVector;
-
 typedef LinBox::ZeroOne<LinBox::GF2> Z2Matrix;
 typedef LinBox::DenseVector<LinBox::GF2> Z2Vector;
 

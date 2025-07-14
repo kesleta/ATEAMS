@@ -2,7 +2,6 @@
 #include <phat/compute_persistence_pairs.h>
 #include <phat/boundary_matrix.h>
 #include <phat/representations/default_representations.h>
-
 #include <phat/algorithms/twist_reduction.h>
 #include <phat/algorithms/standard_reduction.h>
 #include <phat/algorithms/row_reduction.h>
@@ -11,17 +10,12 @@
 #include <phat/algorithms/swap_twist_reduction.h>
 #include <phat/algorithms/exhaustive_compress_reduction.h>
 #include <phat/algorithms/lazy_retrospective_reduction.h>
-
 #include <phat/helpers/dualize.h>
 
 #include "PHATMethods.h"
 
 using namespace std;
 
-typedef vector<int> Index;
-typedef vector<Index> PersistencePairs;
-typedef vector<Index> FlatBoundaryMatrix;
-typedef map<int,int> Map;
 
 typedef vector<phat::index> Column;
 typedef phat::boundary_matrix<phat::bit_tree_pivot_column> BoundaryMatrix;

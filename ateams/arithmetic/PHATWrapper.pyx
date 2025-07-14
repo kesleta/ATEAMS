@@ -1,13 +1,11 @@
 
 # distutils: language=c++
 
-from ..common cimport INDEXFLAT, Vectorize
+from ..common cimport INDEXFLAT, Vectorize, Pairs, Vector
 from .PHATMethods cimport PHATComputePersistencePairs as _PHATComputePersistencePairs
 
-from libcpp.vector cimport vector as Vector
 
-
-cpdef Vector[Vector[int]] PHATComputePersistencePairs(INDEXFLAT boundary, INDEXFLAT filtration, int homology, INDEXFLAT breaks) noexcept:
+cpdef Pairs PHATComputePersistencePairs(INDEXFLAT boundary, INDEXFLAT filtration, int homology, INDEXFLAT breaks) noexcept:
 	"""
 	Computes the persistence pairs of the complex corresponding to the provided
 	boundary matrix and filtration.
@@ -26,7 +24,7 @@ cpdef Vector[Vector[int]] PHATComputePersistencePairs(INDEXFLAT boundary, INDEXF
 	Returns:
 		A list of [birth, death] pairs.
 	"""
-	cdef Vector[int] _boundary, _filtration, _breaks;
+	cdef Vector _boundary, _filtration, _breaks;
 	_boundary = Vectorize(boundary);
 	_filtration = Vectorize(filtration);
 	_breaks = Vectorize(breaks);

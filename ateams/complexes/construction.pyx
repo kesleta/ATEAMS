@@ -1,21 +1,19 @@
 
 # distutils: language=c++
 
-from libcpp.vector cimport vector as Vector
-
-from ..common cimport INDEX, MINT
+from ..common cimport INDEX, MINT, AnyVector, Vector
 
 
-cpdef Vector[Vector[MINT]] boundaryMatrices(MINT[:,:] cubes, MINT[:] coefficients):
+cpdef AnyVector[Vector] boundaryMatrices(MINT[:,:] cubes, MINT[:] coefficients):
 	cdef INDEX boundary;
 	cdef int i, j, face, M, N;
-	cdef Vector[MINT] Boundary, Coboundary;
-	cdef Vector[Vector[MINT]] Matrices;
+	cdef Vector Boundary, Coboundary;
+	cdef AnyVector[Vector] Matrices;
 
 	# Instantiate vectors so we don't have to allocate memory all at once.
-	Boundary = Vector[MINT]();
-	Coboundary = Vector[MINT]();
-	Matrices = Vector[Vector[MINT]](2);
+	Boundary = Vector();
+	Coboundary = Vector();
+	Matrices = AnyVector[Vector](2);
 
 	M = cubes.shape[0];
 	N = cubes.shape[1];
@@ -42,9 +40,9 @@ cpdef Vector[Vector[MINT]] boundaryMatrices(MINT[:,:] cubes, MINT[:] coefficient
 	return Matrices;
 
 
-cpdef Vector[int] fullBoundaryMatrix(list boundary, dict coefficients):
+cpdef Vector fullBoundaryMatrix(list boundary, dict coefficients):
 	cdef int M, i, N, j, face;
-	cdef Vector[int] Boundary = Vector[int]();
+	cdef Vector Boundary = Vector();
 
 	M = len(boundary);
 	
