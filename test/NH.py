@@ -7,12 +7,12 @@ import json
 import sys
 from pathlib import Path
 
-def construct(L, field):
+def construct(L, dim, field):
 	# Construct complex object.
-	fname = Path(f"./data/cubical.{L}.2.json")
+	fname = Path(f"./data/cubical.{L}.{dim}.json")
 	if not fname.exists():
 		fname.parent.mkdir(exist_ok=True, parents=True)
-		L = Cubical().fromCorners([L]*2)
+		L = Cubical().fromCorners([L]*dim)
 		L.toFile(fname)
 	else:
 		L = Cubical().fromFile(fname)
@@ -31,6 +31,6 @@ def chain(M, DESC=""):
 
 
 if __name__ == "__main__":
-	M = construct(100, 5)
+	M = construct(49, 2, 5)
 	chain(M)
 

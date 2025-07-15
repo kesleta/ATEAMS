@@ -2,7 +2,7 @@
 
 start="${1:-9}"
 stop="${2:-12}"
-cores="${3:-2}"
+dim="${3:-2}"
 fields=(2 3 5 7)
 
 echo "____________________"
@@ -16,7 +16,7 @@ echo
 
 for ((L=$start; L<$stop; L++)); do
 	for field in ${fields[@]}; do
-		python profile.models.NH.py $L $field &
+		python profile.models.NH.py $dim $L $field &
 		wait $!
 		
 		case $? in

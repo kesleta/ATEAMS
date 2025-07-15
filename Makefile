@@ -18,12 +18,12 @@ build: clean PHATMethods LinBoxMethods
 
 PHATMethods:
 	@sudo cp -r ateams/arithmetic/include/PHAT /usr/local/include/phat
-	@sudo clang++ -shared -fPIC -std=c++17 -o /usr/local/lib/libPHATMethods.so ateams/arithmetic/PHATMethods.cpp -v -O3 -ffast-math
+	@sudo clang++ -shared -fPIC -std=c++17 -o /usr/local/lib/libPHATMethods.so ateams/arithmetic/PHATMethods.cpp -v -O3
 	@sudo cp -r ateams/arithmetic/PHATMethods.h /usr/local/include/ATEAMS/
 
 
 LinBoxMethods:
-	@sudo clang++ `pkg-config --libs linbox` -shared -fPIC -std=c++17 -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp -v -O3 -ffast-math
+	@sudo clang++ `pkg-config --libs linbox` -shared -fPIC -std=c++17 -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp -v -O3
 	@sudo cp -r ateams/arithmetic/LinBoxMethods.h /usr/local/include/ATEAMS/
 
 
@@ -42,7 +42,8 @@ SwendsenWang: FORCE
 	@cd test && ./profile.models.SW.sh 499 502 2
 
 Nienhuis: FORCE
-	@cd test && ./profile.models.NH.sh 49 52
+	@cd test && ./profile.models.NH.sh 49 52 2
+	@cd test && ./profile.models.NH.sh 19 22 3
 
 InvadedCluster: FORCE
 	@cd test && ./profile.models.IC.sh 7 8 4

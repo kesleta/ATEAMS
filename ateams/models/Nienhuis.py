@@ -77,7 +77,7 @@ class Nienhuis():
 		# Check the dimensions of the boundary/coboundary matrices by comparing
 		# the number of cells. LinBox is really sensitive to smaller-size matrices,
 		# but can easily handle large ones.
-		if self.cells*self.faces < 10000 and LinBox:
+		if self.cells*self.faces < 100000 and LinBox:
 			warnings.warn(f"complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.", TooSmallWarning, stacklevel=2)
 
 		# Seed the random number generator.
