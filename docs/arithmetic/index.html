@@ -547,7 +547,39 @@ and <span><span class="MathJax_Preview">21</span><script type="math/tex">21</scr
 <dd>
 <div class="desc"><p>Given a filtration &mdash; i.e. a reordering of the columns of the full
 boundary matrix &mdash; gives times at which essential cycles of dimension
-<code>dimension</code> were created.</p>
+<code>dimension</code> were created. Performs arithmetic using addition and
+multiplication tables stored in <code>vector&lt;vector&lt;char&gt;&gt;</code>s.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filtration</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>An array of column indices.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A set containing indices at which essential cycles appear.</p></div>
+</dd>
+<dt id="ateams.arithmetic.Twist.LinearComputePercolationEvents"><code class="name flex">
+<span>def <span class="ident">LinearComputePercolationEvents</span></span>(<span>self, filtration)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Given a filtration &mdash; i.e. a reordering of the columns of the full
+boundary matrix &mdash; gives times at which essential cycles of dimension
+<code>dimension</code> were created. Performs arithmetic using flattened addition
+and multiplication tables stored in <code>vector&lt;char&gt;</code>s.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filtration</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>An array of column indices.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A set containing indices at which essential cycles appear.</p></div>
+</dd>
+<dt id="ateams.arithmetic.Twist.ZpComputePercolationEvents"><code class="name flex">
+<span>def <span class="ident">ZpComputePercolationEvents</span></span>(<span>self, filtration)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Given a filtration &mdash; i.e. a reordering of the columns of the full
+boundary matrix &mdash; gives times at which essential cycles of dimension
+<code>dimension</code> were created. Performs arithmetic using <code>Givaro</code>.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>filtration</code></strong> :&ensp;<code>np.ndarray</code></dt>
@@ -624,6 +656,8 @@ proof.appendChild(square);
 <h4><code><a title="ateams.arithmetic.Twist" href="#ateams.arithmetic.Twist">Twist</a></code></h4>
 <ul class="">
 <li><code><a title="ateams.arithmetic.Twist.ComputePercolationEvents" href="#ateams.arithmetic.Twist.ComputePercolationEvents">ComputePercolationEvents</a></code></li>
+<li><code><a title="ateams.arithmetic.Twist.LinearComputePercolationEvents" href="#ateams.arithmetic.Twist.LinearComputePercolationEvents">LinearComputePercolationEvents</a></code></li>
+<li><code><a title="ateams.arithmetic.Twist.ZpComputePercolationEvents" href="#ateams.arithmetic.Twist.ZpComputePercolationEvents">ZpComputePercolationEvents</a></code></li>
 </ul>
 </li>
 </ul>

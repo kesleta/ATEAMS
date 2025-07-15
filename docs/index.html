@@ -152,7 +152,8 @@ for (spins, occupied) in Chain(SW, steps=1000):
 <pre><code class="language-python">for (spins, occupied, satisfied) in Chain(HP, steps=10).progress():
     pass
 </code></pre>
-<p>pattern.</p>
+<p>pattern. To see how various configurations of each model perform on your machine,
+run <code>make profile</code>.</p>
 <h2 id="installation">Installation</h2>
 <h3 id="prerequisites">Prerequisites</h3>
 <ol>
@@ -194,6 +195,7 @@ $ sudo cp -r ateams/arithmetic/include/PHAT /usr/local/include/phat
 $ sudo clang++ -shared -fPIC -std=c++17 -o /usr/local/lib/libPHATMethods.so ateams/arithmetic/PHATMethods.cpp -v -O3 -ffast-math
   ...
 
+$ pip install -r requirements.txt
 $ python setup.py build_ext --inplace &gt; build.log 2&gt;&amp;1 
 $ python setup.py develop
   ...
