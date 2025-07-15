@@ -1,7 +1,8 @@
 
 
-#include "../common.h"
+#include <ATEAMS/common.h>
 
 Index LanczosKernelSample(Index coboundary, int M, int N, int p, int maxTries);
-Set ComputePercolationEvents(Table addition, Table multiplication, Lookup negation, Lookup inversion, BoundaryMatrix Boundary, Index breaks, int cellCount, int topDimension, int homology);
-Set ZpComputePercolationEvents(int field, BoundaryMatrix Boundary, Index breaks, int cellCount, int topDimension, int homology);
+Set ComputePercolationEvents(Table addition, Table multiplication, Lookup negation, Lookup inversion, BoundaryMatrix Boundary, Index breaks, int cellCount);
+Set LinearComputePercolationEvents(int field, Lookup addition, Lookup multiplication, Lookup negation, Lookup inversion, BoundaryMatrix Boundary, Index breaks, int cellCount, int dimension);
+Set ZpComputePercolationEvents(int field, BoundaryMatrix Boundary, Index breaks, int cellCount);

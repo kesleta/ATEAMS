@@ -1,4 +1,4 @@
 
-#include "../common.h"
+#include <ATEAMS/common.h>
 
 PersistencePairs PHATComputePersistencePairs(Index boundary, Index filtration, int homology, Index breaks);

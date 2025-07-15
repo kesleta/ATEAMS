@@ -2,7 +2,7 @@
 # distutils: language=c++
 
 from ..common cimport INDEXFLAT, Vectorize, DATATYPE, BoundaryMatrix, Column, Map
-from .LinBoxMethods cimport ComputePercolationEvents, ZpComputePercolationEvents
+from .LinBoxMethods cimport ComputePercolationEvents, ZpComputePercolationEvents, LinearComputePercolationEvents
 
 from libc.math cimport pow
 
@@ -77,7 +77,7 @@ cdef class Twist:
 		# tables.
 		cdef int p = self.characteristic;
 		cdef Table addition, multiplication;
-		cdef Lookup negation, inverse;
+		cdef Lookup negation, inverse, flatAddition, flatMultiplication;
 		cdef int i, j;
 
 		addition = Table(p, Lookup(p));
@@ -87,10 +87,16 @@ cdef class Twist:
 		for i in range(p):
 			for j in range(p):
 				addition[i][j] = <DATATYPE>((i+j)%p);
+				flatAddition.push_back(<DATATYPE>((i+j)%p));
+
 				multiplication[i][j] = <DATATYPE>((i*j)%p);
+				flatMultiplication.push_back(<DATATYPE>((i*j)%p));
 
 		self.addition = addition;
+		self.flatAddition = flatAddition;
+
 		self.multiplication = multiplication;
+		self.flatMultiplication = flatMultiplication;
 
 		# Negations and inverses.
 		negation = Lookup(p);
@@ -167,7 +173,8 @@ cdef class Twist:
 		"""
 		Given a filtration --- i.e. a reordering of the columns of the full
 		boundary matrix --- gives times at which essential cycles of dimension
-		`dimension` were created.
+		`dimension` were created. Performs arithmetic using addition and
+		multiplication tables stored in `vector<vector<char>>`s.
 
 		Args:
 			filtration (np.ndarray): An array of column indices.
@@ -179,14 +186,34 @@ cdef class Twist:
 
 		return ComputePercolationEvents(
 			self.addition, self.multiplication, self.negation, self.inversion,
-			self.workingBoundary, self.breaks, self.cellCount, self.topDimension, self.dimension
+			self.workingBoundary, self.breaks, self.cellCount
+		);
+
+	cpdef Set LinearComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
+		"""
+		Given a filtration --- i.e. a reordering of the columns of the full
+		boundary matrix --- gives times at which essential cycles of dimension
+		`dimension` were created. Performs arithmetic using flattened addition
+		and multiplication tables stored in `vector<char>`s.
+
+		Args:
+			filtration (np.ndarray): An array of column indices.
+
+		Returns:
+			A set containing indices at which essential cycles appear.
+		"""
+		self.workingBoundary = self.ReindexBoundaryMatrix(filtration);
+
+		return LinearComputePercolationEvents(
+			self.characteristic, self.flatAddition, self.flatMultiplication, self.negation, self.inversion,
+			self.workingBoundary, self.breaks, self.cellCount, self.dimension
 		);
 	
 	cpdef Set ZpComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
 		"""
 		Given a filtration --- i.e. a reordering of the columns of the full
 		boundary matrix --- gives times at which essential cycles of dimension
-		`dimension` were created.
+		`dimension` were created. Performs arithmetic using `Givaro`.
 
 		Args:
 			filtration (np.ndarray): An array of column indices.
@@ -197,5 +224,5 @@ cdef class Twist:
 		self.workingBoundary = self.ReindexBoundaryMatrix(filtration);
 
 		return ZpComputePercolationEvents(
-			self.characteristic, self.workingBoundary, self.breaks, self.cellCount, self.topDimension, self.dimension
+			self.characteristic, self.workingBoundary, self.breaks, self.cellCount
 		);

@@ -121,7 +121,9 @@ class InvadedCluster():
 			Twister = Twist(self.field, self.matrices.full, self.complex.breaks, self.cellCount, self.dimension)
 
 			def persist(filtration):
-				essential = Twister.ZpComputePercolationEvents(filtration)
+				essential = Twister.LinearComputePercolationEvents(filtration)
+				# essential = Twister.ComputePercolationEvents(filtration)
+				# essential = Twister.ZpComputePercolationEvents(filtration)
 				essential = np.array(list(essential))
 				essential.sort()
 				
@@ -194,6 +196,12 @@ class InvadedCluster():
 		shuffled = np.random.permutation(satisfied)
 		filtration[low:low+m] = self.target[shuffled]
 		filtration[low+m:high] = self.target[unsatisfied]
+
+		# with open("filtration.txt", "w") as w:
+		# 	for f in np.arange(self.cellCount): w.write(f"{f}\n")
+
+		# with open("bd.txt", "w") as w:
+		# 	for f in self.matrices.full: w.write(f"{f}\n")
 
 		return filtration, shuffled, satisfied
 

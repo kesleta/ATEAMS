@@ -19,12 +19,12 @@ build: clean PHATMethods LinBoxMethods
 PHATMethods:
 	@sudo cp -r ateams/arithmetic/include/PHAT /usr/local/include/phat
 	@sudo clang++ -shared -fPIC -std=c++17 -o /usr/local/lib/libPHATMethods.so ateams/arithmetic/PHATMethods.cpp -v -O3 -ffast-math
+	@sudo cp -r ateams/arithmetic/PHATMethods.h /usr/local/include/ATEAMS/
 
 
 LinBoxMethods:
 	@sudo clang++ `pkg-config --libs linbox` -shared -fPIC -std=c++17 -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp -v -O3 -ffast-math
-
-
+	@sudo cp -r ateams/arithmetic/LinBoxMethods.h /usr/local/include/ATEAMS/
 
 
 
@@ -45,7 +45,7 @@ Nienhuis: FORCE
 	@cd test && ./profile.models.NH.sh 49 52
 
 InvadedCluster: FORCE
-	@cd test && ./profile.models.IC.sh 4 7 4
+	@cd test && ./profile.models.IC.sh 7 8 4
 	@cd test && ./profile.models.IC.sh 19 22 2
 
 Bernoulli: FORCE
@@ -54,7 +54,8 @@ Bernoulli: FORCE
 
 profile: Glauber SwendsenWang Nienhuis InvadedCluster Bernoulli
 
-test:
+test: FORCE
+	@cd test && sudo clang++ -L/usr/local/include/ATEAMS/ `pkg-config --libs linbox` -lLinBoxMethods test.arithmetic.persistence.cpp -o test.arithmetic.persistence
 
 gauntlet: FORCE test profile
 
@@ -94,6 +95,7 @@ install: dependencies _install profile
 
 dependencies: FORCE
 	@pip install -r requirements.txt
+	@sudo cp -r ateams/common.h /usr/local/include/ATEAMS/
 
 _install: FORCE build
 	python setup.py develop
