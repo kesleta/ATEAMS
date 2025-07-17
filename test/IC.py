@@ -21,7 +21,6 @@ def construct(L, dim, field):
 	SW = InvadedCluster(L, dimension=dim//2, field=field)
 	N = 250
 	M = Chain(SW, steps=N)
-
 	return M
 
 def chain(M, DESC=""):
@@ -30,6 +29,6 @@ def chain(M, DESC=""):
 	return M._exitcode
 
 if __name__ == "__main__":
-	M = construct(4, 4, 3)
+	M = construct(10, 4, 3)
 	chain(M)
 
