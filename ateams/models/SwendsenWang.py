@@ -126,7 +126,7 @@ class SwendsenWang():
 			Reducer = MatrixReduction(self.field, parallel, minBlockSize, maxBlockSize, cores)
 
 			def sample(zeros):
-				return KernelSample(Reducer, coboundary.take(zeros, axis=0)).astype(FINT)
+				return KernelSample(Reducer, coboundary[zeros]).astype(FINT)
 			
 		self.sample = sample
 
@@ -166,19 +166,20 @@ class SwendsenWang():
 		q = self.field
 
 		# Evaluate the current spin assignment (cochain).
-		coefficients = self.spins[boundary[include]]
+		coefficients = self.spins[boundary]
 		coefficients[:,1::2] = -coefficients[:,1::2]%q
 		sums = coefficients.sum(axis=1)%q
 		zeros = np.nonzero(sums == 0)[0]
+		includedZeros = np.intersect1d(zeros, include)
+
+		# Sample from the kernel of the coboundary matrix, and evaluate again
+		spins = self.sample(includedZeros)
 
 		# Create output vectors.
-		satisfied = np.zeros(self.cells, dtype=FINT)
-		satisfied[zeros] = 1
+		occupied = np.zeros(self.cells, dtype=FINT)
+		occupied[includedZeros] = 1
 
-		# Sample from the kernel of the coboundary matrix.
-		spins = self.sample(zeros)
-
-		return spins, satisfied
+		return spins, occupied
 	
 
 	def _assign(self, cocycle):

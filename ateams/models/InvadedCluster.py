@@ -197,12 +197,6 @@ class InvadedCluster():
 		filtration[low:low+m] = self.target[shuffled]
 		filtration[low+m:high] = self.target[unsatisfied]
 
-		# with open("filtration.txt", "w") as w:
-		# 	for f in np.arange(self.cellCount): w.write(f"{f}\n")
-
-		# with open("bd.txt", "w") as w:
-		# 	for f in self.matrices.full: w.write(f"{f}\n")
-
 		return filtration, shuffled, satisfied
 
 
@@ -240,14 +234,14 @@ class InvadedCluster():
 		occupied = np.zeros((self.rank, self.nullity))
 		satisfied = np.zeros(self.nullity)
 
-		for t in essential:
+		for t in sorted(essential):
 			occupiedIndices = shuffledIndices[:t-low]
 			occupied[j,occupiedIndices] = 1
 
 			if (j+1) == stop: spins = self.sample(occupiedIndices)
 
 			j += 1
-
+		
 		satisfied[satisfiedIndices] = 1
 
 		return spins, occupied, satisfied
