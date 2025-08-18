@@ -132,7 +132,7 @@ text-align: center;
 <dl>
 <dt id="ateams.models.Bernoulli"><code class="flex name class">
 <span>class <span class="ident">Bernoulli</span></span>
-<span>(</span><span>C, dimension=1, PHAT=True, **kwargs)</span>
+<span>(</span><span>C, p, dimension=1, PHAT=True, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes classic Bernoulli percolation on the provided complex,
@@ -155,7 +155,7 @@ computation time.</dd>
 <pre><code class="python">class Bernoulli():
         _name = &#34;Bernoulli&#34;
         
-        def __init__(self, C, dimension=1, PHAT=True, **kwargs):
+        def __init__(self, C, p, dimension=1, PHAT=True, **kwargs):
                 &#34;&#34;&#34;
                 Initializes classic Bernoulli percolation on the provided complex,
                 detecting percolation in the `dimension`-1th homology group.
@@ -172,6 +172,7 @@ computation time.</dd>
                 self.dimension = dimension
                 self._returns = 1
                 self.field = 2
+                self.p = p
 
                 # Set a phantom spins attribute so we don&#39;t break the Chain
                 self.spins = None
@@ -196,6 +197,18 @@ computation time.</dd>
                 # to correspond to the provided dimension.
                 self.rank = comb(len(self.complex.corners), self.dimension)
                 self.nullity = len(self.complex.Boundary[self.dimension])
+
+                # Build a coface map.
+                self.cofaces = { }
+                low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
+
+                for t in range(0, self.matrices.boundary.shape[0], 3):
+                        face = self.matrices.boundary[t]
+                        cell = self.matrices.boundary[t+1]
+                        coef = self.matrices.boundary[t+2]
+
+
+
 
                 # Delegates computation for persistence.
                 self._delegateComputation(PHAT)
@@ -240,9 +253,14 @@ computation time.</dd>
                 &#34;&#34;&#34;
                 Constructs a filtration based on the evaluation of the cochain.
                 &#34;&#34;&#34;
-                # Find which cubes get zeroed out (i.e. are sent to zero by the cocycle).
+                # Decide which cubes are/aren&#39;t included; if any cube isn&#39;t included,
+                # we need to throw out any cell of which it&#39;s a face, then re-index
+                # everything.
                 low = self.complex.breaks[self.dimension]
                 high = self.complex.breaks[self.dimension+1]
+
+                uniform = self.RNG.uniform(size=self.cells)
+                include = np.nonzero(uniform &lt; self.p)[0]
 
                 filtration = np.arange(self.cellCount)
                 shuffled = np.random.permutation(self.target)
@@ -274,6 +292,9 @@ computation time.</dd>
                 Returns:
                         A numpy array representing a vector of spin assignments.
                 &#34;&#34;&#34;
+                uniform = self.RNG.uniform(size=self.cells)
+                include = np.nonzero(uniform &lt; self.p)[0]
+
                 # Construct the filtration and find the essential cycles.
                 filtration, shuffled = self._filtrate()
                 essential = self.persist(filtration)
@@ -979,12 +1000,6 @@ number of columns processed in parallel.</dd>
                 filtration[low:low+m] = self.target[shuffled]
                 filtration[low+m:high] = self.target[unsatisfied]
 
-                # with open(&#34;filtration.txt&#34;, &#34;w&#34;) as w:
-                #       for f in np.arange(self.cellCount): w.write(f&#34;{f}\n&#34;)
-
-                # with open(&#34;bd.txt&#34;, &#34;w&#34;) as w:
-                #       for f in self.matrices.full: w.write(f&#34;{f}\n&#34;)
-
                 return filtration, shuffled, satisfied
 
 
@@ -1022,14 +1037,14 @@ number of columns processed in parallel.</dd>
                 occupied = np.zeros((self.rank, self.nullity))
                 satisfied = np.zeros(self.nullity)
 
-                for t in essential:
-                        occupiedIndices = shuffledIndices[:t-low]
+                for t in sorted(essential):
+                        occupiedIndices = shuffledIndices[:t-low+1]
                         occupied[j,occupiedIndices] = 1
 
                         if (j+1) == stop: spins = self.sample(occupiedIndices)
 
                         j += 1
-
+                
                 satisfied[satisfiedIndices] = 1
 
                 return spins, occupied, satisfied
@@ -1371,172 +1386,172 @@ result returned is the all-zeros vector.</p>
 <td rowspan="3" valign="top">724</td>
 <td rowspan="3" valign="top">1,048,352</td>
 <td>8</td>
-<td>0.460</td>
+<td>0.524</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.948</td>
+<td>0.873</td>
 </tr>
 <tr>
 <td>32</td>
-<td>1.519</td>
+<td>1.135</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
 <td rowspan="3" valign="top">2,097,152</td>
 <td>8</td>
-<td>0.966</td>
+<td>1.219</td>
 </tr>
 <tr>
 <td>16</td>
-<td>1.478</td>
+<td>1.311</td>
 </tr>
 <tr>
 <td>32</td>
-<td>2.316</td>
+<td>2.578</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
 <td rowspan="3" valign="top">4,193,408</td>
 <td>8</td>
-<td>2.112</td>
+<td>2.417</td>
 </tr>
 <tr>
 <td>16</td>
-<td>4.273</td>
+<td>2.483</td>
 </tr>
 <tr>
 <td>32</td>
-<td>6.383</td>
+<td>4.721</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
 <td rowspan="3" valign="top">1,048,352</td>
 <td>8</td>
-<td>0.361</td>
+<td>0.364</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.345</td>
+<td>0.502</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.419</td>
+<td>0.274</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
 <td rowspan="3" valign="top">2,097,152</td>
 <td>8</td>
-<td>0.716</td>
+<td>0.684</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.825</td>
+<td>1.072</td>
 </tr>
 <tr>
 <td>32</td>
-<td>1.161</td>
+<td>1.014</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
 <td rowspan="3" valign="top">4,193,408</td>
 <td>8</td>
-<td>1.483</td>
+<td>1.627</td>
 </tr>
 <tr>
 <td>16</td>
-<td>1.496</td>
+<td>2.764</td>
 </tr>
 <tr>
 <td>32</td>
-<td>1.610</td>
+<td>3.198</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
 <td rowspan="3" valign="top">1,048,352</td>
 <td>8</td>
-<td>0.239</td>
+<td>0.217</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.279</td>
+<td>0.262</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.363</td>
+<td>0.197</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
 <td rowspan="3" valign="top">2,097,152</td>
 <td>8</td>
-<td>0.537</td>
+<td>0.493</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.473</td>
+<td>0.522</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.814</td>
+<td>0.587</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
 <td rowspan="3" valign="top">4,193,408</td>
 <td>8</td>
-<td>1.472</td>
+<td>0.961</td>
 </tr>
 <tr>
 <td>16</td>
-<td>1.307</td>
+<td>1.023</td>
 </tr>
 <tr>
 <td>32</td>
-<td>1.270</td>
+<td>1.045</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
 <td rowspan="3" valign="top">724</td>
 <td rowspan="3" valign="top">1,048,352</td>
 <td>8</td>
-<td>0.196</td>
+<td>0.165</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.256</td>
+<td>0.181</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.225</td>
+<td>0.188</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1024</td>
 <td rowspan="3" valign="top">2,097,152</td>
 <td>8</td>
-<td>0.533</td>
+<td>0.540</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.507</td>
+<td>0.504</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.463</td>
+<td>0.479</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">1448</td>
 <td rowspan="3" valign="top">4,193,408</td>
 <td>8</td>
-<td>1.240</td>
+<td>0.988</td>
 </tr>
 <tr>
 <td>16</td>
-<td>1.267</td>
+<td>0.944</td>
 </tr>
 <tr>
 <td>32</td>
-<td>1.181</td>
+<td>0.868</td>
 </tr>
 </tbody>
 </table>
@@ -1564,93 +1579,93 @@ result returned is the all-zeros vector.</p>
 <td rowspan="3" valign="top">10</td>
 <td rowspan="3" valign="top">60,000</td>
 <td>8</td>
-<td>0.030</td>
+<td>0.027</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.048</td>
+<td>0.042</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.104</td>
+<td>0.083</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">20</td>
 <td rowspan="3" valign="top">960,000</td>
 <td>8</td>
-<td>0.670</td>
+<td>0.591</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.955</td>
+<td>0.930</td>
 </tr>
 <tr>
 <td>32</td>
-<td>1.375</td>
+<td>1.331</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">30</td>
 <td rowspan="3" valign="top">4,860,000</td>
 <td>8</td>
-<td>3.772</td>
+<td>4.312</td>
 </tr>
 <tr>
 <td>16</td>
-<td>6.237</td>
+<td>6.657</td>
 </tr>
 <tr>
 <td>32</td>
-<td>8.235</td>
+<td>11.206</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
 <td rowspan="3" valign="top">10</td>
 <td rowspan="3" valign="top">60,000</td>
 <td>8</td>
-<td>0.020</td>
+<td>0.022</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.026</td>
+<td>0.030</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.037</td>
+<td>0.026</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">20</td>
 <td rowspan="3" valign="top">960,000</td>
 <td>8</td>
-<td>0.497</td>
+<td>0.427</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.487</td>
+<td>0.593</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.581</td>
+<td>0.516</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">30</td>
 <td rowspan="3" valign="top">4,860,000</td>
 <td>8</td>
-<td>3.087</td>
+<td>2.537</td>
 </tr>
 <tr>
 <td>16</td>
-<td>3.051</td>
+<td>3.170</td>
 </tr>
 <tr>
 <td>32</td>
-<td>3.698</td>
+<td>2.313</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
 <td rowspan="3" valign="top">10</td>
 <td rowspan="3" valign="top">60,000</td>
 <td>8</td>
-<td>0.016</td>
+<td>0.018</td>
 </tr>
 <tr>
 <td>16</td>
@@ -1658,46 +1673,46 @@ result returned is the all-zeros vector.</p>
 </tr>
 <tr>
 <td>32</td>
-<td>0.016</td>
+<td>0.019</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">20</td>
 <td rowspan="3" valign="top">960,000</td>
 <td>8</td>
-<td>0.327</td>
+<td>0.310</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.339</td>
+<td>0.309</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.333</td>
+<td>0.382</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">30</td>
 <td rowspan="3" valign="top">4,860,000</td>
 <td>8</td>
-<td>2.827</td>
+<td>1.860</td>
 </tr>
 <tr>
 <td>16</td>
-<td>2.730</td>
+<td>2.076</td>
 </tr>
 <tr>
 <td>32</td>
-<td>3.506</td>
+<td>1.843</td>
 </tr>
 <tr>
 <td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
 <td rowspan="3" valign="top">10</td>
 <td rowspan="3" valign="top">60,000</td>
 <td>8</td>
-<td>0.016</td>
+<td>0.013</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.015</td>
+<td>0.012</td>
 </tr>
 <tr>
 <td>32</td>
@@ -1707,29 +1722,29 @@ result returned is the all-zeros vector.</p>
 <td rowspan="3" valign="top">20</td>
 <td rowspan="3" valign="top">960,000</td>
 <td>8</td>
-<td>0.319</td>
+<td>0.299</td>
 </tr>
 <tr>
 <td>16</td>
-<td>0.322</td>
+<td>0.297</td>
 </tr>
 <tr>
 <td>32</td>
-<td>0.309</td>
+<td>0.266</td>
 </tr>
 <tr>
 <td rowspan="3" valign="top">30</td>
 <td rowspan="3" valign="top">4,860,000</td>
 <td>8</td>
-<td>2.987</td>
+<td>1.736</td>
 </tr>
 <tr>
 <td>16</td>
-<td>2.823</td>
+<td>1.854</td>
 </tr>
 <tr>
 <td>32</td>
-<td>3.150</td>
+<td>1.675</td>
 </tr>
 </tbody>
 </table></div>
@@ -1856,7 +1871,7 @@ result returned is the all-zeros vector.</p>
                         Reducer = MatrixReduction(self.field, parallel, minBlockSize, maxBlockSize, cores)
 
                         def sample(zeros):
-                                return KernelSample(Reducer, coboundary.take(zeros, axis=0)).astype(FINT)
+                                return KernelSample(Reducer, coboundary[zeros]).astype(FINT)
                         
                 self.sample = sample
 
@@ -1896,19 +1911,20 @@ result returned is the all-zeros vector.</p>
                 q = self.field
 
                 # Evaluate the current spin assignment (cochain).
-                coefficients = self.spins[boundary[include]]
+                coefficients = self.spins[boundary]
                 coefficients[:,1::2] = -coefficients[:,1::2]%q
                 sums = coefficients.sum(axis=1)%q
                 zeros = np.nonzero(sums == 0)[0]
+                includedZeros = np.intersect1d(zeros, include)
+
+                # Sample from the kernel of the coboundary matrix, and evaluate again
+                spins = self.sample(includedZeros)
 
                 # Create output vectors.
-                satisfied = np.zeros(self.cells, dtype=FINT)
-                satisfied[zeros] = 1
+                occupied = np.zeros(self.cells, dtype=FINT)
+                occupied[includedZeros] = 1
 
-                # Sample from the kernel of the coboundary matrix.
-                spins = self.sample(zeros)
-
-                return spins, satisfied
+                return spins, occupied
         
 
         def _assign(self, cocycle):
