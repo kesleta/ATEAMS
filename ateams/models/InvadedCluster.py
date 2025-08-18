@@ -235,7 +235,7 @@ class InvadedCluster():
 		satisfied = np.zeros(self.nullity)
 
 		for t in sorted(essential):
-			occupiedIndices = shuffledIndices[:t-low]
+			occupiedIndices = shuffledIndices[:t-low+1]
 			occupied[j,occupiedIndices] = 1
 
 			if (j+1) == stop: spins = self.sample(occupiedIndices)
