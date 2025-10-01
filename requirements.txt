@@ -4,3 +4,4 @@ scipy
 tqdm
 jsonlines
 packaging
+lz4
