@@ -92,16 +92,14 @@ class Recorder:
 	"""
 	def __init__(self): pass
 
-	def record(self, M: Chain, fp: str, blocksize=1000):
+	def record(self, fp: str, blocksize=100):
 		"""
 		Called to configure the recording apparatus for the Chain, and *should*
 		be used as a context manager (i.e. with the `with` statement).
 
 		Args:
-			M (Chain): `potts.Chain` object to be recorded; `Recorder` needs
-				access to the `Model` and `Complex` subobjects.
 			fp (str): Filename.
-			block (int=1000): Number of states to bundle together before compressing. 
+			block (int=100): Number of states to bundle together before compressing. 
 
 		Returns:
 			This `Recorder` object.
@@ -114,7 +112,6 @@ class Recorder:
 		# be all -1s, since the first state yielded by iterating over the Chain
 		# is the initial state, and we need to record the whole thing; fix a list
 		# of possible integer states for later.
-		self.chain = M
 		self.previous = None
 		self._previous = False
 
@@ -185,8 +182,19 @@ class Recorder:
 
 	def __exit__(self, exc_type, exc_value, exc_tb):
 		"""
-		Required context management magic method; kills the writer and the file.
+		Required context management magic method: writes what's left of the cache
+		to file, then closes the writer.
 		"""
+		# If we've finished storing but there's still stuff left in the cache,
+		# write that to file too.
+		if len(self._block):
+			self._writer.write(
+				(self._interblockbreak.join(
+					self._intrablockbreak.join(subblock)
+					for subblock in self._block
+				) + "\n").encode()
+			)
+		
 		self._writer.close()
 
 
@@ -213,13 +221,13 @@ class Player():
 		self._reader = lz4.frame.LZ4FrameFile(f"{self._fp}", mode="rb")
 
 		# Similar setup to the Recorder.
-		self._initial = None
-		self._initialized = False
-
+		self._current = None
+		self._currentized = False
 
 		self._loaded = []
 		self._remaining = 0
 		self._blocksize = 0
+		self._configurationsize = -1
 
 		# Compression markers.
 		self._intrablockbreak = '<<#>>'
@@ -227,8 +235,8 @@ class Player():
 		self._interlistbreak = '<>'
 		self._listsep = ' '
 
+		# Number of steps (progress bar only).
 		self._steps = steps
-		
 
 		# Enter context management.
 		return self.__enter__()
@@ -245,10 +253,10 @@ class Player():
 		"""
 		Iteration magic method.
 		"""
-		# Get the next configuration by calling __next__() on the reader. First,
-		# check if we're near the end of the current block; if we are, load the
-		# next one and keep iterating.
+		# If there are no more configurations remaining in this block, load the
+		# next block.
 		if self._remaining == 0:
+			# Check whether we're EOF.
 			try:
 				unconfigured = self._reader.readline()
 				assert unconfigured != b''
@@ -271,23 +279,30 @@ class Player():
 				for iteration in self._loaded	
 			]
 
+			# Compute the number of configurations that need to be reported and
+			# the size of the currently-loaded block (in iterations).
 			self._remaining = len(self._loaded)
 			self._blocksize = len(self._loaded)
 
-			# Check if we need to load an initial configuration.
-			if not self._initialized:
-				self._initial = tuple([self._loaded[0][0][1], self._loaded[0][1][1]])
-				self._initialized = True
-				# self._blocksize = len(self._loaded)
+			# Check if we need to load an initial configuration; this only
+			# happens on the first step.
+			if not self._currentized:
+				self._current = tuple([self._loaded[0][i][1] for i in range(len(self._loaded[0]))])
+				self._configurationsize = len(self._current)
+				self._currentized = True
 
-		# Then iterate.
+		# Load the next configuration, modify the current one.
 		nextup = self._loaded[self._blocksize-self._remaining]
 
-		for i, (indices, values) in enumerate(nextup):
-			self._initial[i][indices] = values
+		for i in range(self._configurationsize):
+			indices, values = nextup[i]
+			self._current[i][indices] = values
 		
+		# Decrement the number of configurations remaining in the block, and
+		# return the current(ly modified) configuration.
 		self._remaining -= 1
-		return self._initial
+
+		return self._current
 
 	def __enter__(self):
 		"""
