@@ -41,15 +41,41 @@ for (spins, occupied) in Chain(SW, steps=1000):
 ```
 [`SwendsenWang`](https://apizzimenti.github.io/ATEAMS/models/index.html#ateams.models.SwendsenWang) is, after [`Glauber`](https://apizzimenti.github.io/ATEAMS/models/index.html#ateams.models.Glauber), the most efficient implementation in ATEAMS. The above chain terminates in ~19 seconds on an Apple M2. Additional performance information for each model is included in [the documentation](https://apizzimenti.github.io/ATEAMS/models/index.html).
 
-
 You can turn on a progress bar for your simulation using the
 
 ```python
-for (spins, occupied, satisfied) in Chain(HP, steps=10).progress():
+for (spins, occupied) in Chain(HP, steps=10).progress():
 	pass
 ```
-pattern. To see how various configurations of each model perform on your machine,
-run `make profile`.
+
+pattern. **If you plan to simulate a large system,** ATEAMS comes with [`Recorder`](https://apizzimenti.github.io/ATEAMS/statistics/index.html#ateams.statistics.Recorder) and [`Player`](https://apizzimenti.github.io/ATEAMS/statistics/index.html#ateams.statistics.Player) classes that allow you to efficiently store and re-play chain output data. Based on the example above, recording looks like:
+
+```python
+from ateams.complexes import Cubical
+from ateams.models import SwendsenWang
+from ateams.statistics import critical
+from ateams import Chain, Recorder
+
+field = 5
+C = Cubical().fromCorners([10]*4)
+SW = SwendsenWang(C, dimension=2, field=field, temperature=critical(field))
+
+with Recorder().record("out.lz") as rec:
+  for (spins, occupied) in Chain(SW, steps=1000).progress():
+    rec.store((spins, occupied))
+```
+
+Once the program terminates, you can re-play the chain:
+
+```python
+from ateams import Player
+
+with Player().playback("out.lz", steps=1000) as play:
+  for (spins, occupied) in play.progress():
+    pass
+```
+
+Running the sampler and recording the data takes ~26 seconds (~38 it/s) on an M2 MacBook Air; replaying the data takes ~0 seconds (~24,211 it/s). The size of `out.lz` is ~1.8MB, so storing each cell's data requires \(1/11\)th of a byte per iteration (amortized). To see how various configurations of each model perform on your machine, run `make profile`.
 
 ## Installation
 

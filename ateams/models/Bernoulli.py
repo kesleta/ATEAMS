@@ -2,14 +2,14 @@
 import numpy as np
 from math import comb
 
-from ..arithmetic import ComputePersistencePairs, Persistence
+from ..arithmetic import ComputePersistencePairs
 from ..common import Matrices, FINT
 
 
 class Bernoulli():
 	_name = "Bernoulli"
 	
-	def __init__(self, C, dimension=1, PHAT=True, **kwargs):
+	def __init__(self, C, dimension=1, **kwargs):
 		"""
 		Initializes classic Bernoulli percolation on the provided complex,
 		detecting percolation in the `dimension`-1th homology group.
@@ -17,9 +17,6 @@ class Bernoulli():
 		Args:
 			C (Complex): The `Complex` object on which we'll be running experiments.
 			dimension (int=1): The dimension of cells on which we're percolating.
-			PHAT (bool=True): Uses fast PHAT routines instead of slow inbuilt
-				ones. WARNING: using inbuilt methods may dramatically increase
-				computation time.
 		"""
 		# Object access. Set a field.
 		self.complex = C
@@ -52,40 +49,32 @@ class Bernoulli():
 		self.nullity = len(self.complex.Boundary[self.dimension])
 
 		# Delegates computation for persistence.
-		self._delegateComputation(PHAT)
+		self._delegateComputation()
 
 		# Seed the random number generator.
 		self.RNG = np.random.default_rng()
 
 	
-	def _delegateComputation(self, PHAT):
-		if PHAT:
-			low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
-			times = set(range(self.cellCount))
+	def _delegateComputation(self):
+		low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
+		times = set(range(self.cellCount))
 
-			def whittle(pairs):
-				_births, _deaths = zip(*pairs)
-				births = set(_births)
-				deaths = set(_deaths)
+		def whittle(pairs):
+			_births, _deaths = zip(*pairs)
+			births = set(_births)
+			deaths = set(_deaths)
 
-				return set(
-					e for e in times-(births|deaths)
-					if low <= e < high
-				)
+			return set(
+				e for e in times-(births|deaths)
+				if low <= e < high
+			)
 
-			def persist(filtration):
-				essential = ComputePersistencePairs(
-					self.matrices.full, filtration, self.dimension, self.complex.breaks
-				)
+		def persist(filtration):
+			essential = ComputePersistencePairs(
+				self.matrices.full, filtration, self.dimension, self.complex.breaks
+			)
 
-				return whittle(essential)
-			
-		else:
-			# If we can't/don't want to use LinBox, use inbuilt methods.
-			Persistencer = Persistence(2, self.complex.flattened, self.dimension)
-			
-			def persist(filtration):
-				return Persistencer.TwistComputePercolationEvents(filtration)
+			return whittle(essential)
 
 		self.persist = persist
 

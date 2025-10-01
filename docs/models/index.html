@@ -108,6 +108,7 @@ border-bottom: 1px solid black;
 text-align: center;
 }
 </style>
+<link rel="preload" as="image" href="https://mason.gmu.edu/~apizzime/assets/img/ic.4.cycle.jpg">
 </head>
 <body>
 <main>
@@ -119,7 +120,7 @@ text-align: center;
 <h2 id="models">Models</h2>
 <p>A <em>model</em> programmatically specifies a probability distribution over a combinatorial object like a graph, cubical complex, or polytope. Given one of these objects (e.g. <code><a title="ateams.complexes.Cubical" href="../complexes/index.html#ateams.complexes.Cubical">Cubical</a></code>), each model implements a <em>proposal function</em> for sampling from the distribution it specifies. For example, <code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code> represents the Edwards-Sokal coupling of the <a href="https://link.springer.com/article/10.1007/s00220-025-05322-5"><em>plaquette random cluster model</em> and <em>Potts lattice gauge theory</em></a> on subcomplexes of the $d$-fold, scale-$N$ cubical torus $\mathbb T^d_N$; its proposal function is a generalized version of the <a href="https://link.aps.org/doi/10.1103/PhysRevLett.58.86"><em>Swendsen-Wang algorithm</em></a>.</p>
 <p>The <code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code>, <code><a title="ateams.models.InvadedCluster" href="#ateams.models.InvadedCluster">InvadedCluster</a></code>, and <code><a title="ateams.models.Nienhuis" href="#ateams.models.Nienhuis">Nienhuis</a></code> models require performant sparse linear algebra over finite fields, for which we turn to <a href="https://github.com/linbox-team/linbox">LinBox</a>. The <code><a title="ateams.models.InvadedCluster" href="#ateams.models.InvadedCluster">InvadedCluster</a></code> and <code><a title="ateams.models.Bernoulli" href="#ateams.models.Bernoulli">Bernoulli</a></code> models require fast computation of persistent homology, for which we use <a href="https://www.sciencedirect.com/science/article/pii/S0747717116300098">PHAT</a> (when sampling over $\mathbb Z/2\mathbb Z$) and a home-brew variant of <a href="https://www.geometrie.tugraz.at/kerber/kerber_papers/ck-phcwat-11.pdf">the "twist" algorithm proposed by Chen and Kerber</a>. Only the <code><a title="ateams.models.Glauber" href="#ateams.models.Glauber">Glauber</a></code> dynamics model is implemented in "pure Python," though it relies exclusively on NumPy.</p>
-<p>The documentation for each model comes with performance information, viewable by clicking (e.g.) the "Performance over $\mathbb T^2_N$" button. Each configuration completed 100 iterations on Pangolin, a Dell Precision 5280 workstation with an 18-core Intel Xeosn W-2295 CPU clocked at 1.3GHz.</p>
+<p>The documentation for each model comes with performance information, viewable by clicking (e.g.) the "Performance over $\mathbb T^2_N$" button. Each configuration completed 100 iterations on Pangolin, a Dell Precision 5280 workstation with an 18-core Intel Xeon W-2295 CPU clocked at 1.3GHz.</p>
 </section>
 <section>
 </section>
@@ -132,7 +133,7 @@ text-align: center;
 <dl>
 <dt id="ateams.models.Bernoulli"><code class="flex name class">
 <span>class <span class="ident">Bernoulli</span></span>
-<span>(</span><span>C, dimension=1, PHAT=True, **kwargs)</span>
+<span>(</span><span>C, dimension=1, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes classic Bernoulli percolation on the provided complex,
@@ -143,10 +144,6 @@ detecting percolation in the <code>dimension</code>-1th homology group.</p>
 <dd>The <code>Complex</code> object on which we'll be running experiments.</dd>
 <dt><strong><code>dimension</code></strong> :&ensp;<code>int=1</code></dt>
 <dd>The dimension of cells on which we're percolating.</dd>
-<dt><strong><code>PHAT</code></strong> :&ensp;<code>bool=True</code></dt>
-<dd>Uses fast PHAT routines instead of slow inbuilt
-ones. WARNING: using inbuilt methods may dramatically increase
-computation time.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -155,7 +152,7 @@ computation time.</dd>
 <pre><code class="python">class Bernoulli():
         _name = &#34;Bernoulli&#34;
         
-        def __init__(self, C, dimension=1, PHAT=True, **kwargs):
+        def __init__(self, C, dimension=1, **kwargs):
                 &#34;&#34;&#34;
                 Initializes classic Bernoulli percolation on the provided complex,
                 detecting percolation in the `dimension`-1th homology group.
@@ -163,9 +160,6 @@ computation time.</dd>
                 Args:
                         C (Complex): The `Complex` object on which we&#39;ll be running experiments.
                         dimension (int=1): The dimension of cells on which we&#39;re percolating.
-                        PHAT (bool=True): Uses fast PHAT routines instead of slow inbuilt
-                                ones. WARNING: using inbuilt methods may dramatically increase
-                                computation time.
                 &#34;&#34;&#34;
                 # Object access. Set a field.
                 self.complex = C
@@ -198,40 +192,32 @@ computation time.</dd>
                 self.nullity = len(self.complex.Boundary[self.dimension])
 
                 # Delegates computation for persistence.
-                self._delegateComputation(PHAT)
+                self._delegateComputation()
 
                 # Seed the random number generator.
                 self.RNG = np.random.default_rng()
 
         
-        def _delegateComputation(self, PHAT):
-                if PHAT:
-                        low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
-                        times = set(range(self.cellCount))
+        def _delegateComputation(self):
+                low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
+                times = set(range(self.cellCount))
 
-                        def whittle(pairs):
-                                _births, _deaths = zip(*pairs)
-                                births = set(_births)
-                                deaths = set(_deaths)
+                def whittle(pairs):
+                        _births, _deaths = zip(*pairs)
+                        births = set(_births)
+                        deaths = set(_deaths)
 
-                                return set(
-                                        e for e in times-(births|deaths)
-                                        if low &lt;= e &lt; high
-                                )
+                        return set(
+                                e for e in times-(births|deaths)
+                                if low &lt;= e &lt; high
+                        )
 
-                        def persist(filtration):
-                                essential = ComputePersistencePairs(
-                                        self.matrices.full, filtration, self.dimension, self.complex.breaks
-                                )
+                def persist(filtration):
+                        essential = ComputePersistencePairs(
+                                self.matrices.full, filtration, self.dimension, self.complex.breaks
+                        )
 
-                                return whittle(essential)
-                        
-                else:
-                        # If we can&#39;t/don&#39;t want to use LinBox, use inbuilt methods.
-                        Persistencer = Persistence(2, self.complex.flattened, self.dimension)
-                        
-                        def persist(filtration):
-                                return Persistencer.TwistComputePercolationEvents(filtration)
+                        return whittle(essential)
 
                 self.persist = persist
 
@@ -483,7 +469,7 @@ scheduled temperature at time <code>t</code>.</dd>
 </dd>
 <dt id="ateams.models.InvadedCluster"><code class="flex name class">
 <span>class <span class="ident">InvadedCluster</span></span>
-<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>initial=None,<br>stop=&lt;function InvadedCluster.&lt;lambda&gt;&gt;,<br>LinBox=True,<br>maxTries=16,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4,<br>**kwargs)</span>
+<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>initial=None,<br>stop=&lt;function InvadedCluster.&lt;lambda&gt;&gt;,<br>maxTries=16,<br>**kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes the plaquette invaded-cluster algorithm on the provided
@@ -502,24 +488,10 @@ group.</p>
 <dt><strong><code>stop</code></strong> :&ensp;<code>function</code></dt>
 <dd>A function that returns the number of essential cycles
 found before sampling the next configuration.</dd>
-<dt><strong><code>LinBox</code></strong> :&ensp;<code>bool=True</code></dt>
-<dd>Uses fast LinBox routines instead of slow inbuilt
-ones. WARNING: using inbuilt methods may dramatically increase
-computation time.</dd>
 <dt><strong><code>maxTries</code></strong> :&ensp;<code>int=16</code></dt>
 <dd>The number of attempts LinBox makes to sample a nonzero
 vector in the kernel of the coboundary matrix <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>. See more
 discussion in the <code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code> model.</dd>
-<dt><strong><code>parallel</code></strong> :&ensp;<code>boolean</code></dt>
-<dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
-<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
-<dd>If <code>parallel</code> is truthy, this is the smallest
-number of columns processed in parallel.</dd>
-<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
-<dd>If <code>parallel</code> is truthy, this is the largest
-number of columns processed in parallel.</dd>
-<dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
-<dd>Number of available CPUs/cores/threads on the machine.</dd>
 </dl>
 <p><center> <button type="button" class="collapsible" id="InvadedCluster-Persistence-2">Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span></button> </center></p>
 <table class="dataframe profile-data-table" id="InvadedCluster-Persistence-2-table">
@@ -797,8 +769,8 @@ number of columns processed in parallel.</dd>
         _name = &#34;InvadedCluster&#34;
         
         def __init__(
-                        self, C, dimension=1, field=2, initial=None, stop=lambda: 1, LinBox=True, maxTries=16,
-                        parallel=False, minBlockSize=32, maxBlockSize=64, cores=4, **kwargs
+                        self, C, dimension=1, field=2, initial=None, stop=lambda: 1, maxTries=16,
+                        **kwargs
                 ):
                 &#34;&#34;&#34;
                 Initializes the plaquette invaded-cluster algorithm on the provided
@@ -812,18 +784,9 @@ number of columns processed in parallel.</dd>
                         initial (np.array): A vector of spin assignments to components.
                         stop (function): A function that returns the number of essential cycles
                                 found before sampling the next configuration.
-                        LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
-                                ones. WARNING: using inbuilt methods may dramatically increase
-                                computation time.
                         maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
                                 vector in the kernel of the coboundary matrix \(A\). See more
                                 discussion in the `SwendsenWang` model.
-                        parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
-                        minBlockSize (int=32): If `parallel` is truthy, this is the smallest
-                                number of columns processed in parallel.
-                        maxBlockSize (int=64): If `parallel` is truthy, this is the largest
-                                number of columns processed in parallel.
-                        cores (int=4): Number of available CPUs/cores/threads on the machine.
 
                 &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;InvadedCluster-Persistence-2&#34;&gt;Performance in \(\mathbb T^2_N\)&lt;/button&gt; &lt;/center&gt;
                 ..include:: ./tables/InvadedCluster.Persistence.2.html
@@ -859,7 +822,7 @@ number of columns processed in parallel.</dd>
                 # Check the dimensions of the boundary/coboundary matrices by comparing
                 # the number of cells. LinBox is really sensitive to smaller-size matrices,
                 # but can easily handle large ones.
-                if self.cells*self.faces &lt; 100000 and LinBox:
+                if self.cells*self.faces &lt; 100000:
                         warnings.warn(f&#34;complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.&#34;, TooSmallWarning, stacklevel=2)
 
 
@@ -870,7 +833,7 @@ number of columns processed in parallel.</dd>
 
 
                 # Delegates computation for persistence and cocycle sampling.
-                self._delegateComputation(LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries)
+                self._delegateComputation(maxTries)
 
 
                 # Seed the random number generator.
@@ -882,24 +845,23 @@ number of columns processed in parallel.</dd>
                 else: self.spins = (initial%self.field).astype(FINT)
 
         
-        def _delegateComputation(self, LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries):
+        def _delegateComputation(self, maxTries):
                 low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
 
                 # If we&#39;re using LinBox, our sampling method is Lanczos regardless of
                 # dimension.
-                if LinBox:
-                        def sample(zeros):
-                                try:
-                                        return np.array(LanczosKernelSample(
-                                                self.matrices.coboundary, zeros, 2*self.dimension,
-                                                self.faces, self.field, maxTries
-                                        ), dtype=FINT)
-                                except Exception as e:
-                                        raise NumericalInstabilityWarning(e)
-                
+                def sample(zeros):
+                        try:
+                                return np.array(LanczosKernelSample(
+                                        self.matrices.coboundary, zeros, 2*self.dimension,
+                                        self.faces, self.field, maxTries
+                                ), dtype=FINT)
+                        except Exception as e:
+                                raise NumericalInstabilityWarning(e)
+        
                 # If we&#39;re using LinBox and the characteristic of our field is greater
                 # than 2, we use the twist_reduce variant implemented in this library.
-                if LinBox and self.field &gt; 2:
+                if self.field &gt; 2:
                         Twister = Twist(self.field, self.matrices.full, self.complex.breaks, self.cellCount, self.dimension)
 
                         def persist(filtration):
@@ -913,7 +875,7 @@ number of columns processed in parallel.</dd>
                 
                 # If we&#39;re using LinBox and the field we&#39;re computing over *is* two,
                 # use PHAT.
-                elif LinBox and self.field &lt; 3:
+                elif self.field &lt; 3:
                         times = set(range(self.cellCount))
 
                         def whittle(pairs):
@@ -929,25 +891,6 @@ number of columns processed in parallel.</dd>
                         def persist(filtration):
                                 essential = ComputePersistencePairs(self.matrices.full, filtration, self.dimension, self.complex.breaks)
                                 return whittle(essential)
-                        
-                if not LinBox:
-                        # If we can&#39;t/don&#39;t want to use LinBox, use inbuilt methods.
-                        Reducer = MatrixReduction(self.field, parallel, minBlockSize, maxBlockSize, cores)
-                        Persistencer = Persistence(self.field, self.complex.flattened, self.dimension)
-
-                        coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
-                        rows = self.matrices.coboundary[::3]
-                        cols = self.matrices.coboundary[1::3]
-                        entries = (self.matrices.coboundary[2::3]%self.field).astype(FINT)
-
-                        coboundary[rows,cols] = entries
-                        
-                        def persist(filtration):
-                                return Persistencer.TwistComputePercolationEvents(filtration)
-                        
-                        def sample(zeros):
-                                return KernelSample(Reducer, coboundary.take(zeros, axis=0)).astype(FINT)
-                
 
                 self.sample = sample
                 self.persist = persist
@@ -1044,7 +987,7 @@ number of columns processed in parallel.</dd>
 </dd>
 <dt id="ateams.models.Nienhuis"><code class="flex name class">
 <span>class <span class="ident">Nienhuis</span></span>
-<span>(</span><span>C,<br>q1,<br>q2,<br>dimension=2,<br>field=2,<br>initial=None,<br>LinBox=True,<br>maxTries=16,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4,<br>**kwargs)</span>
+<span>(</span><span>C, q1, q2, dimension=2, field=2, initial=None, maxTries=16, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes the self-dual Nienhuis model.</p>
@@ -1063,23 +1006,9 @@ Here, the dimension is assumed to be 2.</dd>
 <dd>Field characteristic.</dd>
 <dt><strong><code>initial</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>A vector of spin assignments to components.</dd>
-<dt><strong><code>LinBox</code></strong> :&ensp;<code>bool=True</code></dt>
-<dd>Uses fast LinBox routines instead of slow inbuilt
-ones. WARNING: using inbuilt methods may dramatically increase
-computation time.</dd>
 <dt><strong><code>maxTries</code></strong> :&ensp;<code>int=16</code></dt>
 <dd>The number of attempts LinBox makes to sample a nonzero
 vector in the kernel of the coboundary matrix.</dd>
-<dt><strong><code>parallel</code></strong> :&ensp;<code>boolean</code></dt>
-<dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
-<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
-<dd>If <code>parallel</code> is truthy, this is the smallest
-number of columns processed in parallel.</dd>
-<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
-<dd>If <code>parallel</code> is truthy, this is the largest
-number of columns processed in parallel.</dd>
-<dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
-<dd>Number of available CPUs/cores/threads on the machine.</dd>
 </dl>
 <p><center> <button type="button" class="collapsible" id="Nienhuis-SubLanczosKernelSample-2"> Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span></button> </center></p>
 <table class="dataframe profile-data-table" id="Nienhuis-SubLanczosKernelSample-2-table">
@@ -1110,8 +1039,8 @@ number of columns processed in parallel.</dd>
         _name = &#34;Nienhuis&#34;
 
         def __init__(
-                        self, C, q1, q2, dimension=2, field=2, initial=None, LinBox=True, maxTries=16,
-                        parallel=False, minBlockSize=32, maxBlockSize=64, cores=4, **kwargs
+                        self, C, q1, q2, dimension=2, field=2, initial=None, maxTries=16,
+                        **kwargs
                 ):
                 &#34;&#34;&#34;
                 Initializes the self-dual Nienhuis model.
@@ -1124,17 +1053,8 @@ number of columns processed in parallel.</dd>
                         dimension (int): Dimension targeted by the model.
                         field (int=2): Field characteristic.
                         initial (np.array): A vector of spin assignments to components.
-                        LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
-                                ones. WARNING: using inbuilt methods may dramatically increase
-                                computation time.
                         maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
                                 vector in the kernel of the coboundary matrix.
-                        parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
-                        minBlockSize (int=32): If `parallel` is truthy, this is the smallest
-                                number of columns processed in parallel.
-                        maxBlockSize (int=64): If `parallel` is truthy, this is the largest
-                                number of columns processed in parallel.
-                        cores (int=4): Number of available CPUs/cores/threads on the machine.
                 
                 &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;Nienhuis-SubLanczosKernelSample-2&#34;&gt; Performance in \(\mathbb T^2_N\)&lt;/button&gt; &lt;/center&gt;
                 ..include:: ./tables/Nienhuis.SubLanczosKernelSample.2.html
@@ -1177,7 +1097,7 @@ number of columns processed in parallel.</dd>
                 # Check the dimensions of the boundary/coboundary matrices by comparing
                 # the number of cells. LinBox is really sensitive to smaller-size matrices,
                 # but can easily handle large ones.
-                if self.cells*self.faces &lt; 100000 and LinBox:
+                if self.cells*self.faces &lt; 100000:
                         warnings.warn(f&#34;complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.&#34;, TooSmallWarning, stacklevel=2)
 
                 # Seed the random number generator.
@@ -1188,35 +1108,17 @@ number of columns processed in parallel.</dd>
                 else: self.spins = (initial%self.field).astype(FINT)
 
                 # Delegate computation.
-                self._delegateComputation(LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries)
+                self._delegateComputation(maxTries)
 
 
-        def _delegateComputation(self, LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries):
-                # If we use LinBox, keep everything as-is.
-                if LinBox:
-                        def sample(faceZeros, cellZeros):
-                                try:
-                                        return np.array(SubLanczosKernelSample(
-                                                self.matrices.coboundary, cellZeros, faceZeros, self.field, maxTries=maxTries
-                                        ), dtype=FINT)
-                                except Exception as e:
-                                        raise NumericalInstabilityWarning(e)
-                
-                # If we use inbuilt routines, we need to actually construct the matrix
-                # form of the coboundary matrix, which is extremely sparse (and really big).
-                # Makes things slow.
-                else:
-                        coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
-                        rows = self.matrices.coboundary[::3]
-                        cols = self.matrices.coboundary[1::3]
-                        entries = (self.matrices.coboundary[2::3]%self.field).astype(FINT)
-
-                        coboundary[rows,cols] = entries
-                        Reducer = MatrixReduction(self.field, parallel, minBlockSize, maxBlockSize, cores)
-
-                        def sample(faceZeros, cellZeros):
-                                subbasis = coboundary.take(cellZeros, axis=0).take(faceZeros, axis=1)
-                                return KernelSample(Reducer, subbasis).astype(FINT)
+        def _delegateComputation(self, maxTries):
+                def sample(faceZeros, cellZeros):
+                        try:
+                                return np.array(SubLanczosKernelSample(
+                                        self.matrices.coboundary, cellZeros, faceZeros, self.field, maxTries=maxTries
+                                ), dtype=FINT)
+                        except Exception as e:
+                                raise NumericalInstabilityWarning(e)
                         
                 self.sample = sample
 
@@ -1293,7 +1195,7 @@ number of columns processed in parallel.</dd>
 </dd>
 <dt id="ateams.models.SwendsenWang"><code class="flex name class">
 <span>class <span class="ident">SwendsenWang</span></span>
-<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>LinBox=True,<br>parallel=False,<br>minBlockSize=32,<br>maxBlockSize=64,<br>cores=4,<br>maxTries=16,<br>**kwargs)</span>
+<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>maxTries=16,<br>**kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes Swendsen-Wang evolution on the Potts model.</p>
@@ -1311,20 +1213,6 @@ takes a single positive integer argument <code>t</code>, and returns the
 scheduled temperature at time <code>t</code>.</dd>
 <dt><strong><code>initial</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>A vector of spin assignments to components.</dd>
-<dt><strong><code>LinBox</code></strong> :&ensp;<code>bool=True</code></dt>
-<dd>Uses fast LinBox routines instead of slow inbuilt
-ones. WARNING: using inbuilt methods may dramatically increase
-computation time.</dd>
-<dt><strong><code>parallel</code></strong> :&ensp;<code>bool=False</code></dt>
-<dd>Should matrix computations be done in parallel? (Uses C/C++).</dd>
-<dt><strong><code>minBlockSize</code></strong> :&ensp;<code>int=32</code></dt>
-<dd>If <code>parallel</code> is truthy, this is the smallest
-number of columns processed in parallel.</dd>
-<dt><strong><code>maxBlockSize</code></strong> :&ensp;<code>int=64</code></dt>
-<dd>If <code>parallel</code> is truthy, this is the largest
-number of columns processed in parallel.</dd>
-<dt><strong><code>cores</code></strong> :&ensp;<code>int=4</code></dt>
-<dd>Number of available CPUs/cores/threads on the machine.</dd>
 <dt><strong><code>maxTries</code></strong> :&ensp;<code>int=16</code></dt>
 <dd>The number of attempts LinBox makes to sample a nonzero
 vector in the kernel of the coboundary matrix.</dd>
@@ -1735,8 +1623,7 @@ result returned is the all-zeros vector.</p>
         _name = &#34;SwendsenWang&#34;
 
         def __init__(
-                        self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None, LinBox=True,
-                        parallel=False, minBlockSize=32, maxBlockSize=64, cores=4, maxTries=16,
+                        self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None, maxTries=16,
                         **kwargs
                 ):
                 r&#34;&#34;&#34;
@@ -1750,15 +1637,6 @@ result returned is the all-zeros vector.</p>
                                 takes a single positive integer argument `t`, and returns the
                                 scheduled temperature at time `t`.
                         initial (np.array): A vector of spin assignments to components.
-                        LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
-                                ones. WARNING: using inbuilt methods may dramatically increase
-                                computation time.
-                        parallel (bool=False): Should matrix computations be done in parallel? (Uses C/C++).
-                        minBlockSize (int=32): If `parallel` is truthy, this is the smallest
-                                number of columns processed in parallel.
-                        maxBlockSize (int=64): If `parallel` is truthy, this is the largest
-                                number of columns processed in parallel.
-                        cores (int=4): Number of available CPUs/cores/threads on the machine.
                         maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
                                 vector in the kernel of the coboundary matrix.
 
@@ -1805,7 +1683,7 @@ result returned is the all-zeros vector.</p>
                 # Check the dimensions of the boundary/coboundary matrices by comparing
                 # the number of cells. LinBox is really sensitive to smaller-size matrices,
                 # but can easily handle large ones.
-                if self.cells*self.faces &lt; 10000 and LinBox:
+                if self.cells*self.faces &lt; 10000:
                         warnings.warn(f&#34;complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.&#34;, TooSmallWarning, stacklevel=2)
 
                 # Seed the random number generator.
@@ -1816,41 +1694,24 @@ result returned is the all-zeros vector.</p>
                 else: self.spins = (initial%self.field).astype(FINT)
 
                 # Delegate computation.
-                self._delegateComputation(LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries)
+                self._delegateComputation(maxTries)
 
         
-        def _delegateComputation(self, LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries):
+        def _delegateComputation(self, maxTries):
                 # If we use LinBox, keep everything as-is.
-                if LinBox:
-                        def sample(zeros):
-                                # Not currently sure how to handle this... maybe we&#39;ll just &#34;reject&#34;
-                                # for now, come back, and sub something else in later. We shouldn&#39;t
-                                # be halting computation. For now, we should raise an exception that
-                                # the Chain catches, and warns the user by exiting with exit code
-                                # 1 or 2.
-                                try:
-                                        return np.array(LanczosKernelSample(
-                                                self.matrices.coboundary, zeros, 2*self.dimension,
-                                                self.faces, self.field, maxTries=maxTries
-                                        ), dtype=FINT)
-                                except Exception as e:
-                                        raise NumericalInstabilityWarning(e)
-
-                
-                # If we use inbuilt routines, we need to actually construct the matrix
-                # form of the coboundary matrix, which is extremely sparse (and really big).
-                # Makes things slow.
-                else:
-                        coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
-                        rows = self.matrices.coboundary[::3]
-                        cols = self.matrices.coboundary[1::3]
-                        entries = (self.matrices.coboundary[2::3]%self.field).astype(FINT)
-
-                        coboundary[rows,cols] = entries
-                        Reducer = MatrixReduction(self.field, parallel, minBlockSize, maxBlockSize, cores)
-
-                        def sample(zeros):
-                                return KernelSample(Reducer, coboundary[zeros]).astype(FINT)
+                def sample(zeros):
+                        # Not currently sure how to handle this... maybe we&#39;ll just &#34;reject&#34;
+                        # for now, come back, and sub something else in later. We shouldn&#39;t
+                        # be halting computation. For now, we should raise an exception that
+                        # the Chain catches, and warns the user by exiting with exit code
+                        # 1 or 2.
+                        try:
+                                return np.array(LanczosKernelSample(
+                                        self.matrices.coboundary, zeros, 2*self.dimension,
+                                        self.faces, self.field, maxTries=maxTries
+                                ), dtype=FINT)
+                        except Exception as e:
+                                raise NumericalInstabilityWarning(e)
                         
                 self.sample = sample
 
@@ -1940,7 +1801,7 @@ proof.appendChild(square);
 </script>
 <header>
 <a class="homelink" rel="home" title="ATEAMS" href="https://github.com/apizzimenti/ATEAMS">
-<img class="resize" src="https://github.com/apizzimenti/ATEAMS/blob/feature/performant-sparse/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
+<img class="resize" src="https://mason.gmu.edu/~apizzime/assets/img/ic.4.cycle.jpg" alt="Homological percolation on the torus.">
 </a>
 </header>
 <div class="toc">

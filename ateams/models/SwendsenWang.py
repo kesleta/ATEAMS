@@ -2,8 +2,8 @@
 import numpy as np
 import warnings
 
-from ..arithmetic import LanczosKernelSample, KernelSample, MatrixReduction
-from ..common import MINT, FINT, Matrices, TooSmallWarning, NumericalInstabilityWarning
+from ..arithmetic import LanczosKernelSample
+from ..common import FINT, Matrices, TooSmallWarning, NumericalInstabilityWarning
 from ..statistics import constant
 
 
@@ -11,8 +11,7 @@ class SwendsenWang():
 	_name = "SwendsenWang"
 
 	def __init__(
-			self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None, LinBox=True,
-			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4, maxTries=16,
+			self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None, maxTries=16,
 			**kwargs
 		):
 		r"""
@@ -26,15 +25,6 @@ class SwendsenWang():
 				takes a single positive integer argument `t`, and returns the
 				scheduled temperature at time `t`.
 			initial (np.array): A vector of spin assignments to components.
-			LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
-				ones. WARNING: using inbuilt methods may dramatically increase
-				computation time.
-			parallel (bool=False): Should matrix computations be done in parallel? (Uses C/C++).
-			minBlockSize (int=32): If `parallel` is truthy, this is the smallest
-				number of columns processed in parallel.
-			maxBlockSize (int=64): If `parallel` is truthy, this is the largest
-				number of columns processed in parallel.
-			cores (int=4): Number of available CPUs/cores/threads on the machine.
 			maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
 				vector in the kernel of the coboundary matrix.
 
@@ -81,7 +71,7 @@ class SwendsenWang():
 		# Check the dimensions of the boundary/coboundary matrices by comparing
 		# the number of cells. LinBox is really sensitive to smaller-size matrices,
 		# but can easily handle large ones.
-		if self.cells*self.faces < 10000 and LinBox:
+		if self.cells*self.faces < 10000:
 			warnings.warn(f"complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.", TooSmallWarning, stacklevel=2)
 
 		# Seed the random number generator.
@@ -92,41 +82,24 @@ class SwendsenWang():
 		else: self.spins = (initial%self.field).astype(FINT)
 
 		# Delegate computation.
-		self._delegateComputation(LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries)
+		self._delegateComputation(maxTries)
 
 	
-	def _delegateComputation(self, LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries):
+	def _delegateComputation(self, maxTries):
 		# If we use LinBox, keep everything as-is.
-		if LinBox:
-			def sample(zeros):
-				# Not currently sure how to handle this... maybe we'll just "reject"
-				# for now, come back, and sub something else in later. We shouldn't
-				# be halting computation. For now, we should raise an exception that
-				# the Chain catches, and warns the user by exiting with exit code
-				# 1 or 2.
-				try:
-					return np.array(LanczosKernelSample(
-						self.matrices.coboundary, zeros, 2*self.dimension,
-						self.faces, self.field, maxTries=maxTries
-					), dtype=FINT)
-				except Exception as e:
-					raise NumericalInstabilityWarning(e)
-
-		
-		# If we use inbuilt routines, we need to actually construct the matrix
-		# form of the coboundary matrix, which is extremely sparse (and really big).
-		# Makes things slow.
-		else:
-			coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
-			rows = self.matrices.coboundary[::3]
-			cols = self.matrices.coboundary[1::3]
-			entries = (self.matrices.coboundary[2::3]%self.field).astype(FINT)
-
-			coboundary[rows,cols] = entries
-			Reducer = MatrixReduction(self.field, parallel, minBlockSize, maxBlockSize, cores)
-
-			def sample(zeros):
-				return KernelSample(Reducer, coboundary[zeros]).astype(FINT)
+		def sample(zeros):
+			# Not currently sure how to handle this... maybe we'll just "reject"
+			# for now, come back, and sub something else in later. We shouldn't
+			# be halting computation. For now, we should raise an exception that
+			# the Chain catches, and warns the user by exiting with exit code
+			# 1 or 2.
+			try:
+				return np.array(LanczosKernelSample(
+					self.matrices.coboundary, zeros, 2*self.dimension,
+					self.faces, self.field, maxTries=maxTries
+				), dtype=FINT)
+			except Exception as e:
+				raise NumericalInstabilityWarning(e)
 			
 		self.sample = sample
 

@@ -108,6 +108,7 @@ border-bottom: 1px solid black;
 text-align: center;
 }
 </style>
+<link rel="preload" as="image" href="https://mason.gmu.edu/~apizzime/assets/img/ic.4.cycle.jpg">
 </head>
 <body>
 <main>
@@ -202,20 +203,18 @@ from ateams.statistics import critical
 from ateams.complexes import Cubical
 from ateams.models import SwendsenWang
 
-# Construct the cubical complex; instantiate model, chain, and recorder.
+# Construct the cubical complex; instantiate model, chain.
 C = Cubical().fromCorners([10]*4)
-SW = SwendsenWang(C, dimension=2, field=7, temperature=critical(7))
+SW = SwendsenWang(C, dimension=2, field=5, temperature=critical(5))
 M = Chain(SW, steps=1000)
 
-rec = Recorder()
-
 # Run the chain, storing the output.
-with rec.record(&quot;out.lz&quot;) as rec:
-        for (spins, satisfied) in M.progress():
+with Recorder().record(&quot;out.lz&quot;) as rec:
+        for (spins, occupied) in M.progress():
                 # You can store as many outputs as you'd like --- even ones
                 # that aren't spit out by the model --- but they must be passed
                 # to the `.store()` method as a tuple.
-                rec.store((spins, satisfied))
+                rec.store((spins, occupied))
 </code></pre>
 <p>The <code><a title="ateams.statistics.Recorder" href="#ateams.statistics.Recorder">Recorder</a></code> class stores the differences between consecutive iterations using
 the <a href="github.com/lz4/lz4">LZ4 compression schema</a>, compressing the diffs in
@@ -223,14 +222,12 @@ chunks of (default) size 100. You can replay the data with the <code><a title="a
 class:</p>
 <pre><code class="language-python">from ateams import Player
 
-play = Player()
-
-with play.playback(&quot;out.lz&quot;, steps=1000) as play:
-        for (spins, satisfied) in play.progress():
+with Player().playback(&quot;out.lz&quot;, steps=1000) as play:
+        for (spins, occupied) in play.progress():
                 &lt;do whatever&gt;
 </code></pre>
 <p>Running the sampler and recording the data takes ~26 seconds (~38 it/s) on
-an M2 MacBook Air; replaying the data takes ~0 seconds (~14,101 it/s). The
+an M2 MacBook Air; replaying the data takes ~0 seconds (~24,211 it/s). The
 size of <code>out.lz</code> is ~1.8MB, so storing each cell's data requires <span><span class="MathJax_Preview">1/11</span><script type="math/tex">1/11</script></span>th
 of a byte per iteration (amortized).</p>
 <h2 id="args">Args</h2>
@@ -264,20 +261,18 @@ each iteration and stores whatever output is given.</dd>
         from ateams.complexes import Cubical
         from ateams.models import SwendsenWang
 
-        # Construct the cubical complex; instantiate model, chain, and recorder.
+        # Construct the cubical complex; instantiate model, chain.
         C = Cubical().fromCorners([10]*4)
-        SW = SwendsenWang(C, dimension=2, field=7, temperature=critical(7))
+        SW = SwendsenWang(C, dimension=2, field=5, temperature=critical(5))
         M = Chain(SW, steps=1000)
 
-        rec = Recorder()
-
         # Run the chain, storing the output.
-        with rec.record(&#34;out.lz&#34;) as rec:
-                for (spins, satisfied) in M.progress():
+        with Recorder().record(&#34;out.lz&#34;) as rec:
+                for (spins, occupied) in M.progress():
                         # You can store as many outputs as you&#39;d like --- even ones
                         # that aren&#39;t spit out by the model --- but they must be passed
                         # to the `.store()` method as a tuple.
-                        rec.store((spins, satisfied))
+                        rec.store((spins, occupied))
         ```
 
         The `Recorder` class stores the differences between consecutive iterations using
@@ -288,15 +283,13 @@ each iteration and stores whatever output is given.</dd>
         ```python
         from ateams import Player
 
-        play = Player()
-
-        with play.playback(&#34;out.lz&#34;, steps=1000) as play:
-                for (spins, satisfied) in play.progress():
+        with Player().playback(&#34;out.lz&#34;, steps=1000) as play:
+                for (spins, occupied) in play.progress():
                         &lt;do whatever&gt;
         ```
 
         Running the sampler and recording the data takes ~26 seconds (~38 it/s) on
-        an M2 MacBook Air; replaying the data takes ~0 seconds (~14,101 it/s). The
+        an M2 MacBook Air; replaying the data takes ~0 seconds (~24,211 it/s). The
         size of `out.lz` is ~1.8MB, so storing each cell&#39;s data requires \(1/11\)th
         of a byte per iteration (amortized).
         &#34;&#34;&#34;
@@ -722,7 +715,7 @@ proof.appendChild(square);
 </script>
 <header>
 <a class="homelink" rel="home" title="ATEAMS" href="https://github.com/apizzimenti/ATEAMS">
-<img class="resize" src="https://github.com/apizzimenti/ATEAMS/blob/feature/performant-sparse/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
+<img class="resize" src="https://mason.gmu.edu/~apizzime/assets/img/ic.4.cycle.jpg" alt="Homological percolation on the torus.">
 </a>
 </header>
 <div class="toc">

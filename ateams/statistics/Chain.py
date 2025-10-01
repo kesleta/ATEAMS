@@ -18,20 +18,18 @@ class Chain:
 	from ateams.complexes import Cubical
 	from ateams.models import SwendsenWang
 
-	# Construct the cubical complex; instantiate model, chain, and recorder.
+	# Construct the cubical complex; instantiate model, chain.
 	C = Cubical().fromCorners([10]*4)
-	SW = SwendsenWang(C, dimension=2, field=7, temperature=critical(7))
+	SW = SwendsenWang(C, dimension=2, field=5, temperature=critical(5))
 	M = Chain(SW, steps=1000)
 
-	rec = Recorder()
-
 	# Run the chain, storing the output.
-	with rec.record("out.lz") as rec:
-		for (spins, satisfied) in M.progress():
+	with Recorder().record("out.lz") as rec:
+		for (spins, occupied) in M.progress():
 			# You can store as many outputs as you'd like --- even ones
 			# that aren't spit out by the model --- but they must be passed
 			# to the `.store()` method as a tuple.
-			rec.store((spins, satisfied))
+			rec.store((spins, occupied))
 	```
 
 	The `Recorder` class stores the differences between consecutive iterations using
@@ -42,15 +40,13 @@ class Chain:
 	```python
 	from ateams import Player
 
-	play = Player()
-
-	with play.playback("out.lz", steps=1000) as play:
-		for (spins, satisfied) in play.progress():
+	with Player().playback("out.lz", steps=1000) as play:
+		for (spins, occupied) in play.progress():
 			<do whatever>
 	```
 
 	Running the sampler and recording the data takes ~26 seconds (~38 it/s) on
-	an M2 MacBook Air; replaying the data takes ~0 seconds (~14,101 it/s). The
+	an M2 MacBook Air; replaying the data takes ~0 seconds (~24,211 it/s). The
 	size of `out.lz` is ~1.8MB, so storing each cell's data requires \(1/11\)th
 	of a byte per iteration (amortized).
 	"""

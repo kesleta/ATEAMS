@@ -2,7 +2,7 @@
 import numpy as np
 import warnings
 
-from ..arithmetic import MatrixReduction, SubLanczosKernelSample, KernelSample
+from ..arithmetic import SubLanczosKernelSample
 from ..common import FINT, TooSmallWarning, Matrices, Bunch, NumericalInstabilityWarning
 
 
@@ -10,8 +10,8 @@ class Nienhuis():
 	_name = "Nienhuis"
 
 	def __init__(
-			self, C, q1, q2, dimension=2, field=2, initial=None, LinBox=True, maxTries=16,
-			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4, **kwargs
+			self, C, q1, q2, dimension=2, field=2, initial=None, maxTries=16,
+			**kwargs
 		):
 		"""
 		Initializes the self-dual Nienhuis model.
@@ -24,17 +24,8 @@ class Nienhuis():
 			dimension (int): Dimension targeted by the model.
 			field (int=2): Field characteristic.
 			initial (np.array): A vector of spin assignments to components.
-			LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
-				ones. WARNING: using inbuilt methods may dramatically increase
-				computation time.
 			maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
 				vector in the kernel of the coboundary matrix.
-			parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
-			minBlockSize (int=32): If `parallel` is truthy, this is the smallest
-				number of columns processed in parallel.
-			maxBlockSize (int=64): If `parallel` is truthy, this is the largest
-				number of columns processed in parallel.
-			cores (int=4): Number of available CPUs/cores/threads on the machine.
 		
 		<center> <button type="button" class="collapsible" id="Nienhuis-SubLanczosKernelSample-2"> Performance in \(\mathbb T^2_N\)</button> </center>
 		..include:: ./tables/Nienhuis.SubLanczosKernelSample.2.html
@@ -77,7 +68,7 @@ class Nienhuis():
 		# Check the dimensions of the boundary/coboundary matrices by comparing
 		# the number of cells. LinBox is really sensitive to smaller-size matrices,
 		# but can easily handle large ones.
-		if self.cells*self.faces < 100000 and LinBox:
+		if self.cells*self.faces < 100000:
 			warnings.warn(f"complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.", TooSmallWarning, stacklevel=2)
 
 		# Seed the random number generator.
@@ -88,35 +79,17 @@ class Nienhuis():
 		else: self.spins = (initial%self.field).astype(FINT)
 
 		# Delegate computation.
-		self._delegateComputation(LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries)
+		self._delegateComputation(maxTries)
 
 
-	def _delegateComputation(self, LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries):
-		# If we use LinBox, keep everything as-is.
-		if LinBox:
-			def sample(faceZeros, cellZeros):
-				try:
-					return np.array(SubLanczosKernelSample(
-						self.matrices.coboundary, cellZeros, faceZeros, self.field, maxTries=maxTries
-					), dtype=FINT)
-				except Exception as e:
-					raise NumericalInstabilityWarning(e)
-		
-		# If we use inbuilt routines, we need to actually construct the matrix
-		# form of the coboundary matrix, which is extremely sparse (and really big).
-		# Makes things slow.
-		else:
-			coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
-			rows = self.matrices.coboundary[::3]
-			cols = self.matrices.coboundary[1::3]
-			entries = (self.matrices.coboundary[2::3]%self.field).astype(FINT)
-
-			coboundary[rows,cols] = entries
-			Reducer = MatrixReduction(self.field, parallel, minBlockSize, maxBlockSize, cores)
-
-			def sample(faceZeros, cellZeros):
-				subbasis = coboundary.take(cellZeros, axis=0).take(faceZeros, axis=1)
-				return KernelSample(Reducer, subbasis).astype(FINT)
+	def _delegateComputation(self, maxTries):
+		def sample(faceZeros, cellZeros):
+			try:
+				return np.array(SubLanczosKernelSample(
+					self.matrices.coboundary, cellZeros, faceZeros, self.field, maxTries=maxTries
+				), dtype=FINT)
+			except Exception as e:
+				raise NumericalInstabilityWarning(e)
 			
 		self.sample = sample
 

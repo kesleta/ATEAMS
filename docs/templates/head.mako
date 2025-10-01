@@ -108,3 +108,5 @@
 		text-align: center;
 	}
 </style>
+
+<link rel="preload" as="image" href="https://mason.gmu.edu/~apizzime/assets/img/ic.4.cycle.jpg">

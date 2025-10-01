@@ -52,7 +52,7 @@ cdef class Twist:
 
 		# Construct a filtration and compute the percolation events.
 		filtration = np.arange(cellCount)
-		essential = Twist.ComputePercolationEvents(filtration)
+		essential = Twister.ComputePercolationEvents(filtration)
 		```
 
 		In this case, `essential` should be `{0, 17, 35, 21}`, and the times \(17\)
@@ -194,7 +194,8 @@ cdef class Twist:
 		Given a filtration --- i.e. a reordering of the columns of the full
 		boundary matrix --- gives times at which essential cycles of dimension
 		`dimension` were created. Performs arithmetic using flattened addition
-		and multiplication tables stored in `vector<char>`s.
+		and multiplication tables stored in `vector<char>`s. **This method is
+		recommended for general use.**
 
 		Args:
 			filtration (np.ndarray): An array of column indices.

@@ -4,10 +4,7 @@ import warnings
 
 from math import comb
 
-from ..arithmetic import (
-	Twist, LanczosKernelSample, MatrixReduction,
-	Persistence, KernelSample, ComputePersistencePairs
-)
+from ..arithmetic import Twist, LanczosKernelSample, ComputePersistencePairs
 from ..common import Matrices, TooSmallWarning, NumericalInstabilityWarning, FINT
 
 
@@ -15,8 +12,8 @@ class InvadedCluster():
 	_name = "InvadedCluster"
 	
 	def __init__(
-			self, C, dimension=1, field=2, initial=None, stop=lambda: 1, LinBox=True, maxTries=16,
-			parallel=False, minBlockSize=32, maxBlockSize=64, cores=4, **kwargs
+			self, C, dimension=1, field=2, initial=None, stop=lambda: 1, maxTries=16,
+			**kwargs
 		):
 		"""
 		Initializes the plaquette invaded-cluster algorithm on the provided
@@ -30,18 +27,9 @@ class InvadedCluster():
 			initial (np.array): A vector of spin assignments to components.
 			stop (function): A function that returns the number of essential cycles
 				found before sampling the next configuration.
-			LinBox (bool=True): Uses fast LinBox routines instead of slow inbuilt
-				ones. WARNING: using inbuilt methods may dramatically increase
-				computation time.
 			maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
 				vector in the kernel of the coboundary matrix \(A\). See more
 				discussion in the `SwendsenWang` model.
-			parallel (boolean): Should matrix computations be done in parallel? (Uses C/C++).
-			minBlockSize (int=32): If `parallel` is truthy, this is the smallest
-				number of columns processed in parallel.
-			maxBlockSize (int=64): If `parallel` is truthy, this is the largest
-				number of columns processed in parallel.
-			cores (int=4): Number of available CPUs/cores/threads on the machine.
 
 		<center> <button type="button" class="collapsible" id="InvadedCluster-Persistence-2">Performance in \(\mathbb T^2_N\)</button> </center>
 		..include:: ./tables/InvadedCluster.Persistence.2.html
@@ -77,7 +65,7 @@ class InvadedCluster():
 		# Check the dimensions of the boundary/coboundary matrices by comparing
 		# the number of cells. LinBox is really sensitive to smaller-size matrices,
 		# but can easily handle large ones.
-		if self.cells*self.faces < 100000 and LinBox:
+		if self.cells*self.faces < 100000:
 			warnings.warn(f"complex with {self.cells*self.faces} boundary matrix entries is too small for accurate matrix solves; may segfault.", TooSmallWarning, stacklevel=2)
 
 
@@ -88,7 +76,7 @@ class InvadedCluster():
 
 
 		# Delegates computation for persistence and cocycle sampling.
-		self._delegateComputation(LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries)
+		self._delegateComputation(maxTries)
 
 
 		# Seed the random number generator.
@@ -100,24 +88,23 @@ class InvadedCluster():
 		else: self.spins = (initial%self.field).astype(FINT)
 
 	
-	def _delegateComputation(self, LinBox, parallel, minBlockSize, maxBlockSize, cores, maxTries):
+	def _delegateComputation(self, maxTries):
 		low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
 
 		# If we're using LinBox, our sampling method is Lanczos regardless of
 		# dimension.
-		if LinBox:
-			def sample(zeros):
-				try:
-					return np.array(LanczosKernelSample(
-						self.matrices.coboundary, zeros, 2*self.dimension,
-						self.faces, self.field, maxTries
-					), dtype=FINT)
-				except Exception as e:
-					raise NumericalInstabilityWarning(e)
-		
+		def sample(zeros):
+			try:
+				return np.array(LanczosKernelSample(
+					self.matrices.coboundary, zeros, 2*self.dimension,
+					self.faces, self.field, maxTries
+				), dtype=FINT)
+			except Exception as e:
+				raise NumericalInstabilityWarning(e)
+	
 		# If we're using LinBox and the characteristic of our field is greater
 		# than 2, we use the twist_reduce variant implemented in this library.
-		if LinBox and self.field > 2:
+		if self.field > 2:
 			Twister = Twist(self.field, self.matrices.full, self.complex.breaks, self.cellCount, self.dimension)
 
 			def persist(filtration):
@@ -131,7 +118,7 @@ class InvadedCluster():
 		
 		# If we're using LinBox and the field we're computing over *is* two,
 		# use PHAT.
-		elif LinBox and self.field < 3:
+		elif self.field < 3:
 			times = set(range(self.cellCount))
 
 			def whittle(pairs):
@@ -147,25 +134,6 @@ class InvadedCluster():
 			def persist(filtration):
 				essential = ComputePersistencePairs(self.matrices.full, filtration, self.dimension, self.complex.breaks)
 				return whittle(essential)
-			
-		if not LinBox:
-			# If we can't/don't want to use LinBox, use inbuilt methods.
-			Reducer = MatrixReduction(self.field, parallel, minBlockSize, maxBlockSize, cores)
-			Persistencer = Persistence(self.field, self.complex.flattened, self.dimension)
-
-			coboundary = np.zeros((self.cells, self.faces), dtype=FINT)
-			rows = self.matrices.coboundary[::3]
-			cols = self.matrices.coboundary[1::3]
-			entries = (self.matrices.coboundary[2::3]%self.field).astype(FINT)
-
-			coboundary[rows,cols] = entries
-			
-			def persist(filtration):
-				return Persistencer.TwistComputePercolationEvents(filtration)
-			
-			def sample(zeros):
-				return KernelSample(Reducer, coboundary.take(zeros, axis=0)).astype(FINT)
-		
 
 		self.sample = sample
 		self.persist = persist

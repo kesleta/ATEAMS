@@ -21,8 +21,7 @@ def construct(L, dim, field):
 
 
 	# Set up Model and Chain.
-	T = critical(field)
-	SW = SwendsenWang(L, dimension=dim//2, field=field, temperature=lambda t: -T(t), maxTries=8)
+	SW = SwendsenWang(L, dimension=dim//2, field=field, temperature=critical(field), maxTries=8)
 	N = 100
 	M = Chain(SW, steps=N)
 

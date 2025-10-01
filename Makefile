@@ -34,26 +34,26 @@ LinBoxMethods:
 #### PROFILE ####
 #################
 Glauber: FORCE
-	@cd test && ./profile.models.Glauber.sh 19 22 4
-	@cd test && ./profile.models.Glauber.sh 999 1002 2
+	@cd test && ./profile.models.Glauber.sh 9 12 4
+	@cd test && ./profile.models.Glauber.sh 99 102 2
 
 SwendsenWang: FORCE
 	@cd test && ./profile.models.SW.sh 4 7 4
-	@cd test && ./profile.models.SW.sh 499 502 2
+	@cd test && ./profile.models.SW.sh 49 52 2
 
 Nienhuis: FORCE
 	@cd test && ./profile.models.NH.sh 49 52 2
-	@cd test && ./profile.models.NH.sh 19 22 3
+	@cd test && ./profile.models.NH.sh 9 12 3
 
 InvadedCluster: FORCE
-	@cd test && ./profile.models.IC.sh 7 8 4
+	@cd test && ./profile.models.IC.sh 4 5 4
 	@cd test && ./profile.models.IC.sh 19 22 2
 
 Bernoulli: FORCE
 	@cd test && ./profile.models.Bernoulli.sh 4 7 4
 	@cd test && ./profile.models.Bernoulli.sh 19 22 2
 
-profile: Glauber SwendsenWang Nienhuis InvadedCluster Bernoulli
+profile: Glauber SwendsenWang Nienhuis InvadedCluster
 
 test: FORCE
 	

@@ -108,6 +108,7 @@ border-bottom: 1px solid black;
 text-align: center;
 }
 </style>
+<link rel="preload" as="image" href="https://mason.gmu.edu/~apizzime/assets/img/ic.4.cycle.jpg">
 </head>
 <body>
 <main>
@@ -247,7 +248,7 @@ Twister = Twist(field, C.matrices.full, C.breaks, cellCount, dimension)
 
 # Construct a filtration and compute the percolation events.
 filtration = np.arange(cellCount)
-essential = Twist.ComputePercolationEvents(filtration)
+essential = Twister.ComputePercolationEvents(filtration)
 </code></pre>
 <p>In this case, <code>essential</code> should be <code>{0, 17, 35, 21}</code>, and the times <span><span class="MathJax_Preview">17</span><script type="math/tex">17</script></span>
 and <span><span class="MathJax_Preview">21</span><script type="math/tex">21</script></span> are the essential <span><span class="MathJax_Preview">1</span><script type="math/tex">1</script></span>-dimensional cycles.</p></div>
@@ -276,7 +277,8 @@ multiplication tables stored in <code>vector&lt;vector&lt;char&gt;&gt;</code>s.<
 <div class="desc"><p>Given a filtration &mdash; i.e. a reordering of the columns of the full
 boundary matrix &mdash; gives times at which essential cycles of dimension
 <code>dimension</code> were created. Performs arithmetic using flattened addition
-and multiplication tables stored in <code>vector&lt;char&gt;</code>s.</p>
+and multiplication tables stored in <code>vector&lt;char&gt;</code>s. <strong>This method is
+recommended for general use.</strong></p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>filtration</code></strong> :&ensp;<code>np.ndarray</code></dt>
@@ -323,7 +325,7 @@ proof.appendChild(square);
 </script>
 <header>
 <a class="homelink" rel="home" title="ATEAMS" href="https://github.com/apizzimenti/ATEAMS">
-<img class="resize" src="https://github.com/apizzimenti/ATEAMS/blob/feature/performant-sparse/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
+<img class="resize" src="https://mason.gmu.edu/~apizzime/assets/img/ic.4.cycle.jpg" alt="Homological percolation on the torus.">
 </a>
 </header>
 <div class="toc">

@@ -21,6 +21,6 @@
 
 <header>
 	<a class="homelink" rel="home" title="ATEAMS" href="https://github.com/apizzimenti/ATEAMS">
-		<img class="resize" src="https://github.com/apizzimenti/ATEAMS/blob/feature/performant-sparse/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
+		<img class="resize" src="https://mason.gmu.edu/~apizzime/assets/img/ic.4.cycle.jpg" alt="Homological percolation on the torus.">
 	</a>
 </header>
