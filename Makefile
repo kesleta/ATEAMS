@@ -56,7 +56,7 @@ Bernoulli: FORCE
 profile: Glauber SwendsenWang Nienhuis InvadedCluster Bernoulli
 
 test: FORCE
-	@cd test && sudo clang++ -L/usr/local/include/ATEAMS/ `pkg-config --libs linbox` -lLinBoxMethods test.arithmetic.persistence.cpp -o test.arithmetic.persistence
+	
 
 gauntlet: FORCE test profile
 
