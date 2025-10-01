@@ -19,8 +19,10 @@ _refs.md
 
 # Ignore contents, but not directories.
 test/stats
+test/**/*.txt
 test/**/*.json
 test/**/*.npz
+test/**/*.lz
 
 *hopper*
 *pangolin*
