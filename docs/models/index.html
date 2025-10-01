@@ -132,7 +132,7 @@ text-align: center;
 <dl>
 <dt id="ateams.models.Bernoulli"><code class="flex name class">
 <span>class <span class="ident">Bernoulli</span></span>
-<span>(</span><span>C, p, dimension=1, PHAT=True, **kwargs)</span>
+<span>(</span><span>C, dimension=1, PHAT=True, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes classic Bernoulli percolation on the provided complex,
@@ -155,7 +155,7 @@ computation time.</dd>
 <pre><code class="python">class Bernoulli():
         _name = &#34;Bernoulli&#34;
         
-        def __init__(self, C, p, dimension=1, PHAT=True, **kwargs):
+        def __init__(self, C, dimension=1, PHAT=True, **kwargs):
                 &#34;&#34;&#34;
                 Initializes classic Bernoulli percolation on the provided complex,
                 detecting percolation in the `dimension`-1th homology group.
@@ -172,7 +172,6 @@ computation time.</dd>
                 self.dimension = dimension
                 self._returns = 1
                 self.field = 2
-                self.p = p
 
                 # Set a phantom spins attribute so we don&#39;t break the Chain
                 self.spins = None
@@ -197,18 +196,6 @@ computation time.</dd>
                 # to correspond to the provided dimension.
                 self.rank = comb(len(self.complex.corners), self.dimension)
                 self.nullity = len(self.complex.Boundary[self.dimension])
-
-                # Build a coface map.
-                self.cofaces = { }
-                low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
-
-                for t in range(0, self.matrices.boundary.shape[0], 3):
-                        face = self.matrices.boundary[t]
-                        cell = self.matrices.boundary[t+1]
-                        coef = self.matrices.boundary[t+2]
-
-
-
 
                 # Delegates computation for persistence.
                 self._delegateComputation(PHAT)
@@ -253,14 +240,9 @@ computation time.</dd>
                 &#34;&#34;&#34;
                 Constructs a filtration based on the evaluation of the cochain.
                 &#34;&#34;&#34;
-                # Decide which cubes are/aren&#39;t included; if any cube isn&#39;t included,
-                # we need to throw out any cell of which it&#39;s a face, then re-index
-                # everything.
+                # Find which cubes get zeroed out (i.e. are sent to zero by the cocycle).
                 low = self.complex.breaks[self.dimension]
                 high = self.complex.breaks[self.dimension+1]
-
-                uniform = self.RNG.uniform(size=self.cells)
-                include = np.nonzero(uniform &lt; self.p)[0]
 
                 filtration = np.arange(self.cellCount)
                 shuffled = np.random.permutation(self.target)
@@ -292,9 +274,6 @@ computation time.</dd>
                 Returns:
                         A numpy array representing a vector of spin assignments.
                 &#34;&#34;&#34;
-                uniform = self.RNG.uniform(size=self.cells)
-                include = np.nonzero(uniform &lt; self.p)[0]
-
                 # Construct the filtration and find the essential cycles.
                 filtration, shuffled = self._filtrate()
                 essential = self.persist(filtration)

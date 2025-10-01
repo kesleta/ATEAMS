@@ -194,11 +194,49 @@ temperature of the Potts model.</p></div>
 <span>(</span><span>model,<br>accept=&lt;function always.&lt;locals&gt;._&gt;,<br>statistics={},<br>steps=10000)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Simulates a Markov chain on the given Model.</p>
+<div class="desc"><p>Simulates a Markov chain on the given Model. For example, to generate 1000 samples
+from 2-dimensional Potts lattice gauge theory with coefficients in <span><span class="MathJax_Preview">\mathbb Z/5\mathbb Z</span><script type="math/tex">\mathbb Z/5\mathbb Z</script></span>
+and store the spins on each 1-cell and the occupied 2-cells, use something like</p>
+<pre><code class="language-python">from ateams import Chain, Recorder
+from ateams.statistics import critical
+from ateams.complexes import Cubical
+from ateams.models import SwendsenWang
+
+# Construct the cubical complex; instantiate model, chain, and recorder.
+C = Cubical().fromCorners([10]*4)
+SW = SwendsenWang(C, dimension=2, field=7, temperature=critical(7))
+M = Chain(SW, steps=1000)
+
+rec = Recorder()
+
+# Run the chain, storing the output.
+with rec.record(&quot;out.lz&quot;) as rec:
+        for (spins, satisfied) in M.progress():
+                # You can store as many outputs as you'd like --- even ones
+                # that aren't spit out by the model --- but they must be passed
+                # to the `.store()` method as a tuple.
+                rec.store((spins, satisfied))
+</code></pre>
+<p>The <code><a title="ateams.statistics.Recorder" href="#ateams.statistics.Recorder">Recorder</a></code> class stores the differences between consecutive iterations using
+the <a href="github.com/lz4/lz4">LZ4 compression schema</a>, compressing the diffs in
+chunks of (default) size 100. You can replay the data with the <code><a title="ateams.statistics.Player" href="#ateams.statistics.Player">Player</a></code>
+class:</p>
+<pre><code class="language-python">from ateams import Player
+
+play = Player()
+
+with play.playback(&quot;out.lz&quot;, steps=1000) as play:
+        for (spins, satisfied) in play.progress():
+                &lt;do whatever&gt;
+</code></pre>
+<p>Running the sampler and recording the data takes ~26 seconds (~38 it/s) on
+an M2 MacBook Air; replaying the data takes ~0 seconds (~14,101 it/s). The
+size of <code>out.lz</code> is ~1.8MB, so storing each cell's data requires <span><span class="MathJax_Preview">1/11</span><script type="math/tex">1/11</script></span>th
+of a byte per iteration (amortized).</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>model</code></strong> :&ensp;<code>Model</code></dt>
-<dd>An instantiated descendant of <code>Model</code> (e.g. <code>SwendsenWang</code>)
+<dd>A Model (e.g. <code><a title="ateams.models.SwendsenWang" href="../models/index.html#ateams.models.SwendsenWang">SwendsenWang</a></code>)
 generating the Markov chain.</dd>
 <dt><strong><code>accept</code></strong> :&ensp;<code>Callable</code></dt>
 <dd>A function that consumes the complex, model, and
@@ -215,80 +253,125 @@ each iteration and stores whatever output is given.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Chain:
-    def __init__(self, model, accept=always(), statistics={}, steps=10000):
         &#34;&#34;&#34;
-        Simulates a Markov chain on the given Model.
+        Simulates a Markov chain on the given Model. For example, to generate 1000 samples
+        from 2-dimensional Potts lattice gauge theory with coefficients in \(\mathbb Z/5\mathbb Z\)
+        and store the spins on each 1-cell and the occupied 2-cells, use something like
 
-        Args:
-            model (Model): An instantiated descendant of `Model` (e.g. `SwendsenWang`)
-                generating the Markov chain.
-            accept (Callable): A function that consumes the complex, model, and
-                state to determine whether we&#39;re going to a good place.
-            statistics (dict): A mapping of names to functions which take the complex,
-                model, and state as argument. The Chain keeps track of these at
-                each iteration and stores whatever output is given.
-            steps (int): The number of iterations in the chain.
-        &#34;&#34;&#34;
-        self.model = model
-        self.steps = steps
-        self.accept = accept
-        self._exitcode = 0
-        self._warnings = 0
+        ```python
+        from ateams import Chain, Recorder
+        from ateams.statistics import critical
+        from ateams.complexes import Cubical
+        from ateams.models import SwendsenWang
 
-        # Store stats and things.
-        self.functions = statistics
-        self.statistics = { name: [] for name in self.functions.keys() }
+        # Construct the cubical complex; instantiate model, chain, and recorder.
+        C = Cubical().fromCorners([10]*4)
+        SW = SwendsenWang(C, dimension=2, field=7, temperature=critical(7))
+        M = Chain(SW, steps=1000)
 
+        rec = Recorder()
 
-    def __iter__(self):
-        &#34;&#34;&#34;
-        Initializes the Chain object as a generator.
-        &#34;&#34;&#34;
-        self.step = 0
-        self.state = tuple([self.model.spins] + []*(self.model._returns-1))
-        return self
-    
+        # Run the chain, storing the output.
+        with rec.record(&#34;out.lz&#34;) as rec:
+                for (spins, satisfied) in M.progress():
+                        # You can store as many outputs as you&#39;d like --- even ones
+                        # that aren&#39;t spit out by the model --- but they must be passed
+                        # to the `.store()` method as a tuple.
+                        rec.store((spins, satisfied))
+        ```
 
-    def __next__(self):
-        &#34;&#34;&#34;
-        Performs the computations specified by the proposal and acceptance schemes.
-        &#34;&#34;&#34;
-        # While we haven&#39;t reached the max number of steps, propose a new plan,
-        # check whether it&#39;s acceptable/valid, and continue.
-        while self.step &lt; self.steps:
-            # Propose the next state and check whether we want to accept it as
-            # the next state or not; assign whichever state is chosen to the
-            # Model.
-            try: proposed = self.model._proposal(self.step)
-            except NumericalInstabilityWarning:
-                self._exitcode = 2
-                self._warnings += 1
-                proposed = self.state
-
-            self.state = proposed if self.accept(self.state, proposed, self.step) else self.state
-            self.model._assign(self.state[0])
-
-            # Compute statistics.
-            for name, function in self.functions.items():
-                self.statistics[name].append(function(self.model, self.state))
-            
-            # Iterate.
-            self.step += 1
-            
-            return self.state
+        The `Recorder` class stores the differences between consecutive iterations using
+        the [LZ4 compression schema](github.com/lz4/lz4), compressing the diffs in
+        chunks of (default) size 100. You can replay the data with the `Player`
+        class:
         
-        raise StopIteration
-    
-    
-    def progress(self, dynamic_ncols=True, desc=&#34;&#34;):
-        &#34;&#34;&#34;
-        Progress bar.
+        ```python
+        from ateams import Player
 
-        Returns:
-            `tqdm` iterable.
+        play = Player()
+
+        with play.playback(&#34;out.lz&#34;, steps=1000) as play:
+                for (spins, satisfied) in play.progress():
+                        &lt;do whatever&gt;
+        ```
+
+        Running the sampler and recording the data takes ~26 seconds (~38 it/s) on
+        an M2 MacBook Air; replaying the data takes ~0 seconds (~14,101 it/s). The
+        size of `out.lz` is ~1.8MB, so storing each cell&#39;s data requires \(1/11\)th
+        of a byte per iteration (amortized).
         &#34;&#34;&#34;
-        from tqdm.auto import tqdm
-        return tqdm(self, total=self.steps, dynamic_ncols=dynamic_ncols, desc=desc)</code></pre>
+        def __init__(self, model, accept=always(), statistics={}, steps=10000):
+                &#34;&#34;&#34;
+                Args:
+                        model (Model): A Model (e.g. `ateams.models.SwendsenWang`)
+                                generating the Markov chain.
+                        accept (Callable): A function that consumes the complex, model, and
+                                state to determine whether we&#39;re going to a good place.
+                        statistics (dict): A mapping of names to functions which take the complex,
+                                model, and state as argument. The Chain keeps track of these at
+                                each iteration and stores whatever output is given.
+                        steps (int): The number of iterations in the chain.
+                &#34;&#34;&#34;
+                self.model = model
+                self.steps = steps
+                self.accept = accept
+                self._exitcode = 0
+                self._warnings = 0
+
+                # Store stats and things.
+                self.functions = statistics
+                self.statistics = { name: [] for name in self.functions.keys() }
+
+
+        def __iter__(self):
+                &#34;&#34;&#34;
+                Initializes the Chain object as a generator.
+                &#34;&#34;&#34;
+                self.step = 0
+                self.state = tuple([self.model.spins] + []*(self.model._returns-1))
+                return self
+        
+
+        def __next__(self):
+                &#34;&#34;&#34;
+                Performs the computations specified by the proposal and acceptance schemes.
+                &#34;&#34;&#34;
+                # While we haven&#39;t reached the max number of steps, propose a new plan,
+                # check whether it&#39;s acceptable/valid, and continue.
+                while self.step &lt; self.steps:
+                        # Propose the next state and check whether we want to accept it as
+                        # the next state or not; assign whichever state is chosen to the
+                        # Model.
+                        try: proposed = self.model._proposal(self.step)
+                        except NumericalInstabilityWarning:
+                                self._exitcode = 2
+                                self._warnings += 1
+                                proposed = self.state
+
+                        self.state = proposed if self.accept(self.state, proposed, self.step) else self.state
+                        self.model._assign(self.state[0])
+
+                        # Compute statistics.
+                        for name, function in self.functions.items():
+                                self.statistics[name].append(function(self.model, self.state))
+                        
+                        # Iterate.
+                        self.step += 1
+                        
+                        return self.state
+                
+                raise StopIteration
+        
+        
+        def progress(self, dynamic_ncols=True, desc=&#34;&#34;):
+                &#34;&#34;&#34;
+                Progress bar.
+
+                Returns:
+                        `tqdm` iterable.
+                &#34;&#34;&#34;
+                from tqdm.auto import tqdm
+                return tqdm(self, total=self.steps, dynamic_ncols=dynamic_ncols, desc=desc)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -312,105 +395,143 @@ each iteration and stores whatever output is given.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Player():
-    &#34;&#34;&#34;
-    Safely &#34;replays&#34; recorded `Chain` output.
-    &#34;&#34;&#34;
-    def __init__(self): pass
-
-    def playback(self, S, fp:str, outputs: dict, compressed=True, steps=None):
         &#34;&#34;&#34;
-        Initialize playback; context management.
-
-        Args:
-            S (Model): `Model` which matches the configuration on which the
-                `Chain` was simulated. **If the `Model` does not have the same
-                parameters as the `Model` on which the recorded chain was
-                simulated, statistical results from this playback may not be
-                accurate.
-            fp (str): File in which records are stored.
-            outputs (dict): Dictionary mapping integer keys to initial states.
-            compressed (bool): Are the data compressed?
-            steps (int): How many steps does this chain take?
-
-        Returns:
-            This Player object.
+        Safely &#34;replays&#34; recorded `Chain` output.
         &#34;&#34;&#34;
-        # Configure filepath, file object, and JsonLines Reader.
-        self._fp = fp
-        self._file = gzip.open(self._fp, &#34;rb&#34;) if compressed else open(self._fp, &#34;r&#34;)
-        self._reader = jsl.Reader(self._file)
-        self._steps = steps
-        self.outputs = outputs.copy()
+        def __init__(self): pass
 
-        # Enter context management.
-        return self.__enter__()
-    
+        def playback(self, fp:str, steps=1000):
+                &#34;&#34;&#34;
+                Initialize playback; context management.
 
-    def __iter__(self):
-        &#34;&#34;&#34;
-        This `Player` is a generator which yields states of the recorded chain.
-        &#34;&#34;&#34;
-        return self
+                Args:
+                        fp (str): File in which records are stored.
+                        steps (int=1000): How many steps in the chain? Only relevant for
+                                displaying the progress bar.
+
+                Returns:
+                        This Player object.
+                &#34;&#34;&#34;
+                # Configure filepath, reader.
+                self._fp = fp
+                self._reader = lz4.frame.LZ4FrameFile(f&#34;{self._fp}&#34;, mode=&#34;rb&#34;)
+
+                # Similar setup to the Recorder.
+                self._current = None
+                self._currentized = False
+
+                self._loaded = []
+                self._remaining = 0
+                self._blocksize = 0
+                self._configurationsize = -1
+
+                # Compression markers.
+                self._intrablockbreak = &#39;&lt;&lt;#&gt;&gt;&#39;
+                self._interblockbreak = &#39;&lt;&lt;&lt;##&gt;&gt;&gt;&#39;
+                self._interlistbreak = &#39;&lt;&gt;&#39;
+                self._listsep = &#39; &#39;
+
+                # Number of steps (progress bar only).
+                self._steps = steps
+
+                # Enter context management.
+                return self.__enter__()
+        
+
+        def __iter__(self):
+                &#34;&#34;&#34;
+                This `Player` is a generator which yields states of the recorded chain.
+                &#34;&#34;&#34;
+                return self
 
 
-    def __next__(self):
-        &#34;&#34;&#34;
-        Iteration magic method.
-        &#34;&#34;&#34;
-        # Get the next configuration by calling __next__() on the reader.
-        try: configuration = self._reader.read()
-        except: raise StopIteration
+        def __next__(self):
+                &#34;&#34;&#34;
+                Iteration magic method.
+                &#34;&#34;&#34;
+                # If there are no more configurations remaining in this block, load the
+                # next block.
+                if self._remaining == 0:
+                        # Check whether we&#39;re EOF.
+                        try:
+                                unconfigured = self._reader.readline()
+                                assert unconfigured != b&#39;&#39;
+                        except:
+                                raise StopIteration
+                        
+                        # Split on block markers...
+                        unpackedlines = unconfigured.decode().strip().split(self._interblockbreak)
 
-        for k, output in configuration.items():
-            for spin, fs in output.items():
-                for f in fs:
-                    self.outputs[int(k)][int(f)] = int(spin)
+                        # ... then on intra-block markers (indicating iterations) ...
+                        unpackediterations = [l.split(self._intrablockbreak) for l in unpackedlines]
 
-        return tuple(self.outputs.values())
-    
+                        # ... then on intra-list markers (indicating different arrays within each iteration)...
+                        self._loaded = [[s.split(self._interlistbreak) for s in l] for l in unpackediterations]
+                        self._loaded = [
+                                [
+                                        [np.fromstring(i, sep=self._listsep, dtype=int), np.fromstring(v, sep=self._listsep, dtype=int)]
+                                        for i, v in iteration
+                                ]
+                                for iteration in self._loaded   
+                        ]
 
-    def __enter__(self):
-        &#34;&#34;&#34;
-        Required context management magic method.
-        &#34;&#34;&#34;
-        return self
+                        # Compute the number of configurations that need to be reported and
+                        # the size of the currently-loaded block (in iterations).
+                        self._remaining = len(self._loaded)
+                        self._blocksize = len(self._loaded)
+
+                        # Check if we need to load an initial configuration; this only
+                        # happens on the first step.
+                        if not self._currentized:
+                                self._current = tuple([self._loaded[0][i][1] for i in range(len(self._loaded[0]))])
+                                self._configurationsize = len(self._current)
+                                self._currentized = True
+
+                # Load the next configuration, modify the current one.
+                nextup = self._loaded[self._blocksize-self._remaining]
+
+                for i in range(self._configurationsize):
+                        indices, values = nextup[i]
+                        self._current[i][indices] = values
+                
+                # Decrement the number of configurations remaining in the block, and
+                # return the current(ly modified) configuration.
+                self._remaining -= 1
+
+                return self._current
+
+        def __enter__(self):
+                &#34;&#34;&#34;
+                Required context management magic method.
+                &#34;&#34;&#34;
+                return self
 
 
-    def __exit__(self, exc_type, exc_value, exc_tb):
-        &#34;&#34;&#34;
-        Required context management magic method; kills the reader and the file.
-        &#34;&#34;&#34;
-        self._reader.close()
-        self._file.close()
+        def __exit__(self, exc_type, exc_value, exc_tb):
+                &#34;&#34;&#34;
+                Required context management magic method; kills the reader and the file.
+                &#34;&#34;&#34;
+                self._reader.close()
 
-    
-    def progress(self):
-        from tqdm.auto import tqdm
-        return tqdm(self, total=self._steps)</code></pre>
+        
+        def progress(self):
+                from tqdm.auto import tqdm
+                return tqdm(self, total=self._steps)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="ateams.statistics.Player.playback"><code class="name flex">
-<span>def <span class="ident">playback</span></span>(<span>self, S, fp: str, outputs: dict, compressed=True, steps=None)</span>
+<span>def <span class="ident">playback</span></span>(<span>self, fp: str, steps=1000)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initialize playback; context management.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>S</code></strong> :&ensp;<code>Model</code></dt>
-<dd><code>Model</code> which matches the configuration on which the
-<code><a title="ateams.statistics.Chain" href="#ateams.statistics.Chain">Chain</a></code> was simulated. **If the <code>Model</code> does not have the same
-parameters as the <code>Model</code> on which the recorded chain was
-simulated, statistical results from this playback may not be
-accurate.</dd>
 <dt><strong><code>fp</code></strong> :&ensp;<code>str</code></dt>
 <dd>File in which records are stored.</dd>
-<dt><strong><code>outputs</code></strong> :&ensp;<code>dict</code></dt>
-<dd>Dictionary mapping integer keys to initial states.</dd>
-<dt><strong><code>compressed</code></strong> :&ensp;<code>bool</code></dt>
-<dd>Are the data compressed?</dd>
-<dt><strong><code>steps</code></strong> :&ensp;<code>int</code></dt>
-<dd>How many steps does this chain take?</dd>
+<dt><strong><code>steps</code></strong> :&ensp;<code>int=1000</code></dt>
+<dd>How many steps in the chain? Only relevant for
+displaying the progress bar.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>This Player object.</p></div>
@@ -435,122 +556,147 @@ file.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Recorder:
-    &#34;&#34;&#34;
-    Safely &#34;records&#34; states from a Chain by tracking changes between successive
-    states, and writing these changes --- alongside the initial state --- to
-    file.
-    &#34;&#34;&#34;
-    def __init__(self): pass
-
-    def record(self, M: Chain, fp: str, outputs: dict, compressed:bool=True):
         &#34;&#34;&#34;
-        Called to configure the recording apparatus for the Chain, and *should*
-        be used as a context manager (i.e. with the `with` statement).
-
-        Args:
-            M (Chain): `potts.Chain` object to be recorded; `Recorder` needs
-                access to the `Model` and `Complex` subobjects.
-            fp (str): Filename.
-            outputs (dict): Dictionary mapping integer keys to initial states.
-            compressed (bool): Do we want to compress our outputs? The answer
-                should only be &#34;no&#34; if we&#39;re debugging something.
-
-        Returns:
-            This `Recorder` object.
+        Safely &#34;records&#34; states from a Chain by tracking changes between successive
+        states, and writing these changes --- alongside the initial state --- to
+        file.
         &#34;&#34;&#34;
-        # Set up filepath, the actual file I/O object (gzip-compressed if we want
-        # compression, otherwise just a standard file), and initialize a JsonLines
-        # Writer.
-        self._fp = fp
-        self._file = gzip.open(f&#34;{self._fp}&#34;, &#34;wb&#34;) if compressed else open(self._fp, &#34;w&#34;)
-        self._writer = jsl.Writer(self._file)
+        def __init__(self): pass
+
+        def record(self, fp: str, blocksize=100):
+                &#34;&#34;&#34;
+                Called to configure the recording apparatus for the Chain, and *should*
+                be used as a context manager (i.e. with the `with` statement).
+
+                Args:
+                        fp (str): Filename.
+                        block (int=100): Number of states to bundle together before compressing. 
+
+                Returns:
+                        This `Recorder` object.
+
+                
+                &#34;&#34;&#34;
+                # Configure filepath, writer.
+                self._fp = fp
+                self._writer = lz4.frame.LZ4FrameFile(f&#34;{self._fp}&#34;, mode=&#34;wb&#34;, compression_level=9)
+                
+                # Save the chain for access during iteration; set the &#34;previous&#34; state to
+                # be all -1s, since the first state yielded by iterating over the Chain
+                # is the initial state, and we need to record the whole thing; fix a list
+                # of possible integer states for later.
+                self.previous = None
+                self._previous = False
+
+                self._blocksize = blocksize
+                self._block = []
+                self._stored = 0
+
+                # Compression markers.
+                self._intrablockbreak = &#39;&lt;&lt;#&gt;&gt;&#39;
+                self._interblockbreak = &#39;&lt;&lt;&lt;##&gt;&gt;&gt;&#39;
+                self._interlistbreak = &#39;&lt;&gt;&#39;
+                
+                # Enter the context manager.
+                return self.__enter__()
+
+
+        def store(self, state) -&gt; None:
+                &#34;&#34;&#34;
+                Stores a state yielded by iteration over a `Chain`.
+
+                Args:
+                        state (tuple): Tuple of NumPy arrays to be written to file.
+                &#34;&#34;&#34;
+                # Check whether we&#39;ve received any arguments before; if not, initialize
+                # a list to keep track of &#34;previous&#34; arguments. We expect the arguments
+                # here to be numpy arrays.
+
+                # Check whether we have any previously-stored data.
+                if not self._previous:
+                        self.previous = tuple(-np.ones(shape=s.shape, dtype=s.dtype) for s in state)
+                        self._previous = True
+
+                subblock = []
+                
+                # Get diffs; store.
+                for i in range(len(state)):
+                        # Compute the diff and store.
+                        diff = np.flatnonzero(~np.equal(state[i], self.previous[i]))
+                        self.previous[i][diff] = state[i][diff][::]
+
+                        # Add the encoded dictionary of diffs to the subblock.
+                        subblock.append(f&#34;{&#39; &#39;.join(diff.astype(str))}{self._interlistbreak}{&#39; &#39;.join(state[i][diff].astype(str))}&#34;)
+
+                # Increment the number of iterations we&#39;ve stored; if we&#39;ve reached the
+                # limit, compress, write to file, and begin again.
+                self._block.append(subblock)
+                self._stored += 1
+
+                if self._stored == self._blocksize:
+                        self._writer.write(
+                                (self._interblockbreak.join(
+                                        self._intrablockbreak.join(subblock)
+                                        for subblock in self._block
+                                ) + &#34;\n&#34;).encode()
+                        )
+
+                        # Flush the block/#stored.
+                        self._block = []
+                        self._stored = 0
+
         
-        # Save the chain for access during iteration; set the &#34;previous&#34; state to
-        # be all -1s, since the first state yielded by iterating over the Chain
-        # is the initial state, and we need to record the whole thing; fix a list
-        # of possible integer states for later.
-        self.chain = M
-        self.outputs = outputs.copy()
-        self.previous = tuple(self.outputs.values())
-        
-        # Enter the context manager.
-        return self.__enter__()
+        def __enter__(self):
+                &#34;&#34;&#34;
+                Required context management magic method.
+                &#34;&#34;&#34;
+                return self
 
 
-    def store(self, state: tuple) -&gt; None:
-        &#34;&#34;&#34;
-        Stores a state yielded by iteration over a `Chain`.
-
-        Args:
-            state (tuple): Tuple of assignments or other data points.
-        &#34;&#34;&#34;
-        delta = { }
-
-        for k, output in zip(self.outputs.keys(), state):
-            # Find the indices where spin assignments *differ*, then categorize the
-            # indices based on their spin value. *Should* save some space when
-            # writing to file.
-            indices = (~np.equal(self.previous[k], output)).astype(int).nonzero()[0]
-            faces = { int(s): [] for s in set(np.array(output)) }
-            for i in indices: faces[int(output[i])].append(int(i))
-
-            # Record the &#34;delta,&#34; i.e. the changes encountered from the previous
-            # state.
-            delta[k] = faces
-
-        # Write the delta to file and update the previous state to be the current
-        # one.
-        self._writer.write(delta)
-        self.previous = state
-
-    
-    def __enter__(self):
-        &#34;&#34;&#34;
-        Required context management magic method.
-        &#34;&#34;&#34;
-        return self
-
-
-    def __exit__(self, exc_type, exc_value, exc_tb):
-        &#34;&#34;&#34;
-        Required context management magic method; kills the writer and the file.
-        &#34;&#34;&#34;
-        self._writer.close()
-        self._file.close()</code></pre>
+        def __exit__(self, exc_type, exc_value, exc_tb):
+                &#34;&#34;&#34;
+                Required context management magic method: writes what&#39;s left of the cache
+                to file, then closes the writer.
+                &#34;&#34;&#34;
+                # If we&#39;ve finished storing but there&#39;s still stuff left in the cache,
+                # write that to file too.
+                if len(self._block):
+                        self._writer.write(
+                                (self._interblockbreak.join(
+                                        self._intrablockbreak.join(subblock)
+                                        for subblock in self._block
+                                ) + &#34;\n&#34;).encode()
+                        )
+                
+                self._writer.close()</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="ateams.statistics.Recorder.record"><code class="name flex">
-<span>def <span class="ident">record</span></span>(<span>self,<br>M: ateams.statistics.Chain.Chain,<br>fp: str,<br>outputs: dict,<br>compressed: bool = True)</span>
+<span>def <span class="ident">record</span></span>(<span>self, fp: str, blocksize=100)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Called to configure the recording apparatus for the Chain, and <em>should</em>
 be used as a context manager (i.e. with the <code>with</code> statement).</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>M</code></strong> :&ensp;<code><a title="ateams.statistics.Chain" href="#ateams.statistics.Chain">Chain</a></code></dt>
-<dd><code>potts.Chain</code> object to be recorded; <code><a title="ateams.statistics.Recorder" href="#ateams.statistics.Recorder">Recorder</a></code> needs
-access to the <code>Model</code> and <code>Complex</code> subobjects.</dd>
 <dt><strong><code>fp</code></strong> :&ensp;<code>str</code></dt>
 <dd>Filename.</dd>
-<dt><strong><code>outputs</code></strong> :&ensp;<code>dict</code></dt>
-<dd>Dictionary mapping integer keys to initial states.</dd>
-<dt><strong><code>compressed</code></strong> :&ensp;<code>bool</code></dt>
-<dd>Do we want to compress our outputs? The answer
-should only be "no" if we're debugging something.</dd>
+<dt><strong><code>block</code></strong> :&ensp;<code>int=100</code></dt>
+<dd>Number of states to bundle together before compressing. </dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>This <code><a title="ateams.statistics.Recorder" href="#ateams.statistics.Recorder">Recorder</a></code> object.</p></div>
 </dd>
 <dt id="ateams.statistics.Recorder.store"><code class="name flex">
-<span>def <span class="ident">store</span></span>(<span>self, state: tuple) ‑> None</span>
+<span>def <span class="ident">store</span></span>(<span>self, state) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Stores a state yielded by iteration over a <code><a title="ateams.statistics.Chain" href="#ateams.statistics.Chain">Chain</a></code>.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>state</code></strong> :&ensp;<code>tuple</code></dt>
-<dd>Tuple of assignments or other data points.</dd>
+<dd>Tuple of NumPy arrays to be written to file.</dd>
 </dl></div>
 </dd>
 </dl>

@@ -2,18 +2,62 @@
 from . import always
 from ..common import NumericalInstabilityWarning
 
-import json
 import lz4.frame
 import numpy as np
 
 
 class Chain:
+	"""
+	Simulates a Markov chain on the given Model. For example, to generate 1000 samples
+	from 2-dimensional Potts lattice gauge theory with coefficients in \(\mathbb Z/5\mathbb Z\)
+	and store the spins on each 1-cell and the occupied 2-cells, use something like
+
+	```python
+	from ateams import Chain, Recorder
+	from ateams.statistics import critical
+	from ateams.complexes import Cubical
+	from ateams.models import SwendsenWang
+
+	# Construct the cubical complex; instantiate model, chain, and recorder.
+	C = Cubical().fromCorners([10]*4)
+	SW = SwendsenWang(C, dimension=2, field=7, temperature=critical(7))
+	M = Chain(SW, steps=1000)
+
+	rec = Recorder()
+
+	# Run the chain, storing the output.
+	with rec.record("out.lz") as rec:
+		for (spins, satisfied) in M.progress():
+			# You can store as many outputs as you'd like --- even ones
+			# that aren't spit out by the model --- but they must be passed
+			# to the `.store()` method as a tuple.
+			rec.store((spins, satisfied))
+	```
+
+	The `Recorder` class stores the differences between consecutive iterations using
+	the [LZ4 compression schema](github.com/lz4/lz4), compressing the diffs in
+	chunks of (default) size 100. You can replay the data with the `Player`
+	class:
+	
+	```python
+	from ateams import Player
+
+	play = Player()
+
+	with play.playback("out.lz", steps=1000) as play:
+		for (spins, satisfied) in play.progress():
+			<do whatever>
+	```
+
+	Running the sampler and recording the data takes ~26 seconds (~38 it/s) on
+	an M2 MacBook Air; replaying the data takes ~0 seconds (~14,101 it/s). The
+	size of `out.lz` is ~1.8MB, so storing each cell's data requires \(1/11\)th
+	of a byte per iteration (amortized).
+	"""
 	def __init__(self, model, accept=always(), statistics={}, steps=10000):
 		"""
-		Simulates a Markov chain on the given Model.
-
 		Args:
-			model (Model): An instantiated descendant of `Model` (e.g. `SwendsenWang`)
+			model (Model): A Model (e.g. `ateams.models.SwendsenWang`)
 				generating the Markov chain.
 			accept (Callable): A function that consumes the complex, model, and
 				state to determine whether we're going to a good place.
@@ -103,6 +147,8 @@ class Recorder:
 
 		Returns:
 			This `Recorder` object.
+
+		
 		"""
 		# Configure filepath, writer.
 		self._fp = fp
@@ -133,7 +179,7 @@ class Recorder:
 		Stores a state yielded by iteration over a `Chain`.
 
 		Args:
-			*state: NumPy arrays or integers to be compressed and written to file.
+			state (tuple): Tuple of NumPy arrays to be written to file.
 		"""
 		# Check whether we've received any arguments before; if not, initialize
 		# a list to keep track of "previous" arguments. We expect the arguments
