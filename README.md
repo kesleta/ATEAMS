@@ -1,6 +1,6 @@
 
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14284172.svg)](https://doi.org/10.5281/zenodo.14284172)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17247050.svg)](https://doi.org/10.5281/zenodo.17247050)
 [![docs](https://img.shields.io/badge/%E2%93%98-Documentation-%230099cd)](https://apizzimenti.github.io/ATEAMS/) 
 
 **A**lgebraic **T**opology-**E**nabled **A**lgorith**M**s for **S**pin systems (**ATEAMS**) is a software suite designed for high-performance simulation of generalized _Potts_ and _random-cluster_ models in combinatorial complexes of arbitrary dimension and scale. The linear algebra subroutines supporting these programs are tailored to this application — matrix reduction over finite fields — using [LinBox](https://github.com/linbox-team/linbox) and PHAT [[1](https://www.sciencedirect.com/science/article/pii/S0747717116300098),[2](https://bitbucket.org/phat-code/phat/src/master/)].
@@ -300,8 +300,8 @@ Now, you can move on to [installing ATEAMS itself](#installing-ateams)!
 	title={{ATEAMS: Algebraic Topology-Enabled AlgorithMs for Spin systems}},
 	author={Duncan, Paul and Pizzimenti, Anthony E. and Schweinhart, Benjamin},
 	url={https://github.com/apizzimenti/ATEAMS},
-	version={2.0.1},
-	doi={10.5281/zenodo.14284172}
+	version={2.0.3},
+	doi={10.5281/zenodo.17247050}
 }
 ```
 
