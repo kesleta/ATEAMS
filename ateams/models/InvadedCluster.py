@@ -4,7 +4,7 @@ import warnings
 
 from math import comb
 
-from ..arithmetic import Twist, LanczosKernelSample, ComputePersistencePairs
+from ..arithmetic import Twist, ReducedKernelSample, ComputePersistencePairs
 from ..common import Matrices, TooSmallWarning, NumericalInstabilityWarning, FINT
 
 
@@ -12,7 +12,7 @@ class InvadedCluster():
 	_name = "InvadedCluster"
 	
 	def __init__(
-			self, C, dimension=1, field=2, initial=None, stop=lambda: 1, maxTries=16,
+			self, C, dimension=1, field=2, initial=None, stop=lambda: 1,
 			**kwargs
 		):
 		"""
@@ -27,9 +27,6 @@ class InvadedCluster():
 			initial (np.array): A vector of spin assignments to components.
 			stop (function): A function that returns the number of essential cycles
 				found before sampling the next configuration.
-			maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
-				vector in the kernel of the coboundary matrix \(A\). See more
-				discussion in the `SwendsenWang` model.
 
 		<center> <button type="button" class="collapsible" id="InvadedCluster-Persistence-2">Performance in \(\mathbb T^2_N\)</button> </center>
 		..include:: ./tables/InvadedCluster.Persistence.2.html
@@ -76,7 +73,7 @@ class InvadedCluster():
 
 
 		# Delegates computation for persistence and cocycle sampling.
-		self._delegateComputation(maxTries)
+		self._delegateComputation()
 
 
 		# Seed the random number generator.
@@ -88,16 +85,16 @@ class InvadedCluster():
 		else: self.spins = (initial%self.field).astype(FINT)
 
 	
-	def _delegateComputation(self, maxTries):
+	def _delegateComputation(self):
 		low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
 
 		# If we're using LinBox, our sampling method is Lanczos regardless of
 		# dimension.
 		def sample(zeros):
 			try:
-				return np.array(LanczosKernelSample(
+				return np.array(ReducedKernelSample(
 					self.matrices.coboundary, zeros, 2*self.dimension,
-					self.faces, self.field, maxTries
+					self.faces, self.field
 				), dtype=FINT)
 			except Exception as e:
 				raise NumericalInstabilityWarning(e)

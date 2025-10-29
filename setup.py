@@ -8,19 +8,22 @@ DD = GDD()
 DD["linetrace"] = True
 DD["binding"] = True
 
+## STORE THE SHARED LIBRARY IN /usr/local/lib FOR EASE-OF-USE
+LIBRARY_PATH = "/usr/local/lib"
+INCLUDE_PATH = "/usr/local/include"
+
 extensions = [
 	Extension(
 		"*",
 		["ateams/**/*.pyx"],
-		include_dirs=[numpy.get_include()],
-		extra_compile_args=["-std=c++20", "-O3"],
+		include_dirs=[numpy.get_include(), INCLUDE_PATH],
+		library_dirs=[LIBRARY_PATH],
+		extra_compile_args=["-std=c++20", "-O2"],
 		define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
 		language="c++",
-		libraries=["LinBoxMethods", "PHATMethods"]
+		libraries=["LinBoxMethods", "PHATMethods", "spasm"]
 	)
 ]
-
-## STORE THE SHARED LIBRARY IN /usr/local/lib FOR EASE-OF-USE
 
 setup(
     ext_modules=cythonize(

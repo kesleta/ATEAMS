@@ -2,31 +2,42 @@
 SHELL := /bin/zsh
 DIR := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 
+
 ###############
 #### BUILD ####
 ###############
 clean:
 	@rm -rf ./build
 
-quick: FORCE
+
+quick: FORCE headers
 	@python setup.py build_ext --inplace
 
 
 build: clean PHATMethods LinBoxMethods
-	@python setup.py build_ext --inplace > build.log 2>&1 
+	@python setup.py build_ext --inplace > build.log 2>&1
 
 
-PHATMethods:
+headers:
+	@sudo cp -r ateams/common.h /usr/local/include/ATEAMS/
 	@sudo cp -r ateams/arithmetic/include/PHAT /usr/local/include/phat
-	@sudo clang++ -shared -fPIC -std=c++17 -o /usr/local/lib/libPHATMethods.so ateams/arithmetic/PHATMethods.cpp -v -O3
 	@sudo cp -r ateams/arithmetic/PHATMethods.h /usr/local/include/ATEAMS/
-
-
-LinBoxMethods:
-	@sudo clang++ `pkg-config --libs linbox` -shared -fPIC -std=c++17 -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp -v -O3
 	@sudo cp -r ateams/arithmetic/LinBoxMethods.h /usr/local/include/ATEAMS/
 
 
+PHAT_LFLAGS = -I/usr/local/include -shared -fPIC -Wl,-rpath,/usr/local/lib
+PHAT_CFLAGS = -O2 -std=c++17
+
+PHATMethods: headers
+	@sudo clang++ $(PHAT_CFLAGS) $(PHAT_LFLAGS) -o /usr/local/lib/libPHATMethods.so ateams/arithmetic/PHATMethods.cpp
+
+
+
+LINBOX_LFLAGS = -I/usr/local/include -L/usr/local/lib `pkg-config --libs linbox` -lspasm -shared -fPIC -Wl,-rpath,/usr/local/lib
+LINBOX_CFLAGS = -O2 -std=c++17
+
+LinBoxMethods: headers
+	@sudo clang++ $(LINBOX_CFLAGS) $(LINBOX_LFLAGS) -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp 
 
 
 
@@ -52,6 +63,7 @@ InvadedCluster: FORCE
 Bernoulli: FORCE
 	@cd test && ./profile.models.Bernoulli.sh 4 7 4
 	@cd test && ./profile.models.Bernoulli.sh 19 22 2
+
 
 profile: Glauber SwendsenWang Nienhuis InvadedCluster
 
@@ -83,7 +95,7 @@ docs: FORCE quick
 refs: FORCE
 	@pandoc -t markdown_strict --citeproc _refs.md -o refs.md
 
-contribute: build profile docs
+contribute: build profile docs refs
 
 
 
@@ -94,9 +106,8 @@ contribute: build profile docs
 #################
 install: dependencies _install profile
 
-dependencies: FORCE
+dependencies: FORCE headers
 	@pip install -r requirements.txt
-	@sudo cp -r ateams/common.h /usr/local/include/ATEAMS/
 
 _install: FORCE build
 	python setup.py develop

@@ -2,7 +2,7 @@
 import numpy as np
 import warnings
 
-from ..arithmetic import LanczosKernelSample
+from ..arithmetic import ReducedKernelSample
 from ..common import FINT, Matrices, TooSmallWarning, NumericalInstabilityWarning
 from ..statistics import constant
 
@@ -11,7 +11,7 @@ class SwendsenWang():
 	_name = "SwendsenWang"
 
 	def __init__(
-			self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None, maxTries=16,
+			self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None,
 			**kwargs
 		):
 		r"""
@@ -25,22 +25,6 @@ class SwendsenWang():
 				takes a single positive integer argument `t`, and returns the
 				scheduled temperature at time `t`.
 			initial (np.array): A vector of spin assignments to components.
-			maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
-				vector in the kernel of the coboundary matrix.
-
-
-		If the first vector sampled
-		by the Lanczos algorithm is all zeros, we perform the following
-		steps until a nonzero vector is found, or we exhaust the number
-		of attempts:
-
-		1. sample once from \(A\) with no preconditioner;
-		2. sample up to twice from \(D_0A\), where \(D_0\) is a random diagonal matrix;
-		3. sample up to twice from \(A^\top D_1 A\), where \(D_1\) is a random diagonal matrix;
-		4. sample for the remainder of the attempts from \(D_2 A^\top D_3 A D_2\), where \(D_2, D_3\) are random diagonal matrices.
-			
-		If we spend the entire budget of attempts, it is likely that the
-		result returned is the all-zeros vector.
 
 		<center> <button type="button" class="collapsible" id="SwendsenWang-LanczosKernelSample-2"> Performance in \(\mathbb T^2_N\)</button> </center>
 		.. include:: ./tables/SwendsenWang.LanczosKernelSample.2.html
@@ -82,10 +66,10 @@ class SwendsenWang():
 		else: self.spins = (initial%self.field).astype(FINT)
 
 		# Delegate computation.
-		self._delegateComputation(maxTries)
+		self._delegateComputation()
 
 	
-	def _delegateComputation(self, maxTries):
+	def _delegateComputation(self):
 		# If we use LinBox, keep everything as-is.
 		def sample(zeros):
 			# Not currently sure how to handle this... maybe we'll just "reject"
@@ -94,9 +78,9 @@ class SwendsenWang():
 			# the Chain catches, and warns the user by exiting with exit code
 			# 1 or 2.
 			try:
-				return np.array(LanczosKernelSample(
+				return np.array(ReducedKernelSample(
 					self.matrices.coboundary, zeros, 2*self.dimension,
-					self.faces, self.field, maxTries=maxTries
+					self.faces, self.field
 				), dtype=FINT)
 			except Exception as e:
 				raise NumericalInstabilityWarning(e)

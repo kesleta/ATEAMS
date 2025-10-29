@@ -2,7 +2,7 @@
 import numpy as np
 import warnings
 
-from ..arithmetic import SubLanczosKernelSample
+from ..arithmetic import SubReducedKernelSample
 from ..common import FINT, TooSmallWarning, Matrices, Bunch, NumericalInstabilityWarning
 
 
@@ -85,7 +85,7 @@ class Nienhuis():
 	def _delegateComputation(self, maxTries):
 		def sample(faceZeros, cellZeros):
 			try:
-				return np.array(SubLanczosKernelSample(
+				return np.array(SubReducedKernelSample(
 					self.matrices.coboundary, cellZeros, faceZeros, self.field, maxTries=maxTries
 				), dtype=FINT)
 			except Exception as e:

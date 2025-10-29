@@ -3,41 +3,33 @@
 
 from ..common cimport int, INDEXFLAT, Index, Set, Map
 from .LinBoxMethods cimport (
-	LanczosKernelSample as _LanczosKernelSample
+	ReducedKernelSample as _ReducedKernelSample
 )
 
 
-cdef Index ZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeros, int faces, int columns):
-	cdef int i, t, L, M, N;
-	cdef int cube;
-	cdef Index submatrix;
-	cdef Set zeroset;
-	cdef Map zeromap;
+cdef Index RowSubmatrix(INDEXFLAT A, INDEXFLAT includeRows, int columns):
+	# Keep a set of rows to include.
+	cdef int i, t, cube;
+	cdef Set zeroset = Set();
+	cdef Map zeromap = Map();
+	cdef Index submatrix = Index();
 
-	# Initialize zeroset and zeromap.
-	L = zeros.shape[0];
+	for i in range(includeRows.shape[0]):
+		zeroset.insert(includeRows[i]);
+		zeromap[includeRows[i]] = i;
 
-	for i in range(L):
-		zeroset.insert(zeros[i]);
-		zeromap[zeros[i]] = i;
-
-	# Create the submatrix: we know how many cells (rows) are going to be included.
-	# Each row has `faces` entries, and each entry requires three cells of the
-	# array: two for the indices and one for the value. Since the number of entries
-	# is faces*cells, the total number of entries is faces*cells*3.
-	M = 3*faces*L;
-	t = 0;
-	submatrix = Index(M);
-
-	for i in range(0, A.shape[0], 3):
-		cube = A[i];
+	# Create an empty submatrix; iterate over the original matrix, inserting
+	# as we go.
+	for t in range(0, A.shape[0], 3):
+		# Check whether the submatrix includes this cube (which corresponds to
+		# the row index).
+		cube = A[t];
 
 		if zeroset.contains(cube):
-			submatrix[t] = zeromap[cube];
-			submatrix[t+1] = A[i+1];
-			submatrix[t+2] = A[i+2];
-			t += 3
-
+			submatrix.push_back(zeromap[cube]);
+			submatrix.push_back(A[t+1]);
+			submatrix.push_back(A[t+2]);
+	
 	return submatrix
 
 
@@ -78,13 +70,13 @@ cdef Index SubZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeroRows, INDEXFLAT zeroColum
 	return submatrix
 
 
-cpdef Index SubLanczosKernelSample(
+cpdef Index SubReducedKernelSample(
 		INDEXFLAT coboundary, INDEXFLAT zeroRows, INDEXFLAT zeroColumns,
 		int p, int maxTries=8
 	) except *:
 	"""
-	Uses the LinBox (Block?) Lanczos black-box solver to get a uniform
-	random element of the kernel of the coboundary.
+	Uses the SpaSM sparse Gaussian elimination strategy to sample uniformly from
+	the kernel of the submatrix of the coboundary matrix.
 
 	Args:
 		coboundary: Memory-contiguous one-dimensional coboundary array,
@@ -92,23 +84,21 @@ cpdef Index SubLanczosKernelSample(
 		zeros: Memory-contiguous array of row indices that will be included
 			in the coboundary submatrix.
 		p: Characteristic of the field \(\mathbb Z/p\mathbb Z\).
-		maxTries: How many times do we try to get a nonzero solution from
-			the black-box solver? Default is 8.
 
 	Returns:
 		A C++ `std::vector` with spin assignments.
 	"""
 	cdef Index submatrix = SubZeroSubmatrix(coboundary, zeroRows, zeroColumns);
-	return _LanczosKernelSample(submatrix, zeroRows.shape[0], zeroColumns.shape[0], p, maxTries);
+	return _ReducedKernelSample(submatrix, zeroRows.shape[0], zeroColumns.shape[0], p);
 
 
-cpdef Index LanczosKernelSample(
+cpdef Index ReducedKernelSample(
 		INDEXFLAT coboundary, INDEXFLAT zeros, int faces, int columns, int p,
 		int maxTries=8
 	) except *:
 	"""
-	Uses the LinBox (Block?) Lanczos black-box solver to get a uniform
-	random element of the kernel of the coboundary.
+	Uses the SpaSM sparse Gaussian elimination strategy to sample uniformly from
+	the kernel of the submatrix of the coboundary matrix.
 
 	Args:
 		coboundary: Memory-contiguous one-dimensional coboundary array,
@@ -119,11 +109,9 @@ cpdef Index LanczosKernelSample(
 		columns: Integer representing the number of columns in the coboundary
 			submatrix; should be the total number of faces in the complex.
 		p: Characteristic of the field \(\mathbb Z/p\mathbb Z\).
-		maxTries: How many times do we try to get a nonzero solution from
-			the black-box solver? Default is 8.
 
 	Returns:
 		A C++ `std::vector` with spin assignments.
 	"""
-	cdef Index sample, submatrix = ZeroSubmatrix(coboundary, zeros, faces, columns);
-	return _LanczosKernelSample(submatrix, zeros.shape[0], columns, p, maxTries);
+	cdef Index submatrix = RowSubmatrix(coboundary, zeros, columns);
+	return _ReducedKernelSample(submatrix, zeros.shape[0], columns, p);

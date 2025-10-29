@@ -2,7 +2,7 @@
 from .Persistence import Persistence
 from .MatrixReduction import MatrixReduction
 from .BuiltinWrapper import Kernel, KernelSample
-from .LinBoxWrapper import LanczosKernelSample, SubLanczosKernelSample
+from .LinBoxWrapper import ReducedKernelSample, SubReducedKernelSample
 from .PHATWrapper import PHATComputePersistencePairs as ComputePersistencePairs
 from .Twist import Twist
 
@@ -23,6 +23,6 @@ __pdoc__["ateams.arithmetic.MatrixReduction"] = False
 __pdoc__["ateams.arithmetic.MatrixReduction.MatrixReduction"] = False
 
 __all__ = [
-	"LanczosKernelSample", "Twist", "SubLanczosKernelSample", "ComputePersistencePairs"
+	"ReducedKernelSample", "Twist", "SubReducedKernelSample", "ComputePersistencePairs"
 ]
 

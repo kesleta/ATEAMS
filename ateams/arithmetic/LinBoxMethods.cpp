@@ -1,115 +1,110 @@
 
-#include <linbox/linbox-config.h>
-#include <linbox/solutions/solve.h>
 #include <linbox/matrix/sparse-matrix.h>
 #include <linbox/ring/modular.h>
-#include <linbox/field/gf2.h>
-#include <linbox/blackbox/zo-gf2.h>
-#include <iostream>
+
+extern "C" {
+	#include <spasm/spasm.h>
+}
 
 #include "LinBoxMethods.h"
+#include <iostream>
 
 using namespace std;
 
 typedef Givaro::Modular<int> Zp;
 typedef LinBox::SparseMatrix<Zp, LinBox::SparseMatrixFormat::SparseSeq> ZpMatrix;
 typedef LinBox::DenseVector<Zp> ZpVector;
-typedef LinBox::ZeroOne<LinBox::GF2> Z2Matrix;
-typedef LinBox::DenseVector<LinBox::GF2> Z2Vector;
+
+
+template <typename Vector, typename Field>
+Vector randomVector(int N, Field F) {
+	Vector r(F, N);
+
+	for (int i=0; i<N; i++) {
+		// Here we're presuming the field has prime --- not prime *power* --- order.
+		typename Field::Element q;
+		F.init(q, random()%(int)F.characteristic());
+		r.setEntry(i, q);
+	}
+
+	return r;
+}
+
+
+template <typename Matrix, typename Field>
+Matrix MatrixFromSpaSM(const struct spasm_csr *A, Field F) {
+	// Get the dimensions of the spasm_csr matrix. NOTE: SpaSM uses n and m to
+	// refer to the number of rows and columns of a matrix, contrary to convention.
+	// What's below is not a typo!
+	int M = A->n;
+	int N = A->m;
+	Matrix B(F, M, N);
+
+	// Get pointers to column indices and rows.
+	const int *columnIndices = A->j;
+	const i64 *rows = A->p;
+	const spasm_ZZp *values = A->x;
+
+	// Iterate through the CSR, adding entries to B.
+	for (int row=0; row<M; row++) {
+		for (i64 px=rows[row]; px<rows[row+1]; px++) {
+			i64 x = values[px];
+
+			typename Field::Element q;
+			F.init(q, x);
+			B.setEntry(row, columnIndices[px], q);
+		}
+	}
+
+	B.finalize();
+	return B;
+}
 
 
 template <typename Vector>
-bool containsNonzero(Vector X) {
-	// Check whether there are nonzero elements in the VVector.
-
-	for (auto it = X.begin(); it != X.end(); ++it) {
-		if (*it > 0) { return true; }
-	}
-
-	return false;
-}
-
-template <typename Matrix, typename Field>
-Matrix FieldFill(Index coboundary, int M, int N, Field F) {
-	// Construct the sparse coboundary matrix.
-	Matrix A(F, M, N);
-
-	for (int t = 0; t < coboundary.size(); t += 3) {
-		typename Field::Element q;
-		int i, j;
-
-		i = coboundary[t];
-		j = coboundary[t+1];
-		F.init(q, coboundary[t+2]);
-		A.setEntry(i,j,q);
-	}
-
-	return A;
-}
-
-template <typename Matrix, typename Vector>
-Index populate(Matrix A, Vector X) {
+Index populate(Vector X) {
 	// Populate a vector with entries from a LinBox vector.
-	Index x(A.coldim());
-	
-	for (size_t k = 0; k < A.coldim(); k++) {
-		x[k] = X.getEntry(k);
-	}
+	Index x(X.size());
+	for (size_t k = 0; k < X.size(); k++) { x[k] = X.getEntry(k); }
 
 	return x;
 }
 
 
-Index LanczosKernelSample(Index coboundary, int M, int N, int p, int maxTries) {
+Index ReducedKernelSample(Index coboundary, int M, int N, int p) {
 	// Construct the finite field and construct the matrix. If we're over Z/2Z,
 	// use specialized matrices for our operations.
 	typedef ZpMatrix Matrix;
 	typedef ZpVector Vector;
 	typedef Zp Field;
 
-	// if (p < 3) {
-	// 	typedef Z2Matrix Matrix;
-	// 	typedef Z2Vector Vector;
-	// 	typedef LinBox::GF2 Field;
-	// }
-
+	// Construct the field and vectors; allocate a SpaSM matrix.
 	Field F(p);
-	Matrix A = FieldFill<Matrix,Field>(coboundary, M, N, F);
-	ZpVector X(F, A.coldim()), b(F, A.rowdim());
+	ZpVector X(F, N);
+
+	int _sup = _suppress();
+	struct spasm_triplet *T = spasm_triplet_alloc(M, N, 1, p, p!=-1);
+	for (int t=0; t<coboundary.size(); t+=3) { spasm_add_entry(T, coboundary[t], coboundary[t+1], coboundary[t+2]); }
+
+	struct spasm_csr *A = spasm_compress(T);
+	spasm_triplet_free(T);
+
+	// Echelonize A and compute a basis for the kernel.
+	struct spasm_lu *fact = spasm_echelonize(A, NULL);
+	spasm_csr_free(A);
+
+	const struct spasm_csr *K = spasm_kernel(fact);
+	Matrix basis = MatrixFromSpaSM<Matrix, Field>(K, F);
+	_resume(_sup);
 	
-	// Preconditioners in order of strength. We try all but FullDiagonal twice;
-	// if a zero result still occurs, we sample with the FullDiagonal for the
-	// remaining attempts.
-	LinBox::Method::Lanczos LANC;
-	
-	vector<LinBox::Preconditioner> Preconditioners({
-		LinBox::Preconditioner::None,
-		LinBox::Preconditioner::PartialDiagonal,
-		LinBox::Preconditioner::PartialDiagonalSymmetrize,
-		LinBox::Preconditioner::FullDiagonal
-	});
+	// Take the kernel basis, read it into a LinBox matrix, generate some random
+	// coefficients, then take a linear combination of the rows of the basis to
+	// get a random vector in the kernel.
+	Vector combination = randomVector<Vector, Field>(basis.rowdim(), F);
+	Vector assignment(F, N);
+	assignment = basis.applyTranspose(assignment, combination);
 
-	int t = 0, pc = 0, tried = 0, pcs = Preconditioners.size();
-
-	while (!containsNonzero(X) && t < maxTries) {
-		if (pc < pcs-1) {
-			tried = 0;
-
-			while (tried < 2) {
-				LANC.preconditioner = Preconditioners[pc];
-				solve(X, A, b, LANC);
-				t++;
-				tried++;
-			}
-			pc++;
-		} else {
-			LANC.preconditioner = LinBox::Preconditioner::FullDiagonal;
-			solve(X, A, b, LANC);
-			t++;
-		}
-	}
-
-	return populate(A, X);
+	return populate(assignment);
 }
 
 
