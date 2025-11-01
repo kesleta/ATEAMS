@@ -16,6 +16,7 @@ build/
 references.bib
 refs.md
 _refs.md
+_README.md
 
 # Ignore contents, but not directories.
 test/stats

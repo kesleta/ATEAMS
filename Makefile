@@ -14,30 +14,34 @@ quick: FORCE headers
 	@python setup.py build_ext --inplace
 
 
-build: clean PHATMethods LinBoxMethods
+build: clean Persistence Sampling
 	@python setup.py build_ext --inplace > build.log 2>&1
 
 
+INSTALL_DIR = /usr/local
+INSTALL_LFLAGS = -L$(INSTALL_DIR)/lib -Wl,-rpath,$(INSTALL_DIR)/lib
+
 headers:
-	@sudo cp -r ateams/common.h /usr/local/include/ATEAMS/
-	@sudo cp -r ateams/arithmetic/include/PHAT /usr/local/include/phat
-	@sudo cp -r ateams/arithmetic/PHATMethods.h /usr/local/include/ATEAMS/
-	@sudo cp -r ateams/arithmetic/LinBoxMethods.h /usr/local/include/ATEAMS/
+	@sudo cp -r ateams/common.h $(INSTALL_DIR)/include/ATEAMS/
+	@sudo cp -r ateams/arithmetic/include/PHAT $(INSTALL_DIR)/include/phat
+	@sudo cp -r ateams/arithmetic/include/SparseRREF/ $(INSTALL_DIR)/include/SparseRREF/
+	@sudo cp -r ateams/arithmetic/Persistence.h $(INSTALL_DIR)/include/ATEAMS/
+	@sudo cp -r ateams/arithmetic/Sampling.h $(INSTALL_DIR)/include/ATEAMS/
 
 
-PHAT_LFLAGS = -I/usr/local/include -shared -fPIC -Wl,-rpath,/usr/local/lib
-PHAT_CFLAGS = -O2 -std=c++17
+Persistence_LFLAGS = -I$(INSTALL_DIR)/include/ `pkg-config --libs linbox` -shared -fPIC
+Persistence_CFLAGS = -O3 -std=c++17
 
-PHATMethods: headers
-	@sudo clang++ $(PHAT_CFLAGS) $(PHAT_LFLAGS) -o /usr/local/lib/libPHATMethods.so ateams/arithmetic/PHATMethods.cpp
+Persistence: headers
+	@sudo clang++ $(Persistence_LFLAGS) $(Persistence_CFLAGS) -o $(INSTALL_DIR)/lib/libATEAMS_Persistence.so ateams/arithmetic/Persistence.cpp $(INSTALL_LFLAGS)
 
 
 
-LINBOX_LFLAGS = -I/usr/local/include -L/usr/local/lib `pkg-config --libs linbox` -lspasm -shared -fPIC -Wl,-rpath,/usr/local/lib
-LINBOX_CFLAGS = -O2 -std=c++17
+Sampling_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib `pkg-config --libs --cflags flint` -shared -fPIC
+Sampling_CFLAGS = -O3 -std=c++20
 
-LinBoxMethods: headers
-	@sudo clang++ $(LINBOX_CFLAGS) $(LINBOX_LFLAGS) -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp 
+Sampling: headers
+	@sudo clang++ $(Sampling_LFLAGS) $(Sampling_CFLAGS) -o $(INSTALL_DIR)/lib/libATEAMS_Sampling.so ateams/arithmetic/Sampling.cpp $(INSTALL_LFLAGS)
 
 
 
@@ -86,7 +90,7 @@ tables: FORCE
 	@echo "This will hang if you aren't logged in as anthony on Pangolin."
 	@cd test/stats && ./stats.sync.sh && ./stats.tables.sh
 
-docs: FORCE quick
+docs: FORCE quick refs
 	@pdoc ateams --force --html --template-dir docs/templates --output-dir=docs
 	@rsync -a docs/ateams/ docs/
 	@rm -rf docs/ateams
@@ -94,6 +98,7 @@ docs: FORCE quick
 
 refs: FORCE
 	@pandoc -t markdown_strict --citeproc _refs.md -o refs.md
+	@cat _README.md refs.md > README.md
 
 contribute: build profile docs refs
 

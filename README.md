@@ -82,7 +82,7 @@ Running the sampler and recording the data takes ~26 seconds (~38 it/s) on an M2
 ### Prerequisites
 1. Patience. 
 2. Python $\geq$ 3.9. To manage different versions of Python on your machine, we recommend [pyenv](https://github.com/pyenv/pyenv).
-2. A C/C++ compiler. **Clang is recommended; please ensure your machine's default compiler is Clang.**
+2. A C/C++ compiler. **Clang is recommended; please ensure your machine's default compiler is Clang (at least version 19).**
 3. [GNU Make](https://www.gnu.org/software/make/) (or a Windows variant...) to build and install the library, and to build any changes you might make. _(This is optional for Windows users. The recipes in the Makefile can be performed manually, but it will take much longer. If that's undesirable, the Linux Subsystem for Windows is a useful workaround.)_
 4. Standard tools (pkg-config, autoconf, libtool, etc.) for building and maintaining C++ libraries. For Windows, the Visual Studio BuildTools (which include Clang/LLVM) may be required.
 5. If you want to keep your sanity, a computer running macOS or a flavor of Linux.
@@ -211,7 +211,10 @@ $ pkg-config --libs givaro
 
 #### fflas-ffpack
 
-This package can be slightly trickier, and may need some convincing that the previous dependencies actually exist on your system. As with Givaro, we recommend cloning [the current main branch of fflas-ffpack](https://github.com/linbox-team/fflas-ffpack) and building from source.
+This package can be slightly trickier, and may need some convincing that the
+previous dependencies actually exist on your system. As with Givaro, we
+recommend cloning [the current main branch of fflas-ffpack](https://github.com/linbox-team/fflas-ffpack)
+and building from source.
 
 1. Clone the fflas-ffpack repository.
 2. Navigate into the fflas-ffpack directory and run the `autogen` script with the following options:
@@ -247,6 +250,33 @@ $ sudo make install; make check
 $ pkg-config --libs fflas-ffpack
   -L/<path-to-openblas> -lopenblas -L/usr/local/lib -lgivaro -lgmpxx -lgmp
 ```
+
+#### SpaSM
+SpaSM is a library for (extremely fast) sparse elimination for finite fields
+with odd prime characteristic (i.e. it doesn't work for $\mathbb Z/q\mathbb Z$
+with $q<3$). Again, we recommend downloading the library from
+[our fork](https://github.com/apizzimenti/spasm) and building from source. (The
+changes on our fork are only to automatically copy shared libraries and header
+files to `/usr/local/lib` and `/usr/local/include/spasm`, and to remove the `-Werror`
+C compiler flag.) The installation process for this library is much simpler:
+
+1. Clone the spasm library.
+2. Navigate into the spasm directory and run `make`.
+3. Check whether the files `/usr/local/lib/libspasm.dylib` and `/usr/local/include/spasm/spasm.h` exist. If they don't, something's up.
+
+
+```
+$ git clone https://github.com/apizzimenti/spasm.git
+  Cloning into 'spasm'... done.
+
+$ cd spasm
+$ make build
+  ...
+```
+
+Then check whether the files `/usr/local/lib/libspasm.dylib` and `/usr/local/include/spasm/spasm.h`
+exist.
+
 
 
 #### LinBox
@@ -306,21 +336,158 @@ Now, you can move on to [installing ATEAMS itself](#installing-ateams)!
 ```
 
 ## References
-1. Bauer, Ulrich, Michael Kerber, Jan Reininghaus, and Hubert Wagner. 2017. “PHAT — Persistent Homology Algorithms Toolbox.” *Journal of Symbolic Computation* 78 (January): 76–90. <https://doi.org/10.1016/j.jsc.2016.03.008>, <https://bitbucket.org/phat-code/>.
 
-4. Chen, Chao, and Michael Kerber. 2011. “Persistent Homology Computation with a Twist.” In *Proceedings 27th European Workshop on Computational Geometry*, 11:197–200.
+Agrawal, Ramgopal, Leticia F Cugliandolo, Lara Faoro, Lev B Ioffe, and
+Marco Picco. 2024. “The Geometric Phase Transition of the
+Three-Dimensional ℤ<sub>2</sub> Lattice Gauge Model.” *arXiv Preprint
+arXiv:2409.15123*.
 
-7. Duncan, Paul, and Benjamin Schweinhart. 2025. “Topological Phases in the Plaquette Random-Cluster Model and Potts Lattice Gauge Theory.” *Communications in Mathematical Physics*. [arxiv.org/abs/10.48550/arXiv.2207.08339](https://arxiv.org/abs/10.48550/arXiv.2207.08339).
+Aizenman, Michael, and Jürg Fröhlich. 1984. “Topological Anomalies in
+the *n*-Dependence of the *n*-States Potts Lattice Gauge Theory.”
+*Nuclear Physics B* 235 (1): 1–18.
 
-8. Edelsbrunner, Herbert, and John Harer. 2010. *Computational Topology: An Introduction*. American Mathematical Soc.
+Bauer, Ulrich, Michael Kerber, Jan Reininghaus, and Hubert Wagner. 2017.
+“PHAT — Persistent Homology Algorithms Toolbox.” *Journal of Symbolic
+Computation* 78 (January): 76–90.
+<https://doi.org/10.1016/j.jsc.2016.03.008>.
 
-8. The LinBox group. 2021. *LinBox*. v1.7.0 ed. <http://github.com/linbox-team/linbox>.
+Ben-Av, R, E Katznelson, S Solomon, D Kandel, and PG Lauwers. 1990.
+“Critical Acceleration of Monte-Carlo Simulations of ℤ(2) Gauge Theory.”
+*Nuclear Physics B-Proceedings Supplements* 17: 285–88.
 
-9. Hatcher, Allen. 2002. *Algebraic Topology*. Cambridge University Press.
+Bobrowski, Omer, and Primoz Skraba. 2020. “Homological Percolation and
+the Euler Characteristic.” *Physical Review E* 101 (3).
+<https://doi.org/10.1103/PhysRevE.101.032304>.
 
-10. Machta, J., Y. S. Choi, A. Lucke, T. Schweizer, and L. M. Chayes. 1996. “Invaded Cluster Algorithm for Potts Models.” *Physical Review E* 54 (2). <https://doi.org/10.1103/PhysRevE.54.1332>.
+Bobrowski, Omer, and Primoz Skraba. 2022. “Homological Percolation: The
+Formation of Giant k-Cycles.” *International Mathematics Research
+Notices* 2022 (8). <https://doi.org/10.1093/imrn/rnaa305>.
 
-11. Swendsen, Robert H., and Jian-Sheng Wang. 1987. “Nonuniversal Critical Dynamics in Monte Carlo Simulations.” *Physical Review Letters* 58 (2). <https://doi.org/10.1103/PhysRevLett.58.86>.
+Bouillaguet, Charles. 2023. *SpaSM: A Sparse Direct Solver Modulo *p**.
+v1.3.
 
-12. Zomorodian, Afra J. 2005. *Topology for Computing*. Cambridge University Press.
+Brower, RC, and Suzhou Huang. 1990. “Random Surface Dynamics for z 2
+Gauge Theory.” *Physical Review D* 41 (2): 708.
 
+Brower, Richard C, Suzhou Huang, and Kevin JM Moriarty. 1990. “Plaquette
+Percolation for Lattice Gauge Theory.” *Nuclear Physics B-Proceedings
+Supplements* 17: 603–6.
+
+Chayes, L., and J. Machta. 1998. “Graphical Representations and Cluster
+Algorithms II.” *Physica A: Statistical Mechanics and Its Applications*
+254 (3–4). <https://doi.org/10.1016/S0378-4371(97)00637-7>.
+
+Chen, Chao, and Michael Kerber. 2011. “Persistent Homology Computation
+with a Twist.” *Proceedings 27th European Workshop on Computational
+Geometry* 11: 197–200.
+
+Creutz, Michael, Laurence Jacobs, and Claudio Rebbi. 1979. “Experiments
+with a Gauge-Invariant Ising System.” *Physical Review Letters* 42 (21):
+1390.
+
+Drühl, K, and H Wagner. 1982. “Algebraic Formulation of Duality
+Transformations for Abelian Lattice Models.” *Annals of Physics* 141
+(2): 225–53. <https://doi.org/10.1016/0003-4916(82)90286-X>.
+
+Duncan, Paul, Matthew Kahle, and Benjamin Schweinhart. 2023.
+“Homological Percolation on a Torus: Plaquettes and Permutohedra.” *To
+Appear in Annales de l’Institut Henri Poincaré, Probabilités Et
+Statistiques*, September.
+[arxiv.org/abs/10.48550/arXiv.2011.11903](https://arxiv.org/abs/10.48550/arXiv.2011.11903).
+
+Duncan, Paul, Anthony E. Pizzimenti, and Benjamin Schweinhart. n.d.
+*<span class="nocase">ATEAMS: Algebraic Topology-Enabled AlgorithMs for
+Spin systems</span>*. V. 1.0.2.
+<https://doi.org/10.5281/zenodo.14284172>.
+
+Duncan, Paul, and Benjamin Schweinhart. 2024. “Some Properties of the
+Plaquette Random-Cluster Model.” arXiv, June.
+[arxiv.org/abs/10.48550/arXiv.2406.08043](https://arxiv.org/abs/10.48550/arXiv.2406.08043).
+
+Duncan, Paul, and Benjamin Schweinhart. 2025a. “A Sharp Deconfinement
+Transition for Potts Lattice Gauge Theory in Codimension Two.”
+*Communications in Mathematical Physics*.
+<http://arxiv.org/abs/2308.07534>.
+
+Duncan, Paul, and Benjamin Schweinhart. 2025b. “Topological Phases in
+the Plaquette Random-Cluster Model and Potts Lattice Gauge Theory.”
+*Communications in Mathematical Physics*.
+[arxiv.org/abs/10.48550/arXiv.2207.08339](https://arxiv.org/abs/10.48550/arXiv.2207.08339).
+
+Edelsbrunner, Herbert, and John Harer. 2010. *Computational Topology: An
+Introduction*. American Mathematical Soc.
+
+Edwards, Robert G., and Alan D. Sokal. 1988. “Generalization of the
+Fortuin-Kasteleyn-Swendsen-Wang Representation and Monte Carlo
+Algorithm.” *Physical Review D* 38 (6): 2009–12.
+<https://doi.org/10.1103/PhysRevD.38.2009>.
+
+Fortuin, C. M., and P. W. Kasteleyn. 1972. “On the Random-Cluster Model:
+I. Introduction and Relation to Other Models.” *Physica* 57 (4).
+<https://doi.org/10.1016/0031-8914(72)90045-6>.
+
+Ginsparg, Paul, Yadin Y Goldschmidt, and Jean-Bernard Zuber. 1980.
+“Large *q* Expansions for *q*-State Gauge-Matter Potts Models in
+Lagrangian Form.” *Nuclear Physics B* 170 (3): 409–32.
+
+Grimmett, Geoffrey. 2004. *The Random-Cluster Model*. Edited by Harry
+Kesten. Springer Berlin Heidelberg.
+<https://doi.org/10.1007/978-3-662-09444-0_2>.
+
+<span class="nocase">group, The LinBox</span>. 2021. *LinBox*. v1.7.0.
+<http://github.com/linbox-team/linbox>.
+
+Hatcher, Allen. 2002. *Algebraic Topology*. Cambridge University Press.
+
+Hiraoka, Yasuaki, and Tomoyuki Shirai. 2016. “Tutte Polynomials and
+Random-Cluster Models in Bernoulli Cell Complexes (Stochastic Analysis
+on Large Scale Interacting Systems).” *RIMS Kokyuroku Bessatsu* B59
+(July): 289–304.
+
+Hostetter, Matt. 2020. *<span class="nocase">Galois: A performant NumPy
+extension for Galois fields</span>*. Released November.
+<https://github.com/mhostetter/galois>.
+
+Kaczynski, Tomasz, Konstantin Mischaikow, and Marian Mrozek. 2004.
+*Computational Homology*. Vol. 157. Applied Mathematical Sciences.
+Springer.
+
+Kesten, Harry. 1982. *Percolation Theory for Mathematicians*.
+Birkhäuser. <https://doi.org/10.1007/978-1-4899-2730-9>.
+
+Kogut, John B. 1979. “An Introduction to Lattice Gauge Theory and Spin
+Systems.” *Reviews of Modern Physics* 51 (4): 659–713.
+<https://doi.org/10.1103/RevModPhys.51.659>.
+
+Machta, J., Y. S. Choi, A. Lucke, T. Schweizer, and L. M. Chayes. 1996.
+“Invaded Cluster Algorithm for Potts Models.” *Physical Review E* 54
+(2). <https://doi.org/10.1103/PhysRevE.54.1332>.
+
+Machta, J., Y. S. Choi, A. Lucke, T. Schweizer, and L. V. Chayes. 1995.
+“Invaded Cluster Algorithm for Equilibrium Critical Points.” *Physical
+Review Letters* 75 (15): 2792–95.
+<https://doi.org/10.1103/PhysRevLett.75.2792>.
+
+Maritan, A, and C Omero. 1982. “On the Gauge Potts Model and the
+Plaquette Percolation Problem.” *Nuclear Physics B* 210 (4): 553–66.
+
+Ossola, Giovanni, and Alan D. Sokal. 2004. “Dynamic Critical Behavior of
+the Swendsen–Wang Algorithm for the Three-Dimensional Ising Model.”
+*Nuclear Physics B* 691 (3): 259–91.
+<https://doi.org/10.1016/j.nuclphysb.2004.04.026>.
+
+Saveliev, Peter. 2016. *Topology Illustrated*. Independent Publisher.
+
+Shklarov, Yakov. 2023. “The Edwards-Sokal Coupling for the Potts Higher
+Lattice Gauge Theory on ℤ<sup>*d*</sup>.” Master’s thesis, The
+University of Victoria.
+
+Swendsen, Robert H., and Jian-Sheng Wang. 1987. “Nonuniversal Critical
+Dynamics in Monte Carlo Simulations.” *Physical Review Letters* 58 (2).
+<https://doi.org/10.1103/PhysRevLett.58.86>.
+
+Wegner, Franz J. 2014. “Duality in Generalized Ising Models.” November.
+<https://doi.org/10.48550/arXiv.1411.5815>.
+
+Zomorodian, Afra J. 2005. *Topology for Computing*. Cambridge University
+Press.

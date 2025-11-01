@@ -132,6 +132,12 @@ class SwendsenWang():
 		# Sample from the kernel of the coboundary matrix, and evaluate again
 		spins = self.sample(includedZeros)
 
+		# # Check whether the sample's correct.
+		# coefficients = spins[boundary[includedZeros]]
+		# coefficients[:,1::2] = -coefficients[:,1::2]%q
+		# sums = coefficients.sum(axis=1)%q
+		# print(np.nonzero(sums > 0)[0])
+
 		# Create output vectors.
 		occupied = np.zeros(self.cells, dtype=FINT)
 		occupied[includedZeros] = 1

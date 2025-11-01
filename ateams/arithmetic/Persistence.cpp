@@ -1,111 +1,148 @@
 
-#include <linbox/matrix/sparse-matrix.h>
-#include <linbox/ring/modular.h>
+#include <phat/compute_persistence_pairs.h>
+#include <phat/boundary_matrix.h>
+#include <phat/representations/default_representations.h>
+#include <phat/algorithms/twist_reduction.h>
+#include <phat/algorithms/standard_reduction.h>
+#include <phat/algorithms/row_reduction.h>
+#include <phat/algorithms/chunk_reduction.h>
+#include <phat/algorithms/spectral_sequence_reduction.h>
+#include <phat/algorithms/swap_twist_reduction.h>
+#include <phat/algorithms/exhaustive_compress_reduction.h>
+#include <phat/algorithms/lazy_retrospective_reduction.h>
+#include <phat/helpers/dualize.h>
 
-extern "C" {
-	#include <spasm/spasm.h>
-}
-
-#include "LinBoxMethods.h"
-#include <iostream>
+#include "Persistence.h"
 
 using namespace std;
+
+/*
+#################################
+##### PERSISTENCE WITH PHAT #####
+#################################
+*/
+typedef vector<phat::index> PHATColumn;
+typedef phat::boundary_matrix<phat::bit_tree_pivot_column> PHATBoundaryMatrix;
+typedef phat::persistence_pairs Pairs;
+typedef phat::twist_reduction Twist;
+
+
+Index ReindexBoundaryMatrix(Index &boundary, Index filtration, int homology, Index breaks) {
+	// Decide when we should be editing rows or columns.
+	int cellCount = filtration.size();
+	int low = breaks[homology];
+	int high = breaks[homology+1];
+	int higher = (homology+2 >= breaks.size() ? cellCount : breaks[homology+2]);
+	int row, column;
+
+	// Reindex the boundary matrix in-place so we don't have to do it in Python.
+	// Eugh.
+	Map IndexMap = Map();
+
+	for (int t=low; t < higher; t++) {
+		IndexMap[filtration[t]] = t;
+	}
+
+	for (int i=0; i < boundary.size(); i+=3) {
+		row = boundary[i];
+		column = boundary[i+1];
+
+		if (low <= column && column < high) {
+			// In this situation, we're editing the *column* --- for example,
+			// if the (usual) 9th element was placed 10th, then we have to change
+			// the 9th column to the 10th one.
+			boundary[i+1] = IndexMap[column];
+		} else if (high <= column && column < higher) {
+			// Here, we're editing the *row* --- since we're in a higher-dimensional
+			// cell, we need to point toward the correct (re-indexed) row.
+			boundary[i] = IndexMap[row];
+		}
+	}
+	
+	return boundary;
+}
+
+
+FlatBoundaryMatrix Flatten(Index full, int columns, Index breaks) {
+	FlatBoundaryMatrix boundary = FlatBoundaryMatrix(columns, Index());
+	int row, column;
+
+	for (int t=0; t < full.size(); t+=3) {
+		row = full[t];
+		column = full[t+1];
+
+		// If the column corresponds to a cell that isn't a vertex, we insert the
+		// row into the column. Afterwards, we'll have to go through and sort
+		// each of the columns as well.
+		if (breaks[1] <= column) { boundary[column].push_back(row); }
+	}
+
+	// Sort column entries (presumably so this makes building the bitpacks easier
+	// later?).
+	for (int i=0; i < columns; i++) {
+		sort(boundary[i].begin(), boundary[i].end());
+	}
+
+	return boundary;
+}
+
+
+FlatBoundaryMatrix ReindexAndFlatten(Index _boundary, Index filtration, int homology, Index breaks) {
+	_boundary = ReindexBoundaryMatrix(_boundary, filtration, homology, breaks);
+	return Flatten(_boundary, filtration.size(), breaks);
+}
+
+
+PersistencePairs PHATComputePersistencePairs(Index _boundary, Index filtration, int homology, Index breaks) {
+	// Build out the boundary matrix.
+	Pairs pairs;
+	FlatBoundaryMatrix boundary = ReindexAndFlatten(_boundary, filtration, homology, breaks);
+	PHATBoundaryMatrix Boundary;
+	PHATColumn faces;
+	int numFaces, numPHATColumns = boundary.size();
+
+	// Count the number of columns.
+	Boundary.set_num_cols(numPHATColumns);
+
+	for (int t=0; t < numPHATColumns; t++) {
+		// Fill in the faces for this column. Should be fine dealing with empty
+		// columns (i.e. vertices).
+		numFaces = boundary[t].size();
+
+		for (int j=0; j < numFaces; j++) { faces.push_back(boundary[t][j]); }
+
+		Boundary.set_dim(t, numFaces*2);
+		Boundary.set_col(t, faces);
+		faces.clear();
+	}
+
+	// Compute the persistence pairs and populate a Vector to return to the
+	// user.
+	phat::compute_persistence_pairs<Twist>(pairs, Boundary);
+	pairs.sort();
+
+	PersistencePairs Pairs(pairs.get_num_pairs(), Index(2));
+
+	for (phat::index i=0; i < pairs.get_num_pairs(); i++) {
+		Pairs[i][0] = pairs.get_pair(i).first;
+		Pairs[i][1] = pairs.get_pair(i).second;
+	}
+
+	return Pairs;
+}
+
+
+/*
+#########################################
+##### PERSISTENCE WITH LINBOX/SPASM #####
+#########################################
+*/
+#include <linbox/matrix/sparse-matrix.h>
+#include <linbox/ring/modular.h>
 
 typedef Givaro::Modular<int> Zp;
 typedef LinBox::SparseMatrix<Zp, LinBox::SparseMatrixFormat::SparseSeq> ZpMatrix;
 typedef LinBox::DenseVector<Zp> ZpVector;
-
-
-template <typename Vector, typename Field>
-Vector randomVector(int N, Field F) {
-	Vector r(F, N);
-
-	for (int i=0; i<N; i++) {
-		// Here we're presuming the field has prime --- not prime *power* --- order.
-		typename Field::Element q;
-		F.init(q, random()%(int)F.characteristic());
-		r.setEntry(i, q);
-	}
-
-	return r;
-}
-
-
-template <typename Matrix, typename Field>
-Matrix MatrixFromSpaSM(const struct spasm_csr *A, Field F) {
-	// Get the dimensions of the spasm_csr matrix. NOTE: SpaSM uses n and m to
-	// refer to the number of rows and columns of a matrix, contrary to convention.
-	// What's below is not a typo!
-	int M = A->n;
-	int N = A->m;
-	Matrix B(F, M, N);
-
-	// Get pointers to column indices and rows.
-	const int *columnIndices = A->j;
-	const i64 *rows = A->p;
-	const spasm_ZZp *values = A->x;
-
-	// Iterate through the CSR, adding entries to B.
-	for (int row=0; row<M; row++) {
-		for (i64 px=rows[row]; px<rows[row+1]; px++) {
-			i64 x = values[px];
-
-			typename Field::Element q;
-			F.init(q, x);
-			B.setEntry(row, columnIndices[px], q);
-		}
-	}
-
-	B.finalize();
-	return B;
-}
-
-
-template <typename Vector>
-Index populate(Vector X) {
-	// Populate a vector with entries from a LinBox vector.
-	Index x(X.size());
-	for (size_t k = 0; k < X.size(); k++) { x[k] = X.getEntry(k); }
-
-	return x;
-}
-
-
-Index ReducedKernelSample(Index coboundary, int M, int N, int p) {
-	// Construct the finite field and construct the matrix. If we're over Z/2Z,
-	// use specialized matrices for our operations.
-	typedef ZpMatrix Matrix;
-	typedef ZpVector Vector;
-	typedef Zp Field;
-
-	// Construct the field and vectors; allocate a SpaSM matrix.
-	Field F(p);
-	ZpVector X(F, N);
-
-	int _sup = _suppress();
-	struct spasm_triplet *T = spasm_triplet_alloc(M, N, 1, p, p!=-1);
-	for (int t=0; t<coboundary.size(); t+=3) { spasm_add_entry(T, coboundary[t], coboundary[t+1], coboundary[t+2]); }
-
-	struct spasm_csr *A = spasm_compress(T);
-	spasm_triplet_free(T);
-
-	// Echelonize A and compute a basis for the kernel.
-	struct spasm_lu *fact = spasm_echelonize(A, NULL);
-	spasm_csr_free(A);
-
-	const struct spasm_csr *K = spasm_kernel(fact);
-	Matrix basis = MatrixFromSpaSM<Matrix, Field>(K, F);
-	_resume(_sup);
-	
-	// Take the kernel basis, read it into a LinBox matrix, generate some random
-	// coefficients, then take a linear combination of the rows of the basis to
-	// get a random vector in the kernel.
-	Vector combination = randomVector<Vector, Field>(basis.rowdim(), F);
-	Vector assignment(F, N);
-	assignment = basis.applyTranspose(assignment, combination);
-
-	return populate(assignment);
-}
 
 
 template <typename BalancedStorage>
@@ -227,9 +264,6 @@ Set ZpComputePercolationEvents(int field, BoundaryMatrix _boundary, Index breaks
 
 	return essential;
 }
-
-
-
 
 
 Set ComputePercolationEvents(
@@ -415,3 +449,4 @@ Set LinearComputePercolationEvents(
 
 	return essential;
 }
+

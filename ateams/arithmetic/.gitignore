@@ -4,5 +4,5 @@
 *.html
 *.o
 
-!LinBoxMethods.cpp
-!PHATMethods.cpp
+!Persistence.cpp
+!Sampling.cpp

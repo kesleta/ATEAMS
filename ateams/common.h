@@ -1,4 +1,8 @@
 
+
+#ifndef ATEAMS_COMMON_H
+#define ATEAMS_COMMON_H
+
 #include <set>
 #include <vector>
 #include <map>
@@ -45,4 +49,6 @@ void _resume(int fd) {
 	dup2(fd, fileno(stderr));
 	close(fd);
 }
+
+#endif
 

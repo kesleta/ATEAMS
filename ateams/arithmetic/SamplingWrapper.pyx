@@ -2,7 +2,7 @@
 # distutils: language=c++
 
 from ..common cimport int, INDEXFLAT, Index, Set, Map
-from .LinBoxMethods cimport (
+from .Sampling cimport (
 	ReducedKernelSample as _ReducedKernelSample
 )
 

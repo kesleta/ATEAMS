@@ -1,7 +1,7 @@
 
 # distutils: language=c++
 
-from ..common cimport INDEXFLAT, BoundaryMatrix, Index, Set, Table, Lookup
+from ..common cimport INDEXFLAT, BoundaryMatrix, Index, Set, Table, Lookup, PersistencePairs
 
 
 cdef class Twist:
@@ -19,3 +19,6 @@ cdef class Twist:
 	cpdef Set ComputePercolationEvents(self, INDEXFLAT filtration) noexcept
 	cpdef Set LinearComputePercolationEvents(self, INDEXFLAT filtration) noexcept
 	cpdef Set ZpComputePercolationEvents(self, INDEXFLAT filtration) noexcept
+
+
+cpdef PersistencePairs PHATComputePersistencePairs(INDEXFLAT boundary, INDEXFLAT filtration, int homology, INDEXFLAT breaks) noexcept
