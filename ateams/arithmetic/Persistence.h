@@ -9,4 +9,7 @@ Set ComputePercolationEvents(Table addition, Table multiplication, Lookup negati
 Set LinearComputePercolationEvents(int field, Lookup addition, Lookup multiplication, Lookup negation, Lookup inversion, BoundaryMatrix Boundary, Index breaks, int cellCount, int dimension);
 Set ZpComputePercolationEvents(int field, BoundaryMatrix Boundary, Index breaks, int cellCount);
 
+Bases LinearComputeBases(int field, Lookup addition, Lookup multiplication, Lookup negation, Lookup inversion, BoundaryMatrix Boundary, Index breaks, int cellCount, int dimension);
+Set RankComputePercolationEvents(BoundaryMatrix augmentedCoboundary, int M, int N, int basisrank, int p);
+
 #endif

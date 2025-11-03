@@ -29,8 +29,8 @@ headers:
 	@sudo cp -r ateams/arithmetic/Sampling.h $(INSTALL_DIR)/include/ATEAMS/
 
 
-Persistence_LFLAGS = -I$(INSTALL_DIR)/include/ `pkg-config --libs linbox` -shared -fPIC
-Persistence_CFLAGS = -O3 -std=c++17
+Persistence_LFLAGS = -I$(INSTALL_DIR)/include/ `pkg-config --libs --cflags flint` -shared -fPIC
+Persistence_CFLAGS = -O3 -std=c++20
 
 Persistence: headers
 	@sudo clang++ $(Persistence_LFLAGS) $(Persistence_CFLAGS) -o $(INSTALL_DIR)/lib/libATEAMS_Persistence.so ateams/arithmetic/Persistence.cpp $(INSTALL_LFLAGS)

@@ -9,8 +9,15 @@
 
 #include <unistd.h>
 #include <stdio.h>
+#include <iostream>
 
 using namespace std;
+
+
+// Typedefs for SparseRREF (used in Sampling and Persistence).
+typedef unsigned long ulong;
+typedef uint32_t index_t;
+typedef ulong data_t;
 
 // Type for indices and type for data; for now, we use unsigned 32-bit ints for
 // indices (since we're never negative) and signed chars for data (since our
@@ -35,6 +42,9 @@ typedef map<INDEXTYPE,DATATYPE> Column;
 typedef vector<Column> BoundaryMatrix;
 typedef vector<Index> FlatBoundaryMatrix;
 
+typedef vector<Column> Basis;
+typedef vector<Basis> Bases;
+
 // Utility functions for suppressing output to stderr (specifically because SpaSM)
 // outputs diagnostic information at every step!).
 int _suppress() {
@@ -49,6 +59,40 @@ void _resume(int fd) {
 	dup2(fd, fileno(stderr));
 	close(fd);
 }
+
+
+// Helper method for printing `map`s.'
+template <typename MapStorage>
+void printmap(MapStorage m) {
+	std::cout << "{ ";
+	for (const auto& [k, v] : m) {
+		std::cout << (int)k << ": " << (int)v << ", ";
+	}
+	std::cout << " }" << std::endl;
+}
+
+template <typename Matrix>
+void printmat(Matrix A) {
+	int rows, columns;
+	rows = A.nrow;
+	columns = A.ncol;
+
+	std::vector<std::vector<int>> M(rows, std::vector<int>(columns, 0));
+
+	for (int i=0; i<rows; i++) {
+		for (auto [j,v] : A.rows[i]) {
+			M[i][j] = (int)v;
+		}
+	}
+
+	for (int i=0; i<rows; i++) {
+		for (int j=0; j<columns; j++) {
+			cout << M[i][j] << " ";
+		}
+		cout << endl;
+	}
+}
+
 
 #endif
 

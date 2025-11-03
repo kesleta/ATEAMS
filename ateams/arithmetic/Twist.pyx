@@ -1,14 +1,18 @@
 
+
 # distutils: language=c++
 
-from ..common cimport INDEXFLAT, Vectorize, DATATYPE, BoundaryMatrix, Column, Map, PersistencePairs
+from ..common cimport (
+	INDEXFLAT, Vectorize, INDEXTYPE, DATATYPE, BoundaryMatrix, Row, Column, Map,
+	Basis, Bases, printBoundaryMatrix
+)
+
 from .Persistence cimport (
-	ComputePercolationEvents,
-	ZpComputePercolationEvents,
-	LinearComputePercolationEvents,
+	LinearComputePercolationEvents, LinearComputeBases, RankComputePercolationEvents,
 	PHATComputePersistencePairs as _PHATComputePersistencePairs
 )
 
+from cython.operator cimport dereference, postincrement
 from libc.math cimport pow
 
 
@@ -57,7 +61,7 @@ cdef class Twist:
 
 		# Construct a filtration and compute the percolation events.
 		filtration = np.arange(cellCount)
-		essential = Twister.ComputePercolationEvents(filtration)
+		essential = Twist.ComputePercolationEvents(filtration)
 		```
 
 		In this case, `essential` should be `{0, 17, 35, 21}`, and the times \(17\)
@@ -73,9 +77,31 @@ cdef class Twist:
 		self.referenceBoundary = self.FillBoundaryMatrix(boundary);
 		self.workingBoundary = BoundaryMatrix(self.referenceBoundary);
 
+		cdef int N = self.breaks[self.dimension]-self.breaks[self.dimension-1];
+		self.partialBoundary = self.PartialBoundaryMatrix(self.dimension);
+		self.partialCoboundary = self.__transpose(self.partialBoundary, N);
+
 		# Construct arithmetic operations.
 		self.__arithmetic();
 
+		# Construct bases. This will take a LONG time sometimes, but the
+		# precomputation should be worth it.
+		# TODO maybe we can pass pre-computed bases as an argument? That would
+		# be super slick.
+		self.bases = Bases();
+		self.cobasis = self.LinearComputeCobasis();
+
+		# Construct an augmented matrix where the first <whatever> columns are
+		# the cobasis, and the rest is the coboundary matrix.
+		cdef int i = 0, bSize = self.cobasis.size(), pBSize = self.partialCoboundary.size();
+		self.augmentedCoboundary = BoundaryMatrix(bSize+pBSize, Column());
+
+		for i in range(bSize+pBSize):
+			if i < pBSize: self.augmentedCoboundary[i] = Column(self.partialCoboundary[i]);
+			else: self.augmentedCoboundary[i] = Column(self.cobasis[i-pBSize]);
+			# if i < bSize: self.augmentedCoboundary[i] = Column(self.cobasis[i]);
+			# else: self.augmentedCoboundary[i] = Column(self.partialCoboundary[i-bSize]);
+	
 
 	cdef void __arithmetic(self) noexcept:
 		# Given a field characteristic, construct addition and multiplication
@@ -116,8 +142,52 @@ cdef class Twist:
 
 		self.negation = negation;
 		self.inversion = inverse;
-	
 
+
+	cdef BoundaryMatrix __transpose(self, BoundaryMatrix A, int columns) noexcept:
+		"""
+		Finds the transpose of the given BoundaryMatrix.
+		"""
+		cdef BoundaryMatrix T = BoundaryMatrix(columns, Column());
+		cdef INDEXTYPE col, row;
+		cdef DATATYPE q;
+		cdef Column column;
+		cdef Column.iterator it;
+
+		for col in range(A.size()):
+			column = A[col];
+			it = column.begin();
+
+			while it != column.end():
+				row = dereference(it).first;
+				q = dereference(it).second;
+				T[row][col] = q;
+
+				postincrement(it);
+
+		return T;
+
+
+	cdef BoundaryMatrix __asRows(self, BoundaryMatrix A, int rows) noexcept:
+		cdef BoundaryMatrix R = BoundaryMatrix(rows, Row());
+		cdef int row, col;
+		cdef DATATYPE q;
+		cdef Column column;
+		cdef Column.iterator it;
+
+		for col in range(A.size()):
+			column = A[col];
+			it = column.begin();
+
+			while it != column.end():
+				row = dereference(it).first;
+				q = dereference(it).second;
+				R[row][col] = q;
+				postincrement(it);
+		
+		return R;
+
+	
 	cdef BoundaryMatrix FillBoundaryMatrix(self, INDEXFLAT boundary) noexcept:
 		"""
 		Fills the boundary matrix.
@@ -173,34 +243,55 @@ cdef class Twist:
 		
 		return self.workingBoundary;
 
-	
-	cpdef Set ComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
+
+	cdef BoundaryMatrix PartialBoundaryMatrix(self, int dimension) noexcept:
 		"""
-		Given a filtration --- i.e. a reordering of the columns of the full
-		boundary matrix --- gives times at which essential cycles of dimension
-		`dimension` were created. Performs arithmetic using addition and
-		multiplication tables stored in `vector<vector<char>>`s.
-
-		Args:
-			filtration (np.ndarray): An array of column indices.
-
-		Returns:
-			A set containing indices at which essential cycles appear.
+		Fills the partial boundary matrix of the appropriate dimension.
 		"""
-		self.workingBoundary = self.ReindexBoundaryMatrix(filtration);
+		cdef int lower, low, high, col, row;
+		cdef BoundaryMatrix boundary;
+		cdef Column existing, relabeled;
 
-		return ComputePercolationEvents(
-			self.addition, self.multiplication, self.negation, self.inversion,
-			self.workingBoundary, self.breaks, self.cellCount
-		);
+		# Normalize indices.
+		lower = self.breaks[dimension-1];
+		low = self.breaks[dimension];
+		high = self.breaks[dimension+1] if dimension+1 < self.breaks.size() else self.cellCount;
+
+		boundary = BoundaryMatrix(high-low);
+
+		for col in range(low, high):
+			existing = self.referenceBoundary[col];
+			relabeled = Column();
+
+			# This is clunky.
+			for existingRow, existingCoefficient in existing:
+				relabeled[<INDEXTYPE>(existingRow-lower)] = existingCoefficient;
+
+			boundary[col-low] = relabeled;
+		
+		return boundary;
+
+
+	cdef Index ReindexPartialFiltration(self, INDEXFLAT filtration) noexcept:
+		cdef int low, high, t;
+		cdef Index reindexed;
+		low = self.breaks[self.dimension];
+		high = self.breaks[self.dimension+1];
+
+		reindexed = Index(high-low);
+
+		for t in range(low, high):
+			reindexed[t-low] = filtration[t]-low;
+
+		return reindexed;
+
 
 	cpdef Set LinearComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
 		"""
 		Given a filtration --- i.e. a reordering of the columns of the full
 		boundary matrix --- gives times at which essential cycles of dimension
 		`dimension` were created. Performs arithmetic using flattened addition
-		and multiplication tables stored in `vector<char>`s. **This method is
-		recommended for general use.**
+		and multiplication tables stored in `vector<char>`s.
 
 		Args:
 			filtration (np.ndarray): An array of column indices.
@@ -214,24 +305,133 @@ cdef class Twist:
 			self.characteristic, self.flatAddition, self.flatMultiplication, self.negation, self.inversion,
 			self.workingBoundary, self.breaks, self.cellCount, self.dimension
 		);
-	
-	cpdef Set ZpComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
+
+
+	# cpdef Set CobasisComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
+	# 	cdef Basis cobasis = self.cobasis;
+	# 	cdef BoundaryMatrix boundary = self.PartialBoundaryMatrix(self.dimension);
+	# 	cdef int M, N;
+
+	# 	M = self.breaks[self.dimension]-self.breaks[self.dimension-1];
+	# 	N = self.breaks[self.dimension+1]-self.breaks[self.dimension];
+
+	# 	return CobasisComputePercolationEvents(
+	# 		boundary, cobasis, M, N, self.characteristic, <int>(cobasis.size()/2)
+	# 	)
+
+
+	cpdef Set RankComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
+		cdef Basis cobasis;
+
+		# Check whether we've already computed the cobasis.
+		if self.cobasis.size() < 1: cobasis = self.LinearComputeCobasis();
+		else: cobasis = self.cobasis;
+
+		cdef int M, N;
+		M = self.breaks[self.dimension+1]-self.breaks[self.dimension];
+		N = self.augmentedCoboundary.size();
+
+		return RankComputePercolationEvents(
+			self.augmentedCoboundary, M, N, self.cobasis.size(), self.characteristic
+		)
+
+
+	cpdef Basis LinearComputeBasis(self) noexcept:
 		"""
-		Given a filtration --- i.e. a reordering of the columns of the full
-		boundary matrix --- gives times at which essential cycles of dimension
-		`dimension` were created. Performs arithmetic using `Givaro`.
-
-		Args:
-			filtration (np.ndarray): An array of column indices.
-
-		Returns:
-			A set containing indices at which essential cycles appear.
+		Computes bases for the `dimension`th homology group.
 		"""
-		self.workingBoundary = self.ReindexBoundaryMatrix(filtration);
+		if self.bases.size() > 0: return self.bases[self.dimension];
 
-		return ZpComputePercolationEvents(
-			self.characteristic, self.workingBoundary, self.breaks, self.cellCount
+		cdef Bases existingBases = LinearComputeBases(
+			self.characteristic, self.flatAddition, self.flatMultiplication, self.negation, self.inversion,
+			self.referenceBoundary, self.breaks, self.cellCount, self.dimension
 		);
+
+		# Reindex the bases.
+		cdef Bases reindexedBases = Bases(existingBases.size());
+		cdef Basis existingBasis, reindexedBasis;
+		cdef Column existingColumn, reindexedColumn;
+		cdef INDEXTYPE low, i, j, row, col;
+		cdef DATATYPE q;
+
+		for i in range(existingBases.size()):
+			low = self.breaks[i];
+			existingBasis = existingBases[i];
+			reindexedBasis = Basis(existingBasis.size());
+
+			for j in range(existingBasis.size()):
+				existingColumn = existingBasis[j];
+				reindexedColumn = Column();
+
+				for row, q in existingColumn:
+					reindexedColumn[row-low] = q;
+
+				reindexedBasis[j] = reindexedColumn;
+
+			reindexedBases[i] = reindexedBasis;
+
+		self.bases = reindexedBases;
+		return self.bases[self.dimension];
+
+	
+	cpdef Basis LinearComputeCobasis(self) noexcept:
+		self.LinearComputeBasis();
+
+		cdef Basis combined, combinedT, cobasis, cyclebasis;
+		cdef BoundaryMatrix coboundary;
+		cdef Column solution, cocycle, cycle;
+		cdef int t, s, columns, rows;
+		cdef Set me, others;
+		cdef Column.iterator it;
+
+		# Get the coboundary matrix to adjoin to the basis.
+		coboundary = self.PartialBoundaryMatrix(self.dimension+1);
+		cyclebasis = self.bases[self.dimension];
+		# combined = Basis(coboundary.size()+cyclebasis.size(), Column());
+
+		# for t in range(cyclebasis.size()): combined[t] = cyclebasis[t];
+		# for t in range(coboundary.size()): combined[t+cyclebasis.size()] = coboundary[t];
+
+		# # Transpose.
+		columns = self.breaks[self.dimension+1]-self.breaks[self.dimension];
+		# rows = cyclebasis.size() + coboundary.size();
+		# combinedT = self.__transpose(combined, columns);
+
+		cobasis = Basis(cyclebasis.size());
+
+		# Construct a cobasis.
+		for t in range(cyclebasis.size()):
+			cycle = cyclebasis[t];
+			me = Set();
+			others = Set();
+			
+			# (Uglily) get the row indices of the first cycle.
+			it = cycle.begin();
+			while (it != cycle.end()):
+				me.insert(dereference(it).first);
+				postincrement(it);
+
+			# (Also uglily) get the row indices of the other cycles.
+			for s in range(cyclebasis.size()):
+				if s == t: continue
+				it = cyclebasis[s].begin();
+
+				while (it != cyclebasis[s].end()):
+					others.insert(dereference(it).first)
+					postincrement(it)
+
+			for s in me:
+				if not others.contains(s):
+					cocycle = Column();
+					cocycle[s] = self.negation[<DATATYPE>1];
+					cobasis[t] = cocycle;
+					break
+
+		print(cyclebasis)
+		print(cobasis)
+		self.cobasis = cobasis;
+		return cobasis;
+
 
 
 cpdef PersistencePairs PHATComputePersistencePairs(INDEXFLAT boundary, INDEXFLAT filtration, int homology, INDEXFLAT breaks) noexcept:
@@ -259,4 +459,6 @@ cpdef PersistencePairs PHATComputePersistencePairs(INDEXFLAT boundary, INDEXFLAT
 	_breaks = Vectorize(breaks);
 
 	return _PHATComputePersistencePairs(_boundary, _filtration, homology, _breaks);
+
+
 

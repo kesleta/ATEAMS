@@ -17,29 +17,6 @@ Index randomVector(int N, int p) {
 	return r;
 }
 
-// template <typename Matrix>
-// void printmat(Matrix A) {
-// 	int rows, columns;
-// 	rows = A.nrow;
-// 	columns = A.ncol;
-
-// 	std::vector<std::vector<int>> M(rows, std::vector<int>(columns, 0));
-
-// 	for (int i=0; i<rows; i++) {
-// 		for (auto [j,v] : A.rows[i]) {
-// 			M[i][j] = (int)v;
-// 		}
-// 	}
-
-// 	for (int i=0; i<rows; i++) {
-// 		for (int j=0; j<columns; j++) {
-// 			cout << M[i][j] << " ";
-// 		}
-// 		cout << endl;
-// 	}
-// }
-
-
 template <typename Matrix, typename Vector, typename Field>
 Index RandomLinearCombination(Matrix K, Field GFp, int p) {
 	Matrix KT = K.transpose();

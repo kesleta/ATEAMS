@@ -13,17 +13,17 @@ LIBRARY_PATH = "/usr/local/lib"
 INCLUDE_PATH = "/usr/local/include"
 
 extensions = [
-	Extension(
-		"construction",
-		["ateams/complexes/*.pyx"],
-		include_dirs=[numpy.get_include()],
-		extra_compile_args=["-std=c++20", "-O3"],
-		define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
-		language="c++",
-	),
+	# Extension(
+	# 	"construction",
+	# 	["ateams/complexes/*.pyx"],
+	# 	include_dirs=[numpy.get_include()],
+	# 	extra_compile_args=["-std=c++20", "-O3"],
+	# 	define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
+	# 	language="c++",
+	# ),
 	Extension(
 		"*",
-		["ateams/arithmetic/*.pyx"],
+		["ateams/**/*.pyx"],
 		include_dirs=[numpy.get_include(), INCLUDE_PATH],
 		library_dirs=[LIBRARY_PATH],
 		extra_compile_args=["-std=c++20", "-O3"],

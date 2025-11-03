@@ -33,11 +33,17 @@ ctypedef AnyVector[INDEXTYPE] Index;
 ctypedef AnyVector[DATATYPE] Lookup;
 ctypedef AnyVector[Lookup] Table;
 
-ctypedef AnyVector[Index] PersistencePairs;
-
 ctypedef AnyMap[INDEXTYPE,DATATYPE] Column;
+ctypedef Column Row;
 ctypedef AnyVector[Column] BoundaryMatrix;
+ctypedef BoundaryMatrix Basis;
 ctypedef AnyVector[Index] FlatBoundaryMatrix;
+ctypedef AnyVector[Basis] Bases
+ctypedef AnyVector[Set] MatrixEntries;
+
+# Come up with better names for these.
+ctypedef AnyMap[INDEXTYPE,Column] SparseLinearCombination;
+ctypedef AnyVector[Index] PersistencePairs;
 
 
 cdef inline Index Vectorize(INDEXFLAT A) noexcept:
@@ -51,3 +57,23 @@ cdef inline Index Vectorize(INDEXFLAT A) noexcept:
 
 	return B;
 
+
+
+
+cdef inline void printBoundaryMatrix(BoundaryMatrix A, int M, int N) noexcept:
+	cdef int col, row;
+	cdef str rowstr;
+	cdef Column column;
+	cdef Column.iterator it;
+
+	for row in range(M):
+		rowstr = "";
+		for col in range(A.size()):
+			column = A[col];
+
+			try: rowstr += str(<int>column[row]);
+			except: rowstr += "0"
+
+			rowstr += " "
+		
+		print(rowstr)
