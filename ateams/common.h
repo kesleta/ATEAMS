@@ -72,7 +72,7 @@ void printmap(MapStorage m) {
 }
 
 template <typename Matrix>
-void printmat(Matrix A) {
+void printSparseRREFmat(Matrix A) {
 	int rows, columns;
 	rows = A.nrow;
 	columns = A.ncol;
@@ -88,6 +88,29 @@ void printmat(Matrix A) {
 	for (int i=0; i<rows; i++) {
 		for (int j=0; j<columns; j++) {
 			cout << M[i][j] << " ";
+		}
+		cout << endl;
+	}
+}
+
+template <typename Matrix, typename Zp, typename i64>
+void printSpaSMmat(Matrix *A) {
+	const int *columnIndex = A->j;
+	const i64 *rowIndex = A->p;
+	const Zp *values = A->x;
+	int m = A->n;
+	int n = A->m;
+	i64 p = A->field->p;
+
+	for (int i=0; i<m; i++) {
+		vector<int> row(n, 0);
+		for (int px = rowIndex[i]; px < rowIndex[i+1]; px++) {
+			int q = values[px];
+			row[columnIndex[px]] = q;
+		}
+
+		for (int j=0; j<n; j++) {
+			cout << (row[j]+p)%p << " ";
 		}
 		cout << endl;
 	}

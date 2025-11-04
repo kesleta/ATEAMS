@@ -23,6 +23,7 @@ cdef class Twist:
 	cdef void __arithmetic(self) noexcept
 	cdef BoundaryMatrix __transpose(self, BoundaryMatrix A, int columns) noexcept
 	cdef BoundaryMatrix __asRows(self, BoundaryMatrix A, int rows) noexcept
+	cdef BoundaryMatrix __asColumns(self, BoundaryMatrix A, int columns) noexcept
 
 	cdef BoundaryMatrix FillBoundaryMatrix(self, INDEXFLAT boundary) noexcept
 	cdef BoundaryMatrix ReindexBoundaryMatrix(self, INDEXFLAT filtration) noexcept
@@ -30,8 +31,8 @@ cdef class Twist:
 	cdef Index ReindexPartialFiltration(self, INDEXFLAT filtration) noexcept
 	
 	cpdef Set LinearComputePercolationEvents(self, INDEXFLAT filtration) noexcept
-	# cpdef Set CobasisComputePercolationEvents(self, INDEXFLAT filtration) noexcept
 	cpdef Set RankComputePercolationEvents(self, INDEXFLAT filtration) noexcept
+	cpdef Set SolveComputePercolationEvents(self, INDEXFLAT filtration) noexcept
 
 	cpdef Basis LinearComputeBasis(self) noexcept
 	cpdef Basis LinearComputeCobasis(self) noexcept

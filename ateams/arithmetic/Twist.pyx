@@ -9,7 +9,8 @@ from ..common cimport (
 
 from .Persistence cimport (
 	LinearComputePercolationEvents, LinearComputeBases, RankComputePercolationEvents,
-	PHATComputePersistencePairs as _PHATComputePersistencePairs
+	PHATComputePersistencePairs as _PHATComputePersistencePairs, ComputeCobasis,
+	SolveComputePercolationEvents
 )
 
 from cython.operator cimport dereference, postincrement
@@ -89,7 +90,7 @@ cdef class Twist:
 		# TODO maybe we can pass pre-computed bases as an argument? That would
 		# be super slick.
 		self.bases = Bases();
-		self.cobasis = self.LinearComputeCobasis();
+		# self.cobasis = self.LinearComputeCobasis();
 
 		# Construct an augmented matrix where the first <whatever> columns are
 		# the cobasis, and the rest is the coboundary matrix.
@@ -97,11 +98,8 @@ cdef class Twist:
 		self.augmentedCoboundary = BoundaryMatrix(bSize+pBSize, Column());
 
 		for i in range(bSize+pBSize):
-			if i < pBSize: self.augmentedCoboundary[i] = Column(self.partialCoboundary[i]);
-			else: self.augmentedCoboundary[i] = Column(self.cobasis[i-pBSize]);
-			# if i < bSize: self.augmentedCoboundary[i] = Column(self.cobasis[i]);
-			# else: self.augmentedCoboundary[i] = Column(self.partialCoboundary[i-bSize]);
-	
+			if i < bSize: self.augmentedCoboundary[i] = Column(self.cobasis[i]);
+			else: self.augmentedCoboundary[i] = Column(self.partialCoboundary[i-bSize]);
 
 	cdef void __arithmetic(self) noexcept:
 		# Given a field characteristic, construct addition and multiplication
@@ -186,6 +184,26 @@ cdef class Twist:
 				postincrement(it);
 		
 		return R;
+
+
+	cdef BoundaryMatrix __asColumns(self, BoundaryMatrix A, int columns) noexcept:
+		cdef BoundaryMatrix C = BoundaryMatrix(columns, Column());
+		cdef int r, c;
+		cdef DATATYPE q;
+		cdef Row row;
+		cdef Row.iterator it;
+
+		for r in range(A.size()):
+			row = A[r];
+			it = row.begin();
+
+			while it != row.end():
+				c = dereference(it).first;
+				q = dereference(it).second;
+				C[c][r] = q;
+				postincrement(it);
+
+		return C;
 
 	
 	cdef BoundaryMatrix FillBoundaryMatrix(self, INDEXFLAT boundary) noexcept:
@@ -307,33 +325,60 @@ cdef class Twist:
 		);
 
 
-	# cpdef Set CobasisComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
-	# 	cdef Basis cobasis = self.cobasis;
-	# 	cdef BoundaryMatrix boundary = self.PartialBoundaryMatrix(self.dimension);
-	# 	cdef int M, N;
-
-	# 	M = self.breaks[self.dimension]-self.breaks[self.dimension-1];
-	# 	N = self.breaks[self.dimension+1]-self.breaks[self.dimension];
-
-	# 	return CobasisComputePercolationEvents(
-	# 		boundary, cobasis, M, N, self.characteristic, <int>(cobasis.size()/2)
-	# 	)
-
-
 	cpdef Set RankComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
 		cdef Basis cobasis;
 
-		# Check whether we've already computed the cobasis.
+		# Check whether we've already computed the cobasis. If we haven't, do so!
 		if self.cobasis.size() < 1: cobasis = self.LinearComputeCobasis();
 		else: cobasis = self.cobasis;
 
-		cdef int M, N;
-		M = self.breaks[self.dimension+1]-self.breaks[self.dimension];
-		N = self.augmentedCoboundary.size();
+		# If we haven't encountered a giant cocycle, then each element fi of the
+		# cobasis must be in the image of the (d-1)th coboundary matrix (which
+		# sends (d-1)-cochains to d-cochains), so fi is a cocycle *and*
+		# a coboundary --- which means we haven't encountered a giant cocycle yet.
+		# Once fi isn't in the image of the (d-1)th coboundary matrix (i.e. it's
+		# not a coboundary), then we've encountered a giant cycle, and we've
+		# percolated. In this variant, we're going to prepend the cobasis to the
+		# front of the (d-1)th coboundary matrix (i.e. stacking it on top of the
+		# dth boundary matrix) and compute the ranks instead of solving; this
+		# might save some time. Profiling will tell.
+		cdef BoundaryMatrix combined, combinedT, coboundary, boundary = self.PartialBoundaryMatrix(self.dimension);
+		cdef int c, M = self.breaks[self.dimension]-self.breaks[self.dimension-1];
 
-		return RankComputePercolationEvents(
-			self.augmentedCoboundary, M, N, self.cobasis.size(), self.characteristic
-		)
+		coboundary = self.__transpose(boundary, M);
+
+		combined = BoundaryMatrix();
+		for c in range(cobasis.size()): combined.push_back(cobasis[c]);
+		for c in range(coboundary.size()): combined.push_back(coboundary[c]);
+
+		combinedT = self.__transpose(combined, boundary.size());
+
+		events = RankComputePercolationEvents(combinedT, cobasis.size()+coboundary.size(), combinedT.size(), cobasis.size(), self.characteristic);
+
+		return Set();
+
+
+	cpdef Set SolveComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
+		cdef Basis cobasis;
+
+		# Check whether we've already computed the cobasis. If we haven't, do so!
+		if self.cobasis.size() < 1: cobasis = self.LinearComputeCobasis();
+		else: cobasis = self.cobasis;
+
+		# If we haven't encountered a giant cocycle, then each element fi of the
+		# cobasis must be in the image of the (d-1)th coboundary matrix (which
+		# sends (d-1)-cochains to d-cochains), so fi is a cocycle *and*
+		# a coboundary --- which means we haven't encountered a giant cocycle yet.
+		# Once fi isn't in the image of the (d-1)th coboundary matrix (i.e. it's
+		# not a coboundary), then we've encountered a giant cycle, and we've
+		# percolated.
+		cdef BoundaryMatrix boundary = self.PartialBoundaryMatrix(self.dimension);
+		cdef int M = self.breaks[self.dimension]-self.breaks[self.dimension-1];
+		cdef Set events;
+
+		events = SolveComputePercolationEvents(boundary, cobasis, M, boundary.size(), cobasis.size(), self.characteristic);
+
+		return Set();
 
 
 	cpdef Basis LinearComputeBasis(self) noexcept:
@@ -375,63 +420,34 @@ cdef class Twist:
 
 	
 	cpdef Basis LinearComputeCobasis(self) noexcept:
+		# Compute a basis for the dth homology group.
 		self.LinearComputeBasis();
 
-		cdef Basis combined, combinedT, cobasis, cyclebasis;
-		cdef BoundaryMatrix coboundary;
-		cdef Column solution, cocycle, cycle;
-		cdef int t, s, columns, rows;
-		cdef Set me, others;
-		cdef Column.iterator it;
+		# To compute the cobasis, we require that each fi(ej) = 1(i=j), and that
+		# each fi is in the kernel of the dth coboundary matrix. To solve all these
+		# problems at once, we "stack" the cycle basis on top of the dth coboundary
+		# matrix to form a matrix B; fi is then a solution to the equation Bx=g,
+		# where g is a vector of length (cycle basis rank) + (# of (d+1)-cells)
+		# with a 1 in the ith position and zeros elsewhere.
 
-		# Get the coboundary matrix to adjoin to the basis.
-		coboundary = self.PartialBoundaryMatrix(self.dimension+1);
-		cyclebasis = self.bases[self.dimension];
-		# combined = Basis(coboundary.size()+cyclebasis.size(), Column());
+		# Since our matrices are column-major, we will compute the (d+1)th 
+		# boundary matrix (which is the transpose of the dth coboundary matrix),
+		# append the cycle basis to the front of the boundary matrix, then take
+		# the transpose.
+		cdef BoundaryMatrix combined, boundary = self.PartialBoundaryMatrix(self.dimension+1);
+		cdef Basis cocyclebasis, cyclebasis = self.bases[self.dimension];
+		cdef int rows, rank = cyclebasis.size();
 
-		# for t in range(cyclebasis.size()): combined[t] = cyclebasis[t];
-		# for t in range(coboundary.size()): combined[t+cyclebasis.size()] = coboundary[t];
+		rank = cyclebasis.size();
+		rows = self.breaks[self.dimension+1]-self.breaks[self.dimension];
 
-		# # Transpose.
-		columns = self.breaks[self.dimension+1]-self.breaks[self.dimension];
-		# rows = cyclebasis.size() + coboundary.size();
-		# combinedT = self.__transpose(combined, columns);
+		combined = BoundaryMatrix();
+		for c in range(rank): combined.push_back(cyclebasis[c]);
+		for c in range(boundary.size()): combined.push_back(boundary[c]);
 
-		cobasis = Basis(cyclebasis.size());
-
-		# Construct a cobasis.
-		for t in range(cyclebasis.size()):
-			cycle = cyclebasis[t];
-			me = Set();
-			others = Set();
-			
-			# (Uglily) get the row indices of the first cycle.
-			it = cycle.begin();
-			while (it != cycle.end()):
-				me.insert(dereference(it).first);
-				postincrement(it);
-
-			# (Also uglily) get the row indices of the other cycles.
-			for s in range(cyclebasis.size()):
-				if s == t: continue
-				it = cyclebasis[s].begin();
-
-				while (it != cyclebasis[s].end()):
-					others.insert(dereference(it).first)
-					postincrement(it)
-
-			for s in me:
-				if not others.contains(s):
-					cocycle = Column();
-					cocycle[s] = self.negation[<DATATYPE>1];
-					cobasis[t] = cocycle;
-					break
-
-		print(cyclebasis)
-		print(cobasis)
-		self.cobasis = cobasis;
-		return cobasis;
-
+		cocyclebasis = ComputeCobasis(combined, rows, combined.size(), rank, self.characteristic);
+		self.cobasis = cocyclebasis;
+		return self.cobasis;
 
 
 cpdef PersistencePairs PHATComputePersistencePairs(INDEXFLAT boundary, INDEXFLAT filtration, int homology, INDEXFLAT breaks) noexcept:

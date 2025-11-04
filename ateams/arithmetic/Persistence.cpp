@@ -354,102 +354,149 @@ Bases LinearComputeBases(
 
 
 /*
-#######################################
-##### PERSISTENCE WITH SPARSERREF #####
-#######################################
+##################################
+##### PERSISTENCE WITH SPASM #####
+##################################
 */
 
-#include <SparseRREF/sparse_mat.h>
+extern "C" {
+	#include <spasm/spasm.h>
+}
 
 using namespace std;
 
-typedef SparseRREF::sparse_mat<data_t, index_t> ZpMatrix;
-typedef SparseRREF::sparse_vec<data_t, index_t> ZpVector;
-typedef SparseRREF::field_t Zp;
-typedef std::vector<std::vector<SparseRREF::pivot_t<index_t>>> PivotVector;
+typedef struct spasm_csr Matrix;
+typedef struct spasm_triplet Triplet;
+typedef struct spasm_lu Echelonized;
+typedef spasm_ZZp Zp;
 
 
-template <typename Matrix>
-Matrix SparseMatrixFill(Basis augmentedCoboundary, int M, int N, int augment=0) {
-	Matrix A(M, N-augment);
+Matrix *SparseMatrixFill(Basis B, int M, int N, int characteristic, int augment=0) {
+	Triplet *T = spasm_triplet_alloc(M, N, 1, characteristic, true);
 
 	cerr << "[Persistence] building sparse coboundary matrix...";
-	for (int col=0; col<augmentedCoboundary.size()-augment; col++) {
-		for (auto const& [row, q] : augmentedCoboundary[col]) {
+	for (int col=augment; col<B.size(); col++) {
+		for (auto const& [row, q] : B[col]) {
 			// Insert them into the matrix.
-			ZpVector& matrow = A.rows[row];
-			matrow.push_back((index_t)col, (data_t)q);
+			spasm_add_entry(T, row, col, q);
 		}
 	}
 
-	A.compress();
+	Matrix *A = spasm_compress(T);
+	spasm_triplet_free(T);
 	cerr << " done." << endl;
 	return A;
 }
 
 
-Set RankComputePercolationEvents(Basis augmentedCoboundary, int M, int N, int basisRank, int characteristic) {
-	// Construct field and boundary matrix.
-	const Zp GFp(SparseRREF::FIELD_Fp, characteristic);
-	ZpMatrix withBasis = SparseMatrixFill<ZpMatrix>(augmentedCoboundary, M, N);
-	ZpMatrix noBasis = SparseMatrixFill<ZpMatrix>(augmentedCoboundary, M, N, basisRank);
-	ZpMatrix sub;
-	vector<ZpMatrix> subs({withBasis, noBasis});
+Matrix *IdentityOfSize(int M, int N, int characteristic) {
+	Triplet *T = spasm_triplet_alloc(M, N, 1, characteristic, true);
 
-	int rank = 0, subrank;
-	vector<int> ranks(2);
+	cerr << "[Persistence] building cobasis system... ";
+	for (int r=0; r<M; r++) spasm_add_entry(T, r, r, 1);
 
-	PivotVector pivots;
-	cerr << "[Persistence] beginning matrix reductions... " << endl;
+	Matrix *A = spasm_compress(T);
+	spasm_triplet_free(T);
+	cerr << "done." << endl;
+	return A;
+}
+
+
+Basis ComputeCobasis(Basis combined, int M, int N, int rank, int characteristic) {
+	// Construct the augmented coboundary.
+	Matrix *B = SparseMatrixFill(combined, M, N, characteristic);
+	const Matrix *images = IdentityOfSize(rank, N, characteristic);
+
+	struct echelonize_opts opts;
+	spasm_echelonize_init_opts(&opts);
+	opts.L = 1;
+
 	int _supp = _suppress();
 
-	// Procedurally compute the ranks of submatrices?
-	for (int t=0; t<M; t++) {
-		for (int s=0; s<2; s++) {
-			// Set options (TODO: go back and reinsert parallel processing stuff later).
-			SparseRREF::rref_option_t opt;
-			opt->method = 0;
-			opt->pool.reset();
+	// Solve.
+	cerr << "[Persistence] echelonizing... " << endl;
+	Echelonized *ech = spasm_echelonize(B, &opts);
+	cerr << "[Persistence] done. Solving... "<< endl;
+	bool *exists = (bool *)spasm_malloc(rank*sizeof(*exists));
+	Matrix *solutions = spasm_gesv(ech, images, exists);
+	cerr << "[Persistence] done. Building the cobasis... ";
 
-			// Take submatrix.
-			cerr << "[Persistence] taking submatrices... ";
-			sub = subs[s].take({0,t});
-			cerr << "done." << endl;
+	// Report the cobasis.
+	Basis cobasis(rank, Column());
 
-			// RREFing.
-			cerr << "[Persistence] solving... ";
-			pivots = SparseRREF::sparse_mat_rref(sub, GFp, opt);
-			cerr << "done." << endl;
+	const int *columnIndex = solutions->j;
+	const i64 *rowIndex = solutions->p;
+	const Zp *values = solutions->x; 
 
-			cout << t << endl;
-			printmat(sub);
-			cout << endl;
-
-			for (auto &p : pivots) {
-				for (auto [r,c] : p) {
-					cout << r << ", " << c << endl;
-				}
-			}
-
-			opt->abort = true;
-			Flint::clear_cache();
-
-			// Get and set ranks.
-			subrank = 0;
-			for (auto &p : pivots) subrank += p.size();
-
-			ranks[s] = subrank;
-		}
-
-		if (ranks[0]-ranks[1] > rank) {
-			rank = ranks[0]-ranks[1];
-			cout << t << endl;
-			cout << ranks[0]-ranks[1] << endl;
-			cout << endl;
+	for (int i=0; i<rank; i++) {
+		for (int px=rowIndex[i]; px<rowIndex[i+1]; px++) {
+			int q = (values[px]+characteristic)%characteristic;
+			cobasis[i][columnIndex[px]] = q;
 		}
 	}
+
+	return cobasis;
+}
+
+
+Set SolveComputePercolationEvents(BoundaryMatrix boundary, Basis _cobasis, int M, int N, int rank, int characteristic) {
+	Matrix *coboundaryT = SparseMatrixFill(boundary, M, N, characteristic);
+	Matrix *cobasis = SparseMatrixFill(_cobasis, M, rank, characteristic);
+	Matrix *cobasisT = spasm_transpose(cobasis, 1);
+	int _supp = _suppress();
+
+	struct echelonize_opts opts;
+	spasm_echelonize_init_opts(&opts);
+	opts.L = 1;
+
+	for (int t=1; t<N; t++) {
+		// Take submatrices.
+		Matrix *subcoboundaryT = spasm_submatrix(coboundaryT, 0, M, 0, t, 1);
+		Matrix *subcobasisT = spasm_submatrix(cobasisT, 0, rank, 0, t, 1);
+
+		printSpaSMmat<Matrix, Zp, i64>(subcoboundaryT);
+		cout << endl;
+		printSpaSMmat<Matrix, Zp, i64>(subcobasisT);
+
+		// Solve; check whether a solution exists (i.e. whether any of the giant
+		// cocycles are in the image).
+		Echelonized *subcoboundaryE = spasm_echelonize(subcoboundaryT, &opts);
+
+		bool *exists = (bool *)spasm_malloc(subcobasisT->n*sizeof(*exists));
+		Matrix *solutions = spasm_gesv(subcoboundaryE, subcobasisT, exists);
+
+		cout << t << endl;
+		for (int i=0; i<rank; i++) cout << exists[i] << " ";
+		cout << endl;
+	}
 	_resume(_supp);
-	cerr << "[Persistence] completed." << endl;
+
+	return Set();
+}
+
+
+Set RankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int rank, int characteristic) {
+	Matrix *full = SparseMatrixFill(augmented, M, N, characteristic);
+	Map ranks();
+	int withRank, noRank, _supp = _suppress();
+
+	for (int t=1; t<N; t++) {
+		// Take submatrices.
+		Matrix *withBasis = spasm_submatrix(full, 0, M, 0, t, 1);
+		Matrix *noBasis = spasm_submatrix(withBasis, rank, M, 0, t, 1);
+
+		// Echelonize and get the ranks.
+		Echelonized *withBasisE = spasm_echelonize(withBasis, NULL);
+		Echelonized *noBasisE = spasm_echelonize(noBasis, NULL);
+
+		withRank = withBasisE->U->n;
+		noRank = noBasisE->U->n;
+
+		cout << t << endl;
+		cout << withRank-noRank << endl;
+		cout << endl;
+	}
+	_resume(_supp);
 
 	return Set();
 }
