@@ -359,6 +359,8 @@ Bases LinearComputeBases(
 ##################################
 */
 
+#include <cmath>
+
 extern "C" {
 	#include <spasm/spasm.h>
 }
@@ -475,29 +477,90 @@ Set SolveComputePercolationEvents(BoundaryMatrix boundary, Basis _cobasis, int M
 }
 
 
+void _topologicalOrder(int* ordered, int** top, int l, int r, int* p) {
+	int t = std::floor((r+l)/2);
+	(*top)[*p] = t;
+	*p += 1;
+
+	// Branch or inner leaf vertices
+	if (2 < r-l) {
+		if (1 < t-l) _topologicalOrder(ordered, top, l, t, p);
+		if (1 < r-t) _topologicalOrder(ordered, top, t, r, p);
+	}
+}
+
+
+int	*topologicalOrder(int rank) {
+	int *ordered = (int *)malloc((rank+1)*sizeof(*ordered));
+	for (int i=0; i<rank+1; i++) ordered[i] = i;
+
+	int *top = (int *)malloc((rank+1)*sizeof(*ordered));
+	int p = 0;
+
+	_topologicalOrder(ordered, &top, -1, rank+1, &p);
+	free(ordered);
+
+	return top;
+}
+
+
 Set RankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int rank, int characteristic) {
 	Matrix *full = SparseMatrixFill(augmented, M, N, characteristic);
-	Map ranks();
-	int withRank, noRank, _supp = _suppress();
+	Map eventMarkers;
+	Set events;
+	int withRank, noRank, diff, _supp = _suppress();
 
-	for (int t=1; t<N; t++) {
-		// Take submatrices.
-		Matrix *withBasis = spasm_submatrix(full, 0, M, 0, t, 1);
-		Matrix *noBasis = spasm_submatrix(withBasis, rank, M, 0, t, 1);
+	// Specify the order in we'll encounter each index.
+	int LEFT, RIGHT, stop, t;
+	int *top = topologicalOrder(rank), *ranks = (int *)malloc(2*sizeof(*ranks));
+	eventMarkers[0] = 0;
 
-		// Echelonize and get the ranks.
-		Echelonized *withBasisE = spasm_echelonize(withBasis, NULL);
-		Echelonized *noBasisE = spasm_echelonize(noBasis, NULL);
+	for (int i=0; i<rank+1; i++) {
+		// Find the largest and smallest indices less than and greater than
+		// the current one; these specify the search window. We don't care about
+		// when it becomes 0-dimensional though, so skip that one (it's already
+		// marked).
+		LEFT = 0, RIGHT = N, stop = top[i];
+		if (stop == 0) continue;
 
-		withRank = withBasisE->U->n;
-		noRank = noBasisE->U->n;
+		for (auto const& [rnk, ind] : eventMarkers) {
+			if (rnk < stop) LEFT = ind;
+			if (rnk > stop && ind < RIGHT) RIGHT = ind;
+		}
+		
+		// Binary search between the wickets.
+		while (LEFT <= RIGHT) {
+			t = LEFT + std::floor((RIGHT-LEFT)/2);
 
-		cout << t << endl;
-		cout << withRank-noRank << endl;
-		cout << endl;
+			for (int s=t; s<t+2; s++) {
+				// Take submatrices.
+				Matrix *withBasis = spasm_submatrix(full, 0, M, 0, s, 1);
+				Matrix *noBasis = spasm_submatrix(withBasis, rank, M, 0, s, 1);
+
+				// Echelonize, get the ranks, mark the ranks.
+				Echelonized *withBasisE = spasm_echelonize(withBasis, NULL);
+				Echelonized *noBasisE = spasm_echelonize(noBasis, NULL);
+
+				withRank = withBasisE->U->n;
+				noRank = noBasisE->U->n;
+				ranks[s-t] = withRank-noRank;
+			}
+
+			// If the difference between the computed ranks is 1, then we're done;
+			// we've found our spot to break. Otherwise, continue.
+			bool samerank = ranks[0] == ranks[1];
+			if (samerank) {
+				if (ranks[1] < stop) LEFT = t+1;
+				else RIGHT = t-1;
+			} else if (!samerank && ranks[1] == stop) break;
+		}
+		eventMarkers[stop] = t;
+		events.insert(t);
 	}
-	_resume(_supp);
 
-	return Set();
+	_resume(_supp);
+	free(top);
+
+	return events;
 }
 

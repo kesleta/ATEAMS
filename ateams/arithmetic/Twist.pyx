@@ -344,6 +344,7 @@ cdef class Twist:
 		# might save some time. Profiling will tell.
 		cdef BoundaryMatrix combined, combinedT, coboundary, boundary = self.PartialBoundaryMatrix(self.dimension);
 		cdef int c, M = self.breaks[self.dimension]-self.breaks[self.dimension-1];
+		cdef Set _events, events;
 
 		coboundary = self.__transpose(boundary, M);
 
@@ -353,9 +354,15 @@ cdef class Twist:
 
 		combinedT = self.__transpose(combined, boundary.size());
 
-		events = RankComputePercolationEvents(combinedT, cobasis.size()+coboundary.size(), combinedT.size(), cobasis.size(), self.characteristic);
+		_events = RankComputePercolationEvents(combinedT, cobasis.size()+coboundary.size(), combinedT.size(), cobasis.size(), self.characteristic);
+		events = Set();
 
-		return Set();
+		cdef Set.iterator sit = _events.begin();
+		while sit != _events.end():
+			events.insert(dereference(sit)+self.breaks[self.dimension]);
+			postincrement(sit);
+
+		return events;
 
 
 	cpdef Set SolveComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
