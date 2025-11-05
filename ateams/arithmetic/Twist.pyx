@@ -262,6 +262,16 @@ cdef class Twist:
 		return self.workingBoundary;
 
 
+	cdef BoundaryMatrix ReindexPartialBoundaryMatrix(self, BoundaryMatrix boundary, INDEXFLAT filtration) noexcept:
+		cdef BoundaryMatrix reindexed = BoundaryMatrix();
+		cdef Index partial = self.ReindexPartialFiltration(filtration);
+		cdef int t;
+
+		for t in range(boundary.size()): reindexed.push_back(boundary[partial[t]]);
+
+		return reindexed;
+
+
 	cdef BoundaryMatrix PartialBoundaryMatrix(self, int dimension) noexcept:
 		"""
 		Fills the partial boundary matrix of the appropriate dimension.
@@ -342,19 +352,21 @@ cdef class Twist:
 		# front of the (d-1)th coboundary matrix (i.e. stacking it on top of the
 		# dth boundary matrix) and compute the ranks instead of solving; this
 		# might save some time. Profiling will tell.
-		cdef BoundaryMatrix combined, combinedT, coboundary, boundary = self.PartialBoundaryMatrix(self.dimension);
+		cdef BoundaryMatrix combined, combinedT, rcombinedT, coboundary;
 		cdef int c, M = self.breaks[self.dimension]-self.breaks[self.dimension-1];
 		cdef Set _events, events;
+		cdef Index partial;
 
-		coboundary = self.__transpose(boundary, M);
-
+		coboundary = self.partialCoboundary;
 		combined = BoundaryMatrix();
+
 		for c in range(cobasis.size()): combined.push_back(cobasis[c]);
 		for c in range(coboundary.size()): combined.push_back(coboundary[c]);
 
-		combinedT = self.__transpose(combined, boundary.size());
+		combinedT = self.__transpose(combined, self.partialBoundary.size());
+		rcombinedT = self.ReindexPartialBoundaryMatrix(combinedT, filtration);
 
-		_events = RankComputePercolationEvents(combinedT, cobasis.size()+coboundary.size(), combinedT.size(), cobasis.size(), self.characteristic);
+		_events = RankComputePercolationEvents(rcombinedT, cobasis.size()+coboundary.size(), combinedT.size(), cobasis.size(), self.characteristic);
 		events = Set();
 
 		cdef Set.iterator sit = _events.begin();

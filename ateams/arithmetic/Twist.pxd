@@ -29,6 +29,7 @@ cdef class Twist:
 	cdef BoundaryMatrix ReindexBoundaryMatrix(self, INDEXFLAT filtration) noexcept
 	cdef BoundaryMatrix PartialBoundaryMatrix(self, int dimension) noexcept
 	cdef Index ReindexPartialFiltration(self, INDEXFLAT filtration) noexcept
+	cdef BoundaryMatrix ReindexPartialBoundaryMatrix(self, BoundaryMatrix &boundary, INDEXFLAT partial) noexcept
 	
 	cpdef Set LinearComputePercolationEvents(self, INDEXFLAT filtration) noexcept
 	cpdef Set RankComputePercolationEvents(self, INDEXFLAT filtration) noexcept
