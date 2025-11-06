@@ -41,6 +41,9 @@ class InvadedCluster():
 		self._returns = 3
 		self.field = field
 
+		# Check if we're debugging.
+		self._DEBUG = kwargs.get("_DEBUG", False)
+
 
 		# Force-recompute the matrices for a different dimension; creates
 		# a set of orientations for fast elementwise products.
@@ -94,7 +97,7 @@ class InvadedCluster():
 			try:
 				return np.array(ReducedKernelSample(
 					self.matrices.coboundary, zeros, 2*self.dimension,
-					self.faces, self.field
+					self.faces, self.field, self._DEBUG
 				), dtype=FINT)
 			except Exception as e:
 				raise NumericalInstabilityWarning(e)
@@ -102,10 +105,12 @@ class InvadedCluster():
 		# If we're using LinBox and the characteristic of our field is greater
 		# than 2, we use the twist_reduce variant implemented in this library.
 		if self.field > 2:
-			Twister = Twist(self.field, self.matrices.full, self.complex.breaks, self.cellCount, self.dimension)
+			Twister = Twist(self.field, self.matrices.full, self.complex.breaks, self.cellCount, self.dimension, self._DEBUG)
+			Twister.LinearComputeCobasis();
 
 			def persist(filtration):
-				essential = Twister.LinearComputePercolationEvents(filtration)
+				essential = Twister.RankComputePercolationEvents(filtration);
+				# essential = Twister.LinearComputePercolationEvents(filtration)
 				# essential = Twister.ComputePercolationEvents(filtration)
 				# essential = Twister.ZpComputePercolationEvents(filtration)
 				essential = np.array(list(essential))

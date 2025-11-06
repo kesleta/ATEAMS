@@ -27,9 +27,10 @@ headers:
 	@sudo cp -r ateams/arithmetic/include/SparseRREF/ $(INSTALL_DIR)/include/SparseRREF/
 	@sudo cp -r ateams/arithmetic/Persistence.h $(INSTALL_DIR)/include/ATEAMS/
 	@sudo cp -r ateams/arithmetic/Sampling.h $(INSTALL_DIR)/include/ATEAMS/
+	@sudo cp -r ateams/arithmetic/util.h $(INSTALL_DIR)/include/ATEAMS/
 
 
-Persistence_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib -lspasm -shared -fPIC
+Persistence_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib -lspasm `pkg-config --libs --cflags flint` -shared -fPIC
 Persistence_CFLAGS = -O3 -std=c++20
 
 Persistence: headers

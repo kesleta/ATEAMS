@@ -404,24 +404,29 @@ Matrix *IdentityOfSize(int M, int N, int characteristic) {
 }
 
 
-Basis ComputeCobasis(Basis combined, int M, int N, int rank, int characteristic) {
+Basis ComputeCobasis(
+	Basis combined, int M, int N, int rank, int characteristic, bool verbose
+) {
+	int _supp;
+	if (!verbose) _supp = _suppress();
+
 	// Construct the augmented coboundary.
 	Matrix *B = SparseMatrixFill(combined, M, N, characteristic);
-	const Matrix *images = IdentityOfSize(rank, N, characteristic);
+	Matrix *images = IdentityOfSize(rank, N, characteristic);
 
 	struct echelonize_opts opts;
 	spasm_echelonize_init_opts(&opts);
 	opts.L = 1;
 
-	int _supp = _suppress();
-
 	// Solve.
-	cerr << "[Persistence] echelonizing... " << endl;
+	cerr << "[Persistence] echelonizing... ";
 	Echelonized *ech = spasm_echelonize(B, &opts);
-	cerr << "[Persistence] done. Solving... "<< endl;
-	bool *exists = (bool *)spasm_malloc(rank*sizeof(*exists));
-	Matrix *solutions = spasm_gesv(ech, images, exists);
-	cerr << "[Persistence] done. Building the cobasis... ";
+	cerr << "done." << endl;
+	cerr << "[Persistence] solving... ";
+	// bool *exists = (bool *)spasm_malloc(rank*sizeof(*exists));
+	Matrix *solutions = spasm_gesv(ech, images, NULL);
+	cerr << "done." << endl;
+	cerr << "[Persistence] building the cobasis... ";
 
 	// Report the cobasis.
 	Basis cobasis(rank, Column());
@@ -436,6 +441,19 @@ Basis ComputeCobasis(Basis combined, int M, int N, int rank, int characteristic)
 			cobasis[i][columnIndex[px]] = q;
 		}
 	}
+
+	cerr << "done." << endl;
+
+	// Cleanup...
+	spasm_csr_free(B);
+	spasm_csr_free(images);
+	spasm_csr_free(solutions);
+	spasm_lu_free(ech);
+	// free((int*)columnIndex);
+	// free((i64*)rowIndex);
+	// free((Zp*)values);
+	// free(exists);
+	if (!verbose) _resume(_supp);
 
 	return cobasis;
 }
@@ -477,9 +495,9 @@ Set SolveComputePercolationEvents(BoundaryMatrix boundary, Basis _cobasis, int M
 }
 
 
-void _topologicalOrder(int* ordered, int** top, int l, int r, int* p) {
+void _topologicalOrder(Index ordered, Index &top, int l, int r, int* p) {
 	int t = std::floor((r+l)/2);
-	(*top)[*p] = t;
+	top[*p] = t;
 	*p += 1;
 
 	// Branch or inner leaf vertices
@@ -489,30 +507,32 @@ void _topologicalOrder(int* ordered, int** top, int l, int r, int* p) {
 	}
 }
 
-
-int	*topologicalOrder(int rank) {
-	int *ordered = (int *)malloc((rank+1)*sizeof(*ordered));
+Index topologicalOrder(int rank) {
+	Index ordered(rank+1), top(rank+1);
 	for (int i=0; i<rank+1; i++) ordered[i] = i;
 
-	int *top = (int *)malloc((rank+1)*sizeof(*ordered));
 	int p = 0;
 
-	_topologicalOrder(ordered, &top, -1, rank+1, &p);
-	free(ordered);
+	_topologicalOrder(ordered, top, -1, rank+1, &p);
 
 	return top;
 }
 
 
-Set RankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int rank, int characteristic) {
+Set RankComputePercolationEvents(
+	BoundaryMatrix augmented, int M, int N, int rank, int characteristic, bool verbose
+) {
+	int _supp;
+	if (!verbose) _supp = _suppress();
+
 	Matrix *full = SparseMatrixFill(augmented, M, N, characteristic);
 	Map eventMarkers;
 	Set events;
-	int withRank, noRank, diff, _supp = _suppress();
+	int withRank, noRank, diff;
 
 	// Specify the order in we'll encounter each index.
 	int LEFT, RIGHT, stop, t;
-	int *top = topologicalOrder(rank), *ranks = (int *)malloc(2*sizeof(*ranks));
+	Index top = topologicalOrder(rank), ranks(2);
 	eventMarkers[0] = 0;
 
 	for (int i=0; i<rank+1; i++) {
@@ -537,29 +557,162 @@ Set RankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ran
 				Matrix *withBasis = spasm_submatrix(full, 0, M, 0, s, 1);
 				Matrix *noBasis = spasm_submatrix(withBasis, rank, M, 0, s, 1);
 
+				// cout << withBasis->n << " " << withBasis->m << endl; 
+
 				// Echelonize, get the ranks, mark the ranks.
 				Echelonized *withBasisE = spasm_echelonize(withBasis, NULL);
 				Echelonized *noBasisE = spasm_echelonize(noBasis, NULL);
+				spasm_csr_free(withBasis);
+				spasm_csr_free(noBasis);
 
 				withRank = withBasisE->U->n;
 				noRank = noBasisE->U->n;
 				ranks[s-t] = withRank-noRank;
+				
+				spasm_lu_free(withBasisE);
+				spasm_lu_free(noBasisE);
 			}
 
 			// If the difference between the computed ranks is 1, then we're done;
 			// we've found our spot to break. Otherwise, continue.
-			bool samerank = ranks[0] == ranks[1];
+			int r1 = ranks[0], r2 = ranks[1];
+			bool samerank = (r1 == r2);
+
 			if (samerank) {
-				if (ranks[1] < stop) LEFT = t+1;
+				if (r1 < stop) LEFT = t+1;
 				else RIGHT = t-1;
-			} else if (!samerank && ranks[1] == stop) break;
+			} else {
+				if (r2 == stop) break;
+				else {
+					if (r2 < stop) LEFT = t+1;
+					else RIGHT = t-1;
+				}
+			}
 		}
 		eventMarkers[stop] = t;
 		events.insert(t);
 	}
+	spasm_csr_free(full);
+	if (!verbose) _resume(_supp);
 
-	_resume(_supp);
-	free(top);
+	return events;
+}
+
+
+/*
+#######################################
+##### PERSISTENCE WITH SPARSERREF #####
+#######################################
+*/
+
+#include <SparseRREF/sparse_mat.h>
+#include "util.h"
+
+typedef SparseRREF::sparse_mat<data_t, index_t> ZpZMatrix;
+typedef SparseRREF::sparse_vec<data_t, index_t> ZpZVector;
+typedef SparseRREF::field_t ZpZ;
+
+ZpZMatrix SSparseMatrixFill(BoundaryMatrix B, int M, int N, int p, int augment=0) {
+	ZpZMatrix A(M, N);
+
+	for (int col=augment; col<B.size(); col++) {
+		for (auto const& [row, q] : B[col]) {
+			ZpZVector &matrow = A.rows[row];
+			matrow.push_back((index_t)col, (data_t)q);
+		}
+	}
+
+	A.compress();
+	return A;
+}
+
+
+ZpZMatrix subMatrixT(ZpZMatrix fullT, int r0, int r1, int c0, int c1) {
+	return fullT.take({r0, r1}).transpose().take({c0, c1});
+}
+
+
+Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int rank, int characteristic) {
+	Flint::set_memory_functions();
+
+	const ZpZ GFp(SparseRREF::FIELD_Fp, characteristic);
+	ZpZMatrix fullT = SSparseMatrixFill(augmented, M, N, characteristic).transpose();
+
+	Map eventMarkers;
+	Set events;
+	int withRank, noRank, diff;//, _supp = _suppress();
+
+	// Specify the order in we'll encounter each index.
+	int LEFT, RIGHT, stop, t;
+	Index top = topologicalOrder(rank), ranks(2);
+	eventMarkers[0] = 0;
+
+	for (int i=0; i<rank+1; i++) {
+		// Find the largest and smallest indices less than and greater than
+		// the current one; these specify the search window. We don't care about
+		// when it becomes 0-dimensional though, so skip that one (it's already
+		// marked).
+		LEFT = 0, RIGHT = N, stop = top[i];
+		if (stop == 0) continue;
+
+		for (auto const& [rnk, ind] : eventMarkers) {
+			if (rnk < stop) LEFT = ind;
+			if (rnk > stop && ind < RIGHT) RIGHT = ind;
+		}
+		
+		// Binary search between the wickets.
+		while (LEFT <= RIGHT) {
+			t = LEFT + std::floor((RIGHT-LEFT)/2);
+
+			for (int s=t; s<t+2; s++) {
+				SparseRREF::rref_option_t opt;
+				opt->method = 0;
+				opt->pool.reset();
+				thread thread_listener(key_listener, ref(opt->abort));
+
+				// Take submatrices.
+				ZpZMatrix withBasis = subMatrixT(fullT, 0, s, 0, M);
+				ZpZMatrix noBasis = subMatrixT(fullT, 0, s, rank, M);
+
+				// Echelonize, then find the ranks.
+				vector<vector<SparseRREF::pivot_t<index_t>>> withPivots;
+				vector<vector<SparseRREF::pivot_t<index_t>>> noPivots;
+
+				withPivots = SparseRREF::sparse_mat_rref<data_t, index_t>(withBasis, GFp, opt);
+				noPivots = SparseRREF::sparse_mat_rref<data_t, index_t>(noBasis, GFp, opt);
+
+				withRank = 0;
+				noRank = 0;
+
+				for (auto &wp : withPivots) withRank += wp.size();
+				for (auto &np : noPivots) noRank += np.size();
+
+				ranks[s-t] = withRank-noRank;
+
+				opt->abort = true;
+				Flint::clear_cache();
+				thread_listener.join();
+			}
+
+			// If the difference between the computed ranks is 1, then we're done;
+			// we've found our spot to break. Otherwise, continue.
+			int r1 = ranks[0], r2 = ranks[1];
+			bool samerank = (r1 == r2);
+
+			if (samerank) {
+				if (r1 < stop) LEFT = t+1;
+				else RIGHT = t-1;
+			} else {
+				if (r2 == stop) break;
+				else {
+					if (r2 < stop) LEFT = t+1;
+					else RIGHT = t-1;
+				}
+			}
+		}
+		eventMarkers[stop] = t;
+		events.insert(t);
+	}
 
 	return events;
 }

@@ -4,6 +4,6 @@
 
 #include <ATEAMS/common.h>
 
-Index ReducedKernelSample(Index coboundary, int M, int N, int p);
+Index ReducedKernelSample(Index coboundary, int M, int N, int p, bool verbose=true);
 
 #endif

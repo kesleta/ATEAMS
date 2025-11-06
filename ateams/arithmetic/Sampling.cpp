@@ -1,10 +1,9 @@
 
 #include <SparseRREF/sparse_mat.h>
 
+#include "util.h"
 #include "Sampling.h"
-#include <iostream>
 
-using namespace std;
 
 typedef SparseRREF::sparse_mat<data_t, index_t> ZpMatrix;
 typedef SparseRREF::sparse_vec<data_t, index_t> ZpVector;
@@ -60,6 +59,8 @@ Matrix SparseMatrixFill(Index coboundary, int M, int N, int p) {
 
 
 Index ZpReducedKernelSample(Index coboundary, int M, int N, int p) {
+	Flint::set_memory_functions();
+
 	// Construct field, matrix, and find a basis for the kernel.
 	const Zp GFp(SparseRREF::FIELD_Fp, p);
 	ZpMatrix A = SparseMatrixFill<ZpMatrix>(coboundary, M, N, p);
@@ -68,7 +69,9 @@ Index ZpReducedKernelSample(Index coboundary, int M, int N, int p) {
 	opt->pool.reset();
 	opt->method = 0;
 
-	std::vector<std::vector<SparseRREF::pivot_t<index_t>>> pivots;
+	thread thread_listener(key_listener, ref(opt->abort));
+
+	vector<vector<SparseRREF::pivot_t<index_t>>> pivots;
 	cerr << "[Sampling] RREFing...";
 	pivots = SparseRREF::sparse_mat_rref<data_t, index_t>(A, GFp, opt);
 	cerr << " done." << endl;
@@ -79,10 +82,16 @@ Index ZpReducedKernelSample(Index coboundary, int M, int N, int p) {
 
 	opt->abort = true;
 	Flint::clear_cache();
+	thread_listener.join();
 	return RandomLinearCombination<ZpMatrix, ZpVector>(K, GFp, p);
 }
 
-Index ReducedKernelSample(Index coboundary, int M, int N, int p) {
-	cerr << endl;
-	return ZpReducedKernelSample(coboundary, M, N, p);
+Index ReducedKernelSample(Index coboundary, int M, int N, int p, bool verbose) {
+	int _supp;
+	if (!verbose) _supp = _suppress();
+
+	Index sample = ZpReducedKernelSample(coboundary, M, N, p);
+
+	if (!verbose) _resume(_supp);
+	return sample;
 }

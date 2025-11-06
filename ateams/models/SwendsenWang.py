@@ -61,6 +61,9 @@ class SwendsenWang():
 		# Seed the random number generator.
 		self.RNG = np.random.default_rng()
 
+		# Check if we're debugging.
+		self._DEBUG = kwargs.get("_DEBUG", False)
+
 		# If no initial spin configuration is passed, initialize.
 		if not initial: self.spins = self._initial()
 		else: self.spins = (initial%self.field).astype(FINT)
@@ -80,7 +83,7 @@ class SwendsenWang():
 			try:
 				return np.array(ReducedKernelSample(
 					self.matrices.coboundary, zeros, 2*self.dimension,
-					self.faces, self.field
+					self.faces, self.field, self._DEBUG
 				), dtype=FINT)
 			except Exception as e:
 				raise NumericalInstabilityWarning(e)

@@ -1,5 +1,5 @@
 
-from ..common cimport Index, PersistencePairs, Table, Lookup, BoundaryMatrix, Set, Column, Bases, Basis
+from ..common cimport Index, PersistencePairs, Table, Lookup, BoundaryMatrix, Set, Column, Bases, Basis, bool
 
 cdef extern from "Persistence.h":
 	PersistencePairs PHATComputePersistencePairs(Index boundary, Index filtration, int homology, Index breaks) noexcept
@@ -8,7 +8,8 @@ cdef extern from "Persistence.h":
 	Set ZpComputePercolationEvents(int field, BoundaryMatrix Boundary, Index breaks, int cellCount) noexcept
 
 	Bases LinearComputeBases(int field, Lookup addition, Lookup multiplication, Lookup negation, Lookup inversion, BoundaryMatrix Boundary, Index breaks, int cellCount, int dimension);
-	Basis ComputeCobasis(Basis combined, int M, int N, int rank, int characteristic);
-	Set RankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int basisrank, int p);
+	Basis ComputeCobasis(Basis combined, int M, int N, int rank, int characteristic, bool verbose);
+	Set RankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int basisrank, int p, bool verbose);
+	Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int basisrank, int p);
 	Set SolveComputePercolationEvents(BoundaryMatrix coboundary, Basis cobasis, int M, int N, int basisrank, int p);
 

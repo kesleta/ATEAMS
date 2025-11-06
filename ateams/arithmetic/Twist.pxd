@@ -7,11 +7,12 @@ from ..common cimport INDEXFLAT, BoundaryMatrix, Index, Set, Table, Lookup, Pers
 
 # distutils: language=c++
 
-from ..common cimport INDEXFLAT, BoundaryMatrix, Index, Set, Table, Lookup, Bases, Basis
+from ..common cimport INDEXFLAT, BoundaryMatrix, Index, Set, Table, Lookup, Bases, Basis, bool
 
 
 cdef class Twist:
 	cdef int characteristic, cellCount, dimension, topDimension
+	cdef bool __DEBUG
 	cdef Table addition, multiplication
 	cdef Lookup negation, inversion, flatAddition, flatMultiplication
 

@@ -4,13 +4,13 @@
 
 from ..common cimport (
 	INDEXFLAT, Vectorize, INDEXTYPE, DATATYPE, BoundaryMatrix, Row, Column, Map,
-	Basis, Bases, printBoundaryMatrix
+	Basis, Bases, printBoundaryMatrix, bool
 )
 
 from .Persistence cimport (
 	LinearComputePercolationEvents, LinearComputeBases, RankComputePercolationEvents,
 	PHATComputePersistencePairs as _PHATComputePersistencePairs, ComputeCobasis,
-	SolveComputePercolationEvents
+	SolveComputePercolationEvents, SRankComputePercolationEvents
 )
 
 from cython.operator cimport dereference, postincrement
@@ -25,7 +25,8 @@ cdef class Twist:
 			INDEXFLAT boundary,
 			INDEXFLAT breaks,
 			int cellCount,
-			int dimension=-1
+			int dimension=-1,
+			bool __DEBUG=False
 		):
 		"""
 		Implements the `twist_reduce` algorithm from Chen and Kerber (2011) and
@@ -43,6 +44,8 @@ cdef class Twist:
 				`M` (e.g. `ateams.models.SwendsenWang`), `M.cellCount`.
 			dimension (int): Dimension of percolation. Given a model `M` (e.g.
 				`ateams.models.SwendsenWang`), `M.dimension`.
+			__DEBUG (bool): Do we want to run in debug mode? This shows standard
+				error stream output from the matrix reducers.
 
 		For example,
 
@@ -85,12 +88,15 @@ cdef class Twist:
 		# Construct arithmetic operations.
 		self.__arithmetic();
 
+		# Debugging?
+		self.__DEBUG = __DEBUG;
+
 		# Construct bases. This will take a LONG time sometimes, but the
 		# precomputation should be worth it.
 		# TODO maybe we can pass pre-computed bases as an argument? That would
 		# be super slick.
 		self.bases = Bases();
-		# self.cobasis = self.LinearComputeCobasis();
+		self.cobasis = self.LinearComputeCobasis();
 
 		# Construct an augmented matrix where the first <whatever> columns are
 		# the cobasis, and the rest is the coboundary matrix.
@@ -100,6 +106,7 @@ cdef class Twist:
 		for i in range(bSize+pBSize):
 			if i < bSize: self.augmentedCoboundary[i] = Column(self.cobasis[i]);
 			else: self.augmentedCoboundary[i] = Column(self.partialCoboundary[i-bSize]);
+
 
 	cdef void __arithmetic(self) noexcept:
 		# Given a field characteristic, construct addition and multiplication
@@ -339,7 +346,10 @@ cdef class Twist:
 		cdef Basis cobasis;
 
 		# Check whether we've already computed the cobasis. If we haven't, do so!
-		if self.cobasis.size() < 1: cobasis = self.LinearComputeCobasis();
+		if self.cobasis.size() < 1:
+			print("[Persistence] computing cobasis... ", end="")
+			cobasis = self.LinearComputeCobasis();
+			print("done.")
 		else: cobasis = self.cobasis;
 
 		# If we haven't encountered a giant cocycle, then each element fi of the
@@ -366,7 +376,10 @@ cdef class Twist:
 		combinedT = self.__transpose(combined, self.partialBoundary.size());
 		rcombinedT = self.ReindexPartialBoundaryMatrix(combinedT, filtration);
 
-		_events = RankComputePercolationEvents(rcombinedT, cobasis.size()+coboundary.size(), combinedT.size(), cobasis.size(), self.characteristic);
+		_events = RankComputePercolationEvents(
+			rcombinedT, cobasis.size()+coboundary.size(), combinedT.size(),
+			cobasis.size(), self.characteristic, self.__DEBUG
+		);
 		events = Set();
 
 		cdef Set.iterator sit = _events.begin();
@@ -464,7 +477,7 @@ cdef class Twist:
 		for c in range(rank): combined.push_back(cyclebasis[c]);
 		for c in range(boundary.size()): combined.push_back(boundary[c]);
 
-		cocyclebasis = ComputeCobasis(combined, rows, combined.size(), rank, self.characteristic);
+		cocyclebasis = ComputeCobasis(combined, rows, combined.size(), rank, self.characteristic, self.__DEBUG);
 		self.cobasis = cocyclebasis;
 		return self.cobasis;
 

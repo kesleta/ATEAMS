@@ -121,7 +121,11 @@ class Chain:
 			`tqdm` iterable.
 		"""
 		from tqdm.auto import tqdm
-		return tqdm(self, total=self.steps, dynamic_ncols=dynamic_ncols, desc=desc)
+		import sys
+
+		# stream = sys.stdout if self.model._DEBUG else sys.stderr
+		stream = sys.stderr
+		return tqdm(self, file=stream, total=self.steps, dynamic_ncols=dynamic_ncols, desc=desc)
 
 
 class Recorder:

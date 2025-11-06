@@ -1,7 +1,7 @@
 
 # distutils: language=c++
 
-from ..common cimport int, INDEXFLAT, Index, Set, Map
+from ..common cimport int, INDEXFLAT, Index, Set, Map, bool
 from .Sampling cimport (
 	ReducedKernelSample as _ReducedKernelSample
 )
@@ -72,7 +72,7 @@ cdef Index SubZeroSubmatrix(INDEXFLAT A, INDEXFLAT zeroRows, INDEXFLAT zeroColum
 
 cpdef Index SubReducedKernelSample(
 		INDEXFLAT coboundary, INDEXFLAT zeroRows, INDEXFLAT zeroColumns,
-		int p, int maxTries=8
+		int p, bool verbose
 	) except *:
 	"""
 	Uses the SpaSM sparse Gaussian elimination strategy to sample uniformly from
@@ -89,12 +89,12 @@ cpdef Index SubReducedKernelSample(
 		A C++ `std::vector` with spin assignments.
 	"""
 	cdef Index submatrix = SubZeroSubmatrix(coboundary, zeroRows, zeroColumns);
-	return _ReducedKernelSample(submatrix, zeroRows.shape[0], zeroColumns.shape[0], p);
+	return _ReducedKernelSample(submatrix, zeroRows.shape[0], zeroColumns.shape[0], p, verbose);
 
 
 cpdef Index ReducedKernelSample(
 		INDEXFLAT coboundary, INDEXFLAT zeros, int faces, int columns, int p,
-		int maxTries=8
+		bool verbose
 	) except *:
 	"""
 	Uses the SpaSM sparse Gaussian elimination strategy to sample uniformly from
@@ -114,4 +114,4 @@ cpdef Index ReducedKernelSample(
 		A C++ `std::vector` with spin assignments.
 	"""
 	cdef Index submatrix = RowSubmatrix(coboundary, zeros, columns);
-	return _ReducedKernelSample(submatrix, zeros.shape[0], columns, p);
+	return _ReducedKernelSample(submatrix, zeros.shape[0], columns, p, verbose);
