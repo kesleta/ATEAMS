@@ -109,7 +109,7 @@ class InvadedCluster():
 			Twister.LinearComputeCobasis();
 
 			def persist(filtration):
-				essential = Twister.RankComputePercolationEvents(filtration);
+				essential = Twister.RankComputePercolationEvents(filtration)
 				# essential = Twister.LinearComputePercolationEvents(filtration)
 				# essential = Twister.ComputePercolationEvents(filtration)
 				# essential = Twister.ZpComputePercolationEvents(filtration)

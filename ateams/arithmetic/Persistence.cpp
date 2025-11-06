@@ -522,17 +522,22 @@ Index topologicalOrder(int rank) {
 Set RankComputePercolationEvents(
 	BoundaryMatrix augmented, int M, int N, int rank, int characteristic, bool verbose
 ) {
+	// Verbose output if we're debugging.
 	int _supp;
 	if (!verbose) _supp = _suppress();
 
-	Matrix *full = SparseMatrixFill(augmented, M, N, characteristic);
+	// Fill the full matrix (which includes the cobasis); reserve names for
+	// echelonizing.
+	Matrix *withBasis, *noBasis, *full = SparseMatrixFill(augmented, M, N, characteristic);
+	Echelonized *withBasisE, *noBasisE;
+
+	// Binary search setup.
 	Map eventMarkers;
 	Set events;
-	int withRank, noRank, diff;
-
-	// Specify the order in we'll encounter each index.
-	int LEFT, RIGHT, stop, t;
 	Index top = topologicalOrder(rank), ranks(2);
+	int withRank, noRank, LEFT, RIGHT, stop, t;
+
+	// The homology group has rank 0 when we begin; no need to search for that.
 	eventMarkers[0] = 0;
 
 	for (int i=0; i<rank+1; i++) {
@@ -553,24 +558,29 @@ Set RankComputePercolationEvents(
 			t = LEFT + std::floor((RIGHT-LEFT)/2);
 
 			for (int s=t; s<t+2; s++) {
-				// Take submatrices.
-				Matrix *withBasis = spasm_submatrix(full, 0, M, 0, s, 1);
-				Matrix *noBasis = spasm_submatrix(withBasis, rank, M, 0, s, 1);
+				// Take submatrices. If we're short and wide, take the transpose
+				// before echelonizing.
+				if (M < s) {
+					const Matrix *wB = spasm_submatrix(full, 0, M, 0, s, 1);
+					withBasis = spasm_transpose(wB, 1);
 
-				// cout << withBasis->n << " " << withBasis->m << endl; 
+					const Matrix *nB = spasm_submatrix(withBasis, rank, M, 0, s, 1);
+					noBasis = spasm_transpose(nB, 1);
+
+					spasm_csr_free((Matrix *)wB);
+					spasm_csr_free((Matrix *)nB);
+				} else {
+					withBasis = spasm_submatrix(full, 0, M, 0, s, 1);
+					noBasis = spasm_submatrix(withBasis, rank, M, 0, s, 1);
+				}
 
 				// Echelonize, get the ranks, mark the ranks.
-				Echelonized *withBasisE = spasm_echelonize(withBasis, NULL);
-				Echelonized *noBasisE = spasm_echelonize(noBasis, NULL);
-				spasm_csr_free(withBasis);
-				spasm_csr_free(noBasis);
+				withBasisE = spasm_echelonize(withBasis, NULL);
+				noBasisE = spasm_echelonize(noBasis, NULL);
 
 				withRank = withBasisE->U->n;
 				noRank = noBasisE->U->n;
 				ranks[s-t] = withRank-noRank;
-				
-				spasm_lu_free(withBasisE);
-				spasm_lu_free(noBasisE);
 			}
 
 			// If the difference between the computed ranks is 1, then we're done;
@@ -592,8 +602,15 @@ Set RankComputePercolationEvents(
 		eventMarkers[stop] = t;
 		events.insert(t);
 	}
-	spasm_csr_free(full);
-	if (!verbose) _resume(_supp);
+
+	cleanup:
+		spasm_csr_free(full);
+		spasm_csr_free(withBasis);
+		spasm_csr_free(noBasis);
+		spasm_lu_free(withBasisE);
+		spasm_lu_free(noBasisE);
+
+		if (!verbose) _resume(_supp);
 
 	return events;
 }
@@ -628,11 +645,16 @@ ZpZMatrix SSparseMatrixFill(BoundaryMatrix B, int M, int N, int p, int augment=0
 
 
 ZpZMatrix subMatrixT(ZpZMatrix fullT, int r0, int r1, int c0, int c1) {
-	return fullT.take({r0, r1}).transpose().take({c0, c1});
+	ZpZMatrix sT = fullT.take({r0, r1}).transpose().take({c0, c1});
+	sT.compress();
+	return sT;
 }
 
 
-Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int rank, int characteristic) {
+Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int rank, int characteristic, bool verbose) {
+	int _supp;
+	if (!verbose) _supp = _suppress();
+
 	Flint::set_memory_functions();
 
 	const ZpZ GFp(SparseRREF::FIELD_Fp, characteristic);
@@ -645,6 +667,7 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 	// Specify the order in we'll encounter each index.
 	int LEFT, RIGHT, stop, t;
 	Index top = topologicalOrder(rank), ranks(2);
+	ZpZMatrix withBasis, noBasis;
 	eventMarkers[0] = 0;
 
 	for (int i=0; i<rank+1; i++) {
@@ -671,15 +694,19 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 				thread thread_listener(key_listener, ref(opt->abort));
 
 				// Take submatrices.
-				ZpZMatrix withBasis = subMatrixT(fullT, 0, s, 0, M);
-				ZpZMatrix noBasis = subMatrixT(fullT, 0, s, rank, M);
+				cerr << format("[Persistence] [{}/{}] filling submatrices... ", s, N);
+				withBasis = subMatrixT(fullT, 0, s, 0, M);
+				noBasis = subMatrixT(fullT, 0, s, rank, M);
+				cerr << "done." << endl;
 
 				// Echelonize, then find the ranks.
 				vector<vector<SparseRREF::pivot_t<index_t>>> withPivots;
 				vector<vector<SparseRREF::pivot_t<index_t>>> noPivots;
 
+				cerr << format("[Persistence] [{}/{}] RREFing submatrices... ", s, N);
 				withPivots = SparseRREF::sparse_mat_rref<data_t, index_t>(withBasis, GFp, opt);
 				noPivots = SparseRREF::sparse_mat_rref<data_t, index_t>(noBasis, GFp, opt);
+				cerr << "done." << endl;
 
 				withRank = 0;
 				noRank = 0;
@@ -712,7 +739,12 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 		}
 		eventMarkers[stop] = t;
 		events.insert(t);
+		cerr << format("[Persistence] [{}/{}] found {}/{} percolation events.", t, N, events.size(), rank) << endl;
 	}
+
+	fullT.clear();
+
+	if (!verbose) _resume(_supp);
 
 	return events;
 }

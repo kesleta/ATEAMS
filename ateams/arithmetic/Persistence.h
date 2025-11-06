@@ -12,7 +12,7 @@ Set ZpComputePercolationEvents(int field, BoundaryMatrix Boundary, Index breaks,
 Bases LinearComputeBases(int field, Lookup addition, Lookup multiplication, Lookup negation, Lookup inversion, BoundaryMatrix Boundary, Index breaks, int cellCount, int dimension);
 Basis ComputeCobasis(Basis combined, int M, int N, int rank, int characteristic, bool verbose=true);
 Set RankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int basisrank, int p, bool verbose=true);
-Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int basisrank, int p);
+Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int basisrank, int p, bool verbose=true);
 Set SolveComputePercolationEvents(BoundaryMatrix coboundary, Basis cobasis, int M, int N, int basisrank, int p);
 
 #endif
