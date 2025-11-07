@@ -14,8 +14,8 @@ class InvadedCluster():
 	_name = "InvadedCluster"
 	
 	def __init__(
-			self, C, dimension=1, field=2, initial=None, stop=lambda: 1,
-			**kwargs
+			self, C, dimension=1, field=2, initial=None, full=True, stop=lambda: 1,
+			tries=64, **kwargs
 		):
 		"""
 		Initializes the plaquette invaded-cluster algorithm on the provided
@@ -27,8 +27,12 @@ class InvadedCluster():
 			dimension (int=1): The dimension of cells on which we're percolating.
 			field (int=2): Field characteristic.
 			initial (np.array): A vector of spin assignments to components.
+			full (bool=True): Do we find *all* the homological persistence events,
+				or just the target one?
 			stop (function): A function that returns the number of essential cycles
 				found before sampling the next configuration.
+			tries (int=64): Number of persistence computation attempts made before
+				re-sampling.
 
 		<center> <button type="button" class="collapsible" id="InvadedCluster-Persistence-2">Performance in \(\mathbb T^2_N\)</button> </center>
 		..include:: ./tables/InvadedCluster.Persistence.2.html
@@ -42,6 +46,9 @@ class InvadedCluster():
 		self.stop = stop
 		self._returns = 3
 		self.field = field
+
+		self.tries = tries
+		self.full = full
 
 		# Check if we're debugging.
 		self._DEBUG = kwargs.get("_DEBUG", False)
@@ -112,18 +119,27 @@ class InvadedCluster():
 
 			def persist(filtration):
 				essential = set()
+				tries = 0
 
 				if self._DEBUG:
 					print("######################################", file=sys.stderr)
 					print("#### SPARSERREF/SPASM COMPUTATION ####", file=sys.stderr)
 					print("######################################", file=sys.stderr)
 
-					while len(essential) < self.rank: essential = Twister.RankComputePercolationEvents(filtration)
+					rstart = time.time()
+					att = 0
+
+					while len(essential) < self.rank:
+						essential = Twister.RankComputePercolationEvents(filtration)
+						att += 1
+					
+					rend = time.time()
 					essential = np.array(list(essential))
 					essential = essential[(essential >= low) & (essential < high)]
 					essential.sort()
 
 					print(essential, file=sys.stderr)
+					print(f"time: {(rend-rstart):.4f} :: {att} attempts")
 					print(file=sys.stderr)
 					print(file=sys.stderr)
 					time.sleep(3)
@@ -132,19 +148,35 @@ class InvadedCluster():
 					print("######################################", file=sys.stderr)
 					print("####      LINEAR COMPUTATION      ####", file=sys.stderr)
 					print("######################################", file=sys.stderr)
+					lstart = time.time()
 					_essential = Twister.LinearComputePercolationEvents(filtration)
+					lend = time.time()
 					_essential = np.array(list(_essential))
 					_essential = _essential[(_essential >= low) & (_essential < high)]
 					_essential.sort()
 
-					print(_essential, file=sys.stderr)
+					print(_essential, f"time: {(lend-lstart):.4f}", file=sys.stderr)
 					print(file=sys.stderr)
 					print(file=sys.stderr)
 					assert np.array_equal(essential, _essential)
 					time.sleep(3)
 
 				else:
-					while len(essential) < self.rank: essential = Twister.RankComputePercolationEvents(filtration)
+					# Attempt the persistence computation up to `self.tries` times;
+					# if we exceed the attempts budget, re-sample the filtration and
+					# try again.
+					while len(essential) < self.rank:
+						# Compute essential cycle birth times.
+						essential = Twister.RankComputePercolationEvents(filtration)
+						tries += 1
+
+						# If we don't have enough essential cycles and we've tried
+						# too many times, re-sample the filtration and try again.
+						if len(essential) < self.rank and tries >= self.tries:
+							print(f"[Persistence] exceeded the acceptable number of {self.tries} attempts. Re-sampling filtration...")
+							filtration = self._filtrate(self.spins)
+							tries = 0
+
 					essential = np.array(list(essential))
 					essential = essential[(essential >= low) & (essential < high)]
 					essential.sort()
