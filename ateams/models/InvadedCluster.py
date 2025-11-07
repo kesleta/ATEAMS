@@ -117,21 +117,31 @@ class InvadedCluster():
 			Twister = Twist(self.field, self.matrices.full, self.complex.breaks, self.cellCount, self.dimension, self._DEBUG)
 			Twister.LinearComputeCobasis();
 
+			def _user_continue_prompt():
+				_affirm = {"", "yes", "y", "ye"}
+				_cont = input("\ncontinue? [y/n, default y] --> ")
+
+				if _cont not in _affirm: sys.exit(1)
+				print("\n\n")
+
 			def persist(filtration):
+				# Set defaults.
 				essential = set()
 				tries = 0
 
+				# Debugging mode. Compares the SparseRREF/SpaSM output to the
+				# classical persistence algorithm (LinearComputePercolationEvents).
+				# NOTE: this waits for user input to continue after each iteration.
 				if self._DEBUG:
-					print("######################################", file=sys.stderr)
-					print("#### SPARSERREF/SPASM COMPUTATION ####", file=sys.stderr)
-					print("######################################", file=sys.stderr)
+					print("######################################")
+					print("#### SPARSERREF/SPASM COMPUTATION ####")
+					print("######################################")
 
 					rstart = time.time()
 					att = 0
 
 					while len(essential) < self.rank:
 						stop = 0 if self.full else self._STOP
-						print(self._STOP)
 						essential = Twister.RankComputePercolationEvents(filtration, stop=stop)
 						att += 1
 
@@ -142,16 +152,15 @@ class InvadedCluster():
 					essential = essential[(essential >= low) & (essential < high)]
 					essential.sort()
 
-					print(essential, file=sys.stderr)
+					print("\n\n")
+					print(essential)
 					print(f"time: {(rend-rstart):.4f} :: {att} attempts")
-					print(file=sys.stderr)
-					print(file=sys.stderr)
-					time.sleep(3)
+					_user_continue_prompt()
 
 
-					print("######################################", file=sys.stderr)
-					print("####      LINEAR COMPUTATION      ####", file=sys.stderr)
-					print("######################################", file=sys.stderr)
+					print("######################################")
+					print("####      LINEAR COMPUTATION      ####")
+					print("######################################")
 					lstart = time.time()
 					_essential = Twister.LinearComputePercolationEvents(filtration)
 					lend = time.time()
@@ -159,18 +168,17 @@ class InvadedCluster():
 					_essential = _essential[(_essential >= low) & (_essential < high)]
 					_essential.sort()
 
-					print(_essential, f"time: {(lend-lstart):.4f}", file=sys.stderr)
-					print(file=sys.stderr)
-					print(file=sys.stderr)
-					if self.full: assert np.array_equal(essential, _essential)
-					time.sleep(3)
+					print("\n\n")
+					print(_essential, f"time: {(lend-lstart):.4f}")
+					_user_continue_prompt()
 
 				else:
 					# Attempt the persistence computation up to `self.tries` times;
 					# if we exceed the attempts budget, re-sample the filtration and
 					# try again.
 					while len(essential) < self.rank:
-						# Compute essential cycle birth times.
+						# Compute essential cycle birth times. If we aren't computing the
+						# 
 						stop = 0 if self.full else self._STOP
 						essential = Twister.RankComputePercolationEvents(filtration, stop=stop)
 						tries += 1

@@ -602,7 +602,6 @@ Set RankComputePercolationEvents(
 				spasm_csr_free(noBasis);
 				spasm_lu_free(withBasisE);
 				spasm_lu_free(noBasisE);
-				cerr << "freed memory" << endl;
 			}
 
 			// If the difference between the computed ranks is 1, then we're done;
@@ -625,16 +624,16 @@ Set RankComputePercolationEvents(
 			} else {
 				cerr << format("[Persistence] different ranks {} != {}, ", r1, r2);
 				if (r2 == stop) {
-					cerr << "[Persistence] right rank, exiting" << endl;
+					cerr << "right rank, exiting" << endl;
 					goto found;
 				} else {
-					cerr << "[Persistence] wrong rank, ";
+					cerr << "wrong rank, ";
 					if (r2 < stop) {
 						LEFT = t+1;
-						cerr << "[Persistence] moving forward" << endl;
+						cerr << "moving forward" << endl;
 					} else {
 						RIGHT = t-1;
-						cerr << "[Persistence] moving backward" << endl;
+						cerr << "moving backward" << endl;
 					}
 				}
 			}
@@ -644,7 +643,9 @@ Set RankComputePercolationEvents(
 			events.insert(t);
 
 			if (verbose) {
+				cerr << "[Persistence] marked events are ";
 				printmap<Map>(eventMarkers);
+				cerr << endl;
 				cerr << endl;
 			}
 	}
@@ -726,7 +727,6 @@ Set RankComputePercolationEvents(
 			spasm_csr_free(noBasis);
 			spasm_lu_free(withBasisE);
 			spasm_lu_free(noBasisE);
-			cerr << "freed memory" << endl;
 		}
 
 		// If the difference between the computed ranks is 1, then we're done;
@@ -749,16 +749,16 @@ Set RankComputePercolationEvents(
 		} else {
 			cerr << format("[Persistence] different ranks {} != {}, ", r1, r2);
 			if (r2 == stop) {
-				cerr << "[Persistence] right rank, exiting" << endl;
+				cerr << "right rank, exiting" << endl;
 				goto found;
 			} else {
-				cerr << "[Persistence] wrong rank, ";
+				cerr << "wrong rank, ";
 				if (r2 < stop) {
 					LEFT = t+1;
-					cerr << "[Persistence] moving forward" << endl;
+					cerr << "moving forward" << endl;
 				} else {
 					RIGHT = t-1;
-					cerr << "[Persistence] moving backward" << endl;
+					cerr << "moving backward" << endl;
 				}
 			}
 		}
@@ -767,7 +767,7 @@ Set RankComputePercolationEvents(
 	}
 	found:
 		events.insert(t);
-		
+
 	cleanup:
 		spasm_csr_free(full);
 		// spasm_csr_free(withBasis);
