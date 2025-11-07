@@ -14,7 +14,7 @@ class InvadedCluster():
 	_name = "InvadedCluster"
 	
 	def __init__(
-			self, C, dimension=1, field=2, initial=None, full=True, stop=lambda: 1,
+			self, C, dimension=1, field=2, initial=None, full=False, stop=lambda: 1,
 			tries=64, **kwargs
 		):
 		"""
@@ -130,8 +130,12 @@ class InvadedCluster():
 					att = 0
 
 					while len(essential) < self.rank:
-						essential = Twister.RankComputePercolationEvents(filtration)
+						stop = 0 if self.full else self._STOP
+						print(self._STOP)
+						essential = Twister.RankComputePercolationEvents(filtration, stop=stop)
 						att += 1
+
+						if not self.full and len(essential) == 1: break;
 					
 					rend = time.time()
 					essential = np.array(list(essential))
@@ -158,7 +162,7 @@ class InvadedCluster():
 					print(_essential, f"time: {(lend-lstart):.4f}", file=sys.stderr)
 					print(file=sys.stderr)
 					print(file=sys.stderr)
-					assert np.array_equal(essential, _essential)
+					if self.full: assert np.array_equal(essential, _essential)
 					time.sleep(3)
 
 				else:
@@ -167,7 +171,8 @@ class InvadedCluster():
 					# try again.
 					while len(essential) < self.rank:
 						# Compute essential cycle birth times.
-						essential = Twister.RankComputePercolationEvents(filtration)
+						stop = 0 if self.full else self._STOP
+						essential = Twister.RankComputePercolationEvents(filtration, stop=stop)
 						tries += 1
 
 						# If we don't have enough essential cycles and we've tried
@@ -176,6 +181,8 @@ class InvadedCluster():
 							print(f"[Persistence] exceeded the acceptable number of {self.tries} attempts. Re-sampling filtration...")
 							filtration = self._filtrate(self.spins)
 							tries = 0
+
+						if not self.full and len(essential) == 1: break
 
 					essential = np.array(list(essential))
 					essential = essential[(essential >= low) & (essential < high)]
@@ -258,6 +265,9 @@ class InvadedCluster():
 		Returns:
 			A numpy array representing a vector of spin assignments.
 		"""
+		# Set a stopping time.
+		self._STOP = self.stop();
+
 		# Construct the filtration and find the essential cycles.
 		filtration, shuffledIndices, satisfiedIndices = self._filtrate(self.spins)
 		essential = self.persist(filtration)
@@ -265,15 +275,19 @@ class InvadedCluster():
 		j = 0
 		low = self.complex.breaks[self.dimension]
 
-		stop = self.stop()
-		occupied = np.zeros((self.rank, self.nullity))
+		occupied = np.zeros((self.rank if self.full else 1, self.nullity))
 		satisfied = np.zeros(self.nullity)
+
 
 		for t in sorted(essential):
 			occupiedIndices = shuffledIndices[:t-low+1]
 			occupied[j,occupiedIndices] = 1
 
-			if (j+1) == stop: spins = self.sample(occupiedIndices)
+			# If we didn't compute all the percolation times, just sample new
+			# spins from the first (and only) percolation time; otherwise,
+			# keep going.
+			if not self.full: spins = self.sample(occupiedIndices); break
+			elif self.full and (j+1) == self._STOP: spins = self.sample(occupiedIndices)
 
 			j += 1
 		

@@ -342,7 +342,7 @@ cdef class Twist:
 		);
 
 
-	cpdef Set RankComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
+	cpdef Set RankComputePercolationEvents(self, INDEXFLAT filtration, int stop=0) noexcept:
 		cdef Basis cobasis;
 
 		# Check whether we've already computed the cobasis. If we haven't, do so!
@@ -376,10 +376,20 @@ cdef class Twist:
 		combinedT = self.__transpose(combined, self.partialBoundary.size());
 		rcombinedT = self.ReindexPartialBoundaryMatrix(combinedT, filtration);
 
-		_events = RankComputePercolationEvents(
-			rcombinedT, cobasis.size()+coboundary.size(), combinedT.size(),
-			cobasis.size(), self.characteristic, self.__DEBUG
-		);
+		# First condition computes all the percolation times; second stops after
+		# the desired one is found.
+		if not stop:
+			_events = RankComputePercolationEvents(
+				rcombinedT, cobasis.size()+coboundary.size(), combinedT.size(),
+				cobasis.size(), self.characteristic, self.__DEBUG
+			);
+		else:
+			_events = RankComputePercolationEvents(
+				rcombinedT, cobasis.size()+coboundary.size(), combinedT.size(),
+				cobasis.size(), self.characteristic, stop, self.__DEBUG
+			);
+
+		
 		events = Set();
 
 		cdef Set.iterator sit = _events.begin();

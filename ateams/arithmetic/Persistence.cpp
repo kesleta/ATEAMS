@@ -519,6 +519,9 @@ Index topologicalOrder(int rank) {
 }
 
 
+/*
+	OVERLOAD: finds all percolation events.
+*/
 Set RankComputePercolationEvents(
 	BoundaryMatrix augmented, int M, int N, int rank, int characteristic, bool verbose
 ) {
@@ -528,8 +531,13 @@ Set RankComputePercolationEvents(
 
 	// Fill the full matrix (which includes the cobasis); reserve names for
 	// echelonizing.
-	Matrix *withBasis, *noBasis, *full = SparseMatrixFill(augmented, M, N, characteristic);
-	Echelonized *withBasisE, *noBasisE;
+	Matrix *full = SparseMatrixFill(augmented, M, N, characteristic);
+
+	// Matrix options?
+	struct echelonize_opts opts;
+	spasm_echelonize_init_opts(&opts);
+	// opts.L = 1;
+	opts.enable_tall_and_skinny = 1;
 
 	// Binary search setup.
 	Map eventMarkers;
@@ -552,9 +560,6 @@ Set RankComputePercolationEvents(
 			if (rnk < stop) LEFT = ind;
 			if (rnk > stop && ind < RIGHT) RIGHT = ind;
 		}
-
-		cerr << stop << " " << endl;
-		cerr << LEFT << " " << RIGHT << endl;
 		
 		// Binary search between the wickets.
 		while (LEFT <= RIGHT) {
@@ -563,7 +568,7 @@ Set RankComputePercolationEvents(
 			for (int s=t; s<t+2; s++) {
 				// Take submatrices. If we're short and wide, take the transpose
 				// before echelonizing.
-				// Matrix *withBasis, *noBasis;
+				Matrix *withBasis, *noBasis;
 
 				if (M < s) {
 					const Matrix *wB = spasm_submatrix(full, 0, M, 0, s, 1);
@@ -579,18 +584,25 @@ Set RankComputePercolationEvents(
 					noBasis = spasm_submatrix(withBasis, rank, M, 0, s, 1);
 				}
 
+				// withBasis = spasm_submatrix(full, 0, M, 0, s, 1);
+				// noBasis = spasm_submatrix(withBasis, rank, M, 0, s, 1);
+
 				// Echelonize, get the ranks, mark the ranks.
-				withBasisE = spasm_echelonize(withBasis, NULL);
-				noBasisE = spasm_echelonize(noBasis, NULL);
+				cerr << "[Persistence] found submatrices, echelonizing with basis... " << endl;
+				Echelonized *withBasisE = spasm_echelonize(withBasis, &opts);
+				cerr << "[Persistence] done, echelonizing without basis... " << endl;
+				Echelonized *noBasisE = spasm_echelonize(noBasis, &opts);
+				cerr << "[Persistence] done. computing ranks..." << endl;
 
 				withRank = withBasisE->U->n;
 				noRank = noBasisE->U->n;
 				ranks[s-t] = withRank-noRank;
 
-				// spasm_csr_free(withBasis);
-				// spasm_csr_free(noBasis);
-				// spasm_lu_free(withBasisE);
-				// spasm_lu_free(noBasisE);
+				spasm_csr_free(withBasis);
+				spasm_csr_free(noBasis);
+				spasm_lu_free(withBasisE);
+				spasm_lu_free(noBasisE);
+				cerr << "freed memory" << endl;
 			}
 
 			// If the difference between the computed ranks is 1, then we're done;
@@ -602,27 +614,27 @@ Set RankComputePercolationEvents(
 			if (r1 > r2) goto cleanup;
 
 			if (samerank) {
-				cerr << format("same rank {} == {}, ", r1, r2);
+				cerr << format("[Persistence] same rank {} == {}, ", r1, r2);
 				if (r1 < stop) {
 					LEFT = t+1;
-					cerr << "moving forward" << endl;
+					cerr << "[Persistence] moving forward" << endl;
 				} else {
 					RIGHT = t-1;
-					cerr << "moving backward" << endl;
+					cerr << "[Persistence] moving backward" << endl;
 				}
 			} else {
-				cerr << format("different ranks {} != {}, ", r1, r2);
+				cerr << format("[Persistence] different ranks {} != {}, ", r1, r2);
 				if (r2 == stop) {
-					cerr << "right rank, exiting" << endl;
+					cerr << "[Persistence] right rank, exiting" << endl;
 					goto found;
 				} else {
-					cerr << "wrong rank, ";
+					cerr << "[Persistence] wrong rank, ";
 					if (r2 < stop) {
 						LEFT = t+1;
-						cerr << "moving forward" << endl;
+						cerr << "[Persistence] moving forward" << endl;
 					} else {
 						RIGHT = t-1;
-						cerr << "moving backward" << endl;
+						cerr << "[Persistence] moving backward" << endl;
 					}
 				}
 			}
@@ -639,10 +651,129 @@ Set RankComputePercolationEvents(
 
 	cleanup:
 		spasm_csr_free(full);
-		spasm_csr_free(withBasis);
-		spasm_csr_free(noBasis);
-		spasm_lu_free(withBasisE);
-		spasm_lu_free(noBasisE);
+		// spasm_csr_free(withBasis);
+		// spasm_csr_free(noBasis);
+		// spasm_lu_free(withBasisE);
+		// spasm_lu_free(noBasisE);
+
+		if (!verbose) _resume(_supp);
+
+	return events;
+}
+
+/*
+	OVERLOAD: stops at a specified event, doesn't look for all of them.
+*/
+Set RankComputePercolationEvents(
+	BoundaryMatrix augmented, int M, int N, int rank, int characteristic, int stop, bool verbose
+) {
+	// Verbose output if we're debugging.
+	int _supp;
+	if (!verbose) _supp = _suppress();
+
+	// Fill the full matrix (which includes the cobasis).
+	Matrix *full = SparseMatrixFill(augmented, M, N, characteristic);
+
+	// Matrix options?
+	struct echelonize_opts opts;
+	spasm_echelonize_init_opts(&opts);
+	// opts.L = 1;
+	opts.enable_tall_and_skinny = 1;
+
+	// We don't do binary search with this method, we just find the middle event.
+	// Start searching around the expected percolation probability.
+	Set events;
+	Index top = topologicalOrder(rank), ranks(2);
+	int withRank, noRank, LEFT = 0, RIGHT = N, t = (int)(N*sqrt(characteristic)/(1+sqrt(characteristic)));
+
+	// Binary search between the wickets.
+	while (LEFT <= RIGHT) {
+
+		for (int s=t; s<t+2; s++) {
+			// Take submatrices. If we're short and wide, take the transpose
+			// before echelonizing.
+			Matrix *withBasis, *noBasis;
+
+			if (M < s) {
+				const Matrix *wB = spasm_submatrix(full, 0, M, 0, s, 1);
+				withBasis = spasm_transpose(wB, 1);
+
+				const Matrix *nB = spasm_submatrix(full, rank, M, 0, s, 1);
+				noBasis = spasm_transpose(nB, 1);
+
+				spasm_csr_free((Matrix *)wB);
+				spasm_csr_free((Matrix *)nB);
+			} else {
+				withBasis = spasm_submatrix(full, 0, M, 0, s, 1);
+				noBasis = spasm_submatrix(withBasis, rank, M, 0, s, 1);
+			}
+
+			// withBasis = spasm_submatrix(full, 0, M, 0, s, 1);
+			// noBasis = spasm_submatrix(withBasis, rank, M, 0, s, 1);
+
+			// Echelonize, get the ranks, mark the ranks.
+			cerr << "[Persistence] found submatrices, echelonizing with basis... " << endl;
+			Echelonized *withBasisE = spasm_echelonize(withBasis, &opts);
+			cerr << "[Persistence] done, echelonizing without basis... " << endl;
+			Echelonized *noBasisE = spasm_echelonize(noBasis, &opts);
+			cerr << "[Persistence] done. computing ranks..." << endl;
+
+			withRank = withBasisE->U->n;
+			noRank = noBasisE->U->n;
+			ranks[s-t] = withRank-noRank;
+
+			spasm_csr_free(withBasis);
+			spasm_csr_free(noBasis);
+			spasm_lu_free(withBasisE);
+			spasm_lu_free(noBasisE);
+			cerr << "freed memory" << endl;
+		}
+
+		// If the difference between the computed ranks is 1, then we're done;
+		// we've found our spot to break. Otherwise, continue.
+		int r1 = ranks[0], r2 = ranks[1];
+		bool samerank = (r1 == r2);
+
+		// If r1 > r2, then we have a problem.
+		if (r1 > r2) goto cleanup;
+
+		if (samerank) {
+			cerr << format("[Persistence] same rank {} == {}, ", r1, r2);
+			if (r1 < stop) {
+				LEFT = t+1;
+				cerr << "[Persistence] moving forward" << endl;
+			} else {
+				RIGHT = t-1;
+				cerr << "[Persistence] moving backward" << endl;
+			}
+		} else {
+			cerr << format("[Persistence] different ranks {} != {}, ", r1, r2);
+			if (r2 == stop) {
+				cerr << "[Persistence] right rank, exiting" << endl;
+				goto found;
+			} else {
+				cerr << "[Persistence] wrong rank, ";
+				if (r2 < stop) {
+					LEFT = t+1;
+					cerr << "[Persistence] moving forward" << endl;
+				} else {
+					RIGHT = t-1;
+					cerr << "[Persistence] moving backward" << endl;
+				}
+			}
+		}
+		// Update the search location.
+		t = LEFT + std::floor((RIGHT-LEFT)/2);
+	}
+	found:
+		events.insert(t);
+		
+	cleanup:
+		spasm_csr_free(full);
+		// spasm_csr_free(withBasis);
+		// spasm_csr_free(noBasis);
+		// spasm_lu_free(withBasisE);
+		// spasm_lu_free(noBasisE);
 
 		if (!verbose) _resume(_supp);
 
