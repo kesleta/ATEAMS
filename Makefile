@@ -22,6 +22,7 @@ INSTALL_DIR = /usr/local
 INSTALL_LFLAGS = -L$(INSTALL_DIR)/lib -Wl,-rpath,$(INSTALL_DIR)/lib
 
 headers:
+	@sudo mkdir -p $(INSTALL_DIR)/include/ATEAMS
 	@sudo cp -r ateams/common.h $(INSTALL_DIR)/include/ATEAMS/
 	@sudo cp -r ateams/arithmetic/include/PHAT $(INSTALL_DIR)/include/phat
 	@sudo cp -r ateams/arithmetic/include/SparseRREF/ $(INSTALL_DIR)/include/SparseRREF/
@@ -113,7 +114,7 @@ contribute: build profile docs refs
 install: dependencies _install profile
 
 dependencies: FORCE headers
-	@pip install -r requirements.txt
+	@pip install -r requirements
 
 _install: FORCE build
 	python setup.py develop

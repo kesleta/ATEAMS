@@ -138,6 +138,8 @@ PersistencePairs PHATComputePersistencePairs(Index _boundary, Index filtration, 
 #######################
 */
 
+#include <functional>
+
 
 template <typename BalancedStorage>
 int youngestOf(BalancedStorage column) {
@@ -475,7 +477,6 @@ Set SolveComputePercolationEvents(BoundaryMatrix boundary, Basis _cobasis, int M
 		Matrix *subcobasisT = spasm_submatrix(cobasisT, 0, rank, 0, t, 1);
 
 		printSpaSMmat<Matrix, Zp, i64>(subcoboundaryT);
-		cout << endl;
 		printSpaSMmat<Matrix, Zp, i64>(subcobasisT);
 
 		// Solve; check whether a solution exists (i.e. whether any of the giant
@@ -485,9 +486,9 @@ Set SolveComputePercolationEvents(BoundaryMatrix boundary, Basis _cobasis, int M
 		bool *exists = (bool *)spasm_malloc(subcobasisT->n*sizeof(*exists));
 		Matrix *solutions = spasm_gesv(subcoboundaryE, subcobasisT, exists);
 
-		cout << t << endl;
-		for (int i=0; i<rank; i++) cout << exists[i] << " ";
-		cout << endl;
+		cerr << t << endl;
+		for (int i=0; i<rank; i++) cerr << exists[i] << " ";
+		cerr << endl;
 	}
 	_resume(_supp);
 
@@ -552,6 +553,9 @@ Set RankComputePercolationEvents(
 			if (rnk < stop) LEFT = ind;
 			if (rnk > stop && ind < RIGHT) RIGHT = ind;
 		}
+
+		cerr << stop << " " << endl;
+		cerr << LEFT << " " << RIGHT << endl;
 		
 		// Binary search between the wickets.
 		while (LEFT <= RIGHT) {
@@ -560,11 +564,13 @@ Set RankComputePercolationEvents(
 			for (int s=t; s<t+2; s++) {
 				// Take submatrices. If we're short and wide, take the transpose
 				// before echelonizing.
+				// Matrix *withBasis, *noBasis;
+
 				if (M < s) {
 					const Matrix *wB = spasm_submatrix(full, 0, M, 0, s, 1);
 					withBasis = spasm_transpose(wB, 1);
 
-					const Matrix *nB = spasm_submatrix(withBasis, rank, M, 0, s, 1);
+					const Matrix *nB = spasm_submatrix(full, rank, M, 0, s, 1);
 					noBasis = spasm_transpose(nB, 1);
 
 					spasm_csr_free((Matrix *)wB);
@@ -581,6 +587,11 @@ Set RankComputePercolationEvents(
 				withRank = withBasisE->U->n;
 				noRank = noBasisE->U->n;
 				ranks[s-t] = withRank-noRank;
+
+				// spasm_csr_free(withBasis);
+				// spasm_csr_free(noBasis);
+				// spasm_lu_free(withBasisE);
+				// spasm_lu_free(noBasisE);
 			}
 
 			// If the difference between the computed ranks is 1, then we're done;
@@ -588,19 +599,43 @@ Set RankComputePercolationEvents(
 			int r1 = ranks[0], r2 = ranks[1];
 			bool samerank = (r1 == r2);
 
+			// If r1 > r2, then we have a problem.
+			if (r1 > r2) goto cleanup;
+
 			if (samerank) {
-				if (r1 < stop) LEFT = t+1;
-				else RIGHT = t-1;
+				cerr << format("same rank {} == {}, ", r1, r2);
+				if (r1 < stop) {
+					LEFT = t+1;
+					cerr << "moving forward" << endl;
+				} else {
+					RIGHT = t-1;
+					cerr << "moving backward" << endl;
+				}
 			} else {
-				if (r2 == stop) break;
-				else {
-					if (r2 < stop) LEFT = t+1;
-					else RIGHT = t-1;
+				cerr << format("different ranks {} != {}, ", r1, r2);
+				if (r2 == stop) {
+					cerr << "right rank, exiting" << endl;
+					goto found;
+				} else {
+					cerr << "wrong rank, ";
+					if (r2 < stop) {
+						LEFT = t+1;
+						cerr << "moving forward" << endl;
+					} else {
+						RIGHT = t-1;
+						cerr << "moving backward" << endl;
+					}
 				}
 			}
 		}
-		eventMarkers[stop] = t;
-		events.insert(t);
+		found:
+			eventMarkers[stop] = t;
+			events.insert(t);
+
+			if (verbose) {
+				printmap<Map>(eventMarkers);
+				cerr << endl;
+			}
 	}
 
 	cleanup:
@@ -645,7 +680,7 @@ ZpZMatrix SSparseMatrixFill(BoundaryMatrix B, int M, int N, int p, int augment=0
 
 
 ZpZMatrix subMatrixT(ZpZMatrix fullT, int r0, int r1, int c0, int c1) {
-	ZpZMatrix sT = fullT.take({r0, r1}).transpose().take({c0, c1});
+	ZpZMatrix sT = fullT.take({r0, r1}).transpose().take({c0, c1}).transpose();
 	sT.compress();
 	return sT;
 }
@@ -690,7 +725,6 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 			for (int s=t; s<t+2; s++) {
 				SparseRREF::rref_option_t opt;
 				opt->method = 0;
-				opt->pool.reset();
 				thread thread_listener(key_listener, ref(opt->abort));
 
 				// Take submatrices.
@@ -705,6 +739,8 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 
 				cerr << format("[Persistence] [{}/{}] RREFing submatrices... ", s, N);
 				withPivots = SparseRREF::sparse_mat_rref<data_t, index_t>(withBasis, GFp, opt);
+				cerr << "finished with pivots, resetting pool" << endl;
+				opt->pool.reset();
 				noPivots = SparseRREF::sparse_mat_rref<data_t, index_t>(noBasis, GFp, opt);
 				cerr << "done." << endl;
 
@@ -727,19 +763,35 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 			bool samerank = (r1 == r2);
 
 			if (samerank) {
-				if (r1 < stop) LEFT = t+1;
-				else RIGHT = t-1;
+				cerr << format("same rank {} == {}, ", r1, r2);
+				if (r1 < stop) {
+					LEFT = t+1;
+					cerr << "moving forward" << endl;
+				} else {
+					RIGHT = t-1;
+					cerr << "moving backward" << endl;
+				}
 			} else {
-				if (r2 == stop) break;
-				else {
-					if (r2 < stop) LEFT = t+1;
-					else RIGHT = t-1;
+				cerr << format("different ranks {} != {}, ", r1, r2);
+				if (r2 == stop) {
+					cerr << "right rank, exiting" << endl;
+					goto found;
+				} else {
+					cerr << "wrong rank, ";
+					if (r2 < stop) {
+						LEFT = t+1;
+						cerr << "moving forward" << endl;
+					} else {
+						RIGHT = t-1;
+						cerr << "moving backward" << endl;
+					}
 				}
 			}
 		}
-		eventMarkers[stop] = t;
-		events.insert(t);
-		cerr << format("[Persistence] [{}/{}] found {}/{} percolation events.", t, N, events.size(), rank) << endl;
+		found:
+			eventMarkers[stop] = t;
+			events.insert(t);
+			cerr << format("[Persistence] [{}/{}] found {}/{} percolation events.", t, N, events.size(), rank) << endl;
 	}
 
 	fullT.clear();

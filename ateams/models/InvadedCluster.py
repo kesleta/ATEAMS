@@ -1,6 +1,8 @@
 
 import numpy as np
 import warnings
+import sys
+import time
 
 from math import comb
 
@@ -109,14 +111,45 @@ class InvadedCluster():
 			Twister.LinearComputeCobasis();
 
 			def persist(filtration):
-				essential = Twister.RankComputePercolationEvents(filtration)
-				# essential = Twister.LinearComputePercolationEvents(filtration)
-				# essential = Twister.ComputePercolationEvents(filtration)
-				# essential = Twister.ZpComputePercolationEvents(filtration)
-				essential = np.array(list(essential))
-				essential.sort()
+				essential = set()
+
+				if self._DEBUG:
+					print("######################################", file=sys.stderr)
+					print("#### SPARSERREF/SPASM COMPUTATION ####", file=sys.stderr)
+					print("######################################", file=sys.stderr)
+
+					while len(essential) < self.rank: essential = Twister.RankComputePercolationEvents(filtration)
+					essential = np.array(list(essential))
+					essential = essential[(essential >= low) & (essential < high)]
+					essential.sort()
+
+					print(essential, file=sys.stderr)
+					print(file=sys.stderr)
+					print(file=sys.stderr)
+					time.sleep(3)
+
+
+					print("######################################", file=sys.stderr)
+					print("####      LINEAR COMPUTATION      ####", file=sys.stderr)
+					print("######################################", file=sys.stderr)
+					_essential = Twister.LinearComputePercolationEvents(filtration)
+					_essential = np.array(list(_essential))
+					_essential = _essential[(_essential >= low) & (_essential < high)]
+					_essential.sort()
+
+					print(_essential, file=sys.stderr)
+					print(file=sys.stderr)
+					print(file=sys.stderr)
+					assert np.array_equal(essential, _essential)
+					time.sleep(3)
+
+				else:
+					while len(essential) < self.rank: essential = Twister.RankComputePercolationEvents(filtration)
+					essential = np.array(list(essential))
+					essential = essential[(essential >= low) & (essential < high)]
+					essential.sort()
 				
-				return essential[(essential >= low) & (essential < high)]
+				return essential
 		
 		# If we're using LinBox and the field we're computing over *is* two,
 		# use PHAT.
