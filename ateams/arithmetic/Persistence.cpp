@@ -362,12 +362,11 @@ Bases LinearComputeBases(
 */
 
 #include <cmath>
+#include <format>
 
 extern "C" {
 	#include <spasm/spasm.h>
 }
-
-using namespace std;
 
 typedef struct spasm_csr Matrix;
 typedef struct spasm_triplet Triplet;
