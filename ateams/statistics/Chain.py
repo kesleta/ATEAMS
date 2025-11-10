@@ -132,7 +132,8 @@ class Recorder:
 	"""
 	Safely "records" states from a Chain by tracking changes between successive
 	states, and writing these changes --- alongside the initial state --- to
-	file.
+	file. WARNING: all input is flattened when recording and is NOT reshaped when
+	playing back.
 	"""
 	def __init__(self): pass
 
@@ -187,7 +188,7 @@ class Recorder:
 
 		# Check whether we have any previously-stored data.
 		if not self._previous:
-			self.previous = tuple(-np.ones(shape=s.shape, dtype=s.dtype) for s in state)
+			self.previous = tuple(-np.ones(shape=s.flatten().shape, dtype=s.dtype) for s in state)
 			self._previous = True
 
 		subblock = []
@@ -195,11 +196,12 @@ class Recorder:
 		# Get diffs; store.
 		for i in range(len(state)):
 			# Compute the diff and store.
-			diff = np.flatnonzero(~np.equal(state[i], self.previous[i]))
-			self.previous[i][diff] = state[i][diff][::]
+			curr = state[i].flatten()
+			diff = np.flatnonzero(~np.equal(curr, self.previous[i]))
+			self.previous[i][diff] = curr[diff][::]
 
 			# Add the encoded dictionary of diffs to the subblock.
-			subblock.append(f"{' '.join(diff.astype(str))}{self._interlistbreak}{' '.join(state[i][diff].astype(str))}")
+			subblock.append(f"{' '.join(diff.astype(str))}{self._interlistbreak}{' '.join(curr[diff].astype(str))}")
 
 		# Increment the number of iterations we've stored; if we've reached the
 		# limit, compress, write to file, and begin again.

@@ -16,6 +16,8 @@ class Matrices:
 
 
 class Cubical:
+	_name = "Cubical"
+	
 	def __init__(self): pass
 
 	def fromCorners(self, corners, periodic=True):

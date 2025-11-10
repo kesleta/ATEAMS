@@ -36,7 +36,7 @@ class SwendsenWang():
 		self.complex = C
 		self.temperature = temperature
 		self.dimension = dimension
-		self._returns = 2
+		self._returns = 3
 		self.field = field
 
 		# Force-recompute the matrices for a different dimension; creates
@@ -135,17 +135,26 @@ class SwendsenWang():
 		# Sample from the kernel of the coboundary matrix, and evaluate again
 		spins = self.sample(includedZeros)
 
-		# # Check whether the sample's correct.
-		# coefficients = spins[boundary[includedZeros]]
-		# coefficients[:,1::2] = -coefficients[:,1::2]%q
-		# sums = coefficients.sum(axis=1)%q
-		# print(np.nonzero(sums > 0)[0])
+		# If we're debugging, check whether the sample's correct.
+		if self._DEBUG:
+			coefficients = spins[boundary[includedZeros]]
+			coefficients[:,1::2] = -coefficients[:,1::2]%q
+			sums = coefficients.sum(axis=1)%q
+			assert sums.sum() == 0
 
 		# Create output vectors.
 		occupied = np.zeros(self.cells, dtype=FINT)
 		occupied[includedZeros] = 1
 
-		return spins, occupied
+		coefficients = self.spins[boundary]
+		coefficients[:,1::2] = -coefficients[:,1::2]%q
+		sums = coefficients.sum(axis=1)%q
+		zeros = np.nonzero(sums == 0)[0]
+
+		satisfied = np.zeros(self.cells, dtype=FINT)
+		satisfied[zeros] = 1
+
+		return spins, occupied, satisfied
 	
 
 	def _assign(self, cocycle):

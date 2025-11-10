@@ -81,7 +81,6 @@ class InvadedCluster():
 		# Premake the "occupied cells" array; change the dimension of the complex
 		# to correspond to the provided dimension.
 		self.rank = comb(len(self.complex.corners), self.dimension)
-		self.nullity = len(self.complex.Boundary[self.dimension])
 
 
 		# Delegates computation for persistence and cocycle sampling.
@@ -282,22 +281,29 @@ class InvadedCluster():
 
 		j = 0
 		low = self.complex.breaks[self.dimension]
+		satisfied = np.zeros(self.cells, dtype=int)
 
-		occupied = np.zeros((self.rank if self.full else 1, self.nullity))
-		satisfied = np.zeros(self.nullity)
+		# If we only computed a desired percolation time, then the matrix of
+		# occupied cell indices has one row...
+		if not self.full:
+			t = essential[0]
 
-
-		for t in sorted(essential):
+			occupied = np.zeros(self.cells, dtype=int)
 			occupiedIndices = shuffledIndices[:t-low+1]
-			occupied[j,occupiedIndices] = 1
+			occupied[occupiedIndices] = 1
 
-			# If we didn't compute all the percolation times, just sample new
-			# spins from the first (and only) percolation time; otherwise,
-			# keep going.
-			if not self.full: spins = self.sample(occupiedIndices); break
-			elif self.full and (j+1) == self._STOP: spins = self.sample(occupiedIndices)
+			spins = self.sample(occupiedIndices)
+		# Otherwise, it has `rank` rows.
+		else:
+			occupied = np.zeros((self.rank, self.cells), dtype=int)
 
-			j += 1
+			for t in sorted(essential):
+				occupiedIndices = shuffledIndices[:t-low+1]
+				occupied[j,occupiedIndices] = 1
+
+				if (j+1) == self._STOP: spins = self.sample(occupiedIndices)
+
+				j += 1
 		
 		satisfied[satisfiedIndices] = 1
 
