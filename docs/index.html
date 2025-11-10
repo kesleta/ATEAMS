@@ -113,7 +113,7 @@ text-align: center;
 </header>
 <section id="section-intro">
 <h2 id="ateams">ATEAMS</h2>
-<p><a href="https://doi.org/10.5281/zenodo.17247050"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.17247050.svg"></a>
+<p><a href="https://doi.org/10.5281/zenodo.17574726"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.17574726.svg"></a>
 <a href="https://apizzimenti.github.io/ATEAMS/"><img alt="docs" src="https://img.shields.io/badge/%E2%93%98-Documentation-%230099cd"></a> </p>
 <p><strong>A</strong>lgebraic <strong>T</strong>opology-<strong>E</strong>nabled <strong>A</strong>lgorith<strong>M</strong>s for <strong>S</strong>pin systems (<strong>ATEAMS</strong>) is a software suite designed for high-performance simulation of generalized <em>Potts</em> and <em>random-cluster</em> models in combinatorial complexes of arbitrary dimension and scale. The linear algebra subroutines supporting these programs are tailored to this application — matrix reduction over finite fields — using <a href="https://github.com/cbouilla/spasm">SpaSM</a>, <a href="https://github.com/munuxi/SparseRREF">SparseRREF</a>, and PHAT [<a href="https://www.sciencedirect.com/science/article/pii/S0747717116300098">1</a>,<a href="https://bitbucket.org/phat-code/phat/src/master/">2</a>].</p>
 <p><a href="#dependencies"><strong>Install dependencies</strong></a> $\longrightarrow$ <a href="#installing-ateams"><strong>Install ATEAMS</strong></a> $\longrightarrow$ <a href="https://apizzimenti.github.io/ATEAMS/"><strong>Documentation</strong></a> $\longrightarrow$ <a href="#contributing"><strong>Contributing</strong></a> $\longrightarrow$ <a href="#citing"><strong>Citing</strong></a></p>
@@ -128,7 +128,7 @@ C = Cubical().fromCorners([10]*3)
 IC = InvadedCluster(C, dimension=1, field=field)
 
 for (spins, occupied, satisfied) in Chain(IC, steps=10):
-    pass
+  pass
 </code></pre>
 <p>and the $2$-dimensional plaquette Swendsen-Wang algorithm at criticality on a scale $10$ cubical $4$-torus with coefficients in $\mathbb F_5$ looks like</p>
 <pre><code class="language-python">from ateams.complexes import Cubical
@@ -140,13 +140,13 @@ field = 5
 C = Cubical().fromCorners([10]*4)
 SW = SwendsenWang(C, dimension=2, field=field, temperature=critical(field))
 
-for (spins, occupied) in Chain(SW, steps=100):
-    pass
+for (spins, occupied, satisfied) in Chain(SW, steps=100):
+  pass
 </code></pre>
 <p><a href="https://apizzimenti.github.io/ATEAMS/models/index.html#ateams.models.SwendsenWang"><code>SwendsenWang</code></a> is, after <a href="https://apizzimenti.github.io/ATEAMS/models/index.html#ateams.models.Glauber"><code>Glauber</code></a>, the most efficient implementation in ATEAMS. The above chain terminates in ~19 seconds on an Apple M2. Additional performance information for each model is included in <a href="https://apizzimenti.github.io/ATEAMS/models/index.html">the documentation</a>.</p>
 <p>You can turn on a progress bar for your simulation using the</p>
-<pre><code class="language-python">for (spins, occupied) in Chain(HP, steps=10).progress():
-    pass
+<pre><code class="language-python">for (spins, occupied, satisfied) in Chain(HP, steps=10).progress():
+  pass
 </code></pre>
 <p>pattern. <strong>If you plan to simulate a large system,</strong> ATEAMS comes with <a href="https://apizzimenti.github.io/ATEAMS/statistics/index.html#ateams.statistics.Recorder"><code>Recorder</code></a> and <a href="https://apizzimenti.github.io/ATEAMS/statistics/index.html#ateams.statistics.Player"><code>Player</code></a> classes that allow you to efficiently store and re-play chain output data. Based on the example above, recording looks like:</p>
 <pre><code class="language-python">from ateams.complexes import Cubical
@@ -159,14 +159,14 @@ C = Cubical().fromCorners([10]*4)
 SW = SwendsenWang(C, dimension=2, field=field, temperature=critical(field))
 
 with Recorder().record(&quot;out.lz&quot;) as rec:
-  for (spins, occupied) in Chain(SW, steps=1000).progress():
-    rec.store((spins, occupied))
+  for (spins, occupied, satisfied) in Chain(SW, steps=1000).progress():
+    rec.store((spins, occupied, satisfied))
 </code></pre>
 <p>Once the program terminates, you can re-play the chain:</p>
 <pre><code class="language-python">from ateams import Player
 
 with Player().playback(&quot;out.lz&quot;, steps=1000) as play:
-  for (spins, occupied) in play.progress():
+  for (spins, occupied, satisfied) in play.progress():
     pass
 </code></pre>
 <p>Running the sampler and recording the data takes ~26 seconds (~38 it/s) on an M2 MacBook Air; replaying the data takes ~0 seconds (~24,211 it/s). The size of <code>out.lz</code> is ~1.8MB, so storing each cell's data requires <span><span class="MathJax_Preview">1/11</span><script type="math/tex">1/11</script></span>th of a byte per iteration (amortized). To see how various configurations of each model perform on your machine, run <code>make profile</code>.</p>
@@ -265,7 +265,7 @@ recommend cloning <a href="https://github.com/linbox-team/fflas-ffpack">the curr
 and building from source.</p>
 <ol>
 <li>Clone the fflas-ffpack repository.</li>
-<li>Navigate into the fflas-ffpack directory and run the <code>autogen</code> script with the following options:<ul>
+<li>Navigate into the fflas-ffpack directory and run the <code>autogen</code> script with the following options:</li>
 <li>Ubuntu, Debian, Mint, etc.<ul>
 <li><code>--prefix=/usr/local</code></li>
 <li><code>--with-blas-libs="`pkg-config --libs openblas`"</code></li>
@@ -276,8 +276,6 @@ and building from source.</p>
 <li><code>--prefix=/usr/local</code></li>
 <li><code>--with-blas-libs="-framework Accelerate"</code></li>
 <li>(it's possible to use the <code>pkg-config</code> arguments to <code>--with-blas-libs</code> and <code>--with-blas-cflags</code> here, but the LinBox team recommends using the Accelerate framework.)</li>
-</ul>
-</li>
 </ul>
 </li>
 <li>Run <code>make</code>.</li>
@@ -353,28 +351,18 @@ $ pkg-config --libs --cflags flint
 <h2 id="citing">Citing</h2>
 <h3 id="bibtex">BibTeX</h3>
 <pre><code class="language-bibtex">@software{ATEAMS,
-    title={{ATEAMS: Algebraic Topology-Enabled AlgorithMs for Spin systems}},
-    author={Duncan, Paul and Pizzimenti, Anthony E. and Schweinhart, Benjamin},
-    url={https://github.com/apizzimenti/ATEAMS},
-    version={2.0.3},
-    doi={10.5281/zenodo.17247050}
+  title={{ATEAMS: Algebraic Topology-Enabled AlgorithMs for Spin systems}},
+  author={Duncan, Paul and Pizzimenti, Anthony E. and Schweinhart, Benjamin},
+  url={https://github.com/apizzimenti/ATEAMS},
+  version={2.1.0},
+  doi={10.5281/zenodo.17574726}
 }
 </code></pre>
 <h2 id="references">References</h2>
-<p>Agrawal, Ramgopal, Leticia F Cugliandolo, Lara Faoro, Lev B Ioffe, and
-Marco Picco. 2024. “The Geometric Phase Transition of the
-Three-Dimensional ℤ<sub>2</sub> Lattice Gauge Model.” <em>arXiv Preprint
-arXiv:2409.15123</em>.</p>
-<p>Aizenman, Michael, and Jürg Fröhlich. 1984. “Topological Anomalies in
-the <em>n</em>-Dependence of the <em>n</em>-States Potts Lattice Gauge Theory.”
-<em>Nuclear Physics B</em> 235 (1): 1–18.</p>
 <p>Bauer, Ulrich, Michael Kerber, Jan Reininghaus, and Hubert Wagner. 2017.
 “PHAT — Persistent Homology Algorithms Toolbox.” <em>Journal of Symbolic
 Computation</em> 78 (January): 76–90.
 <a href="https://doi.org/10.1016/j.jsc.2016.03.008">https://doi.org/10.1016/j.jsc.2016.03.008</a>.</p>
-<p>Ben-Av, R, E Katznelson, S Solomon, D Kandel, and PG Lauwers. 1990.
-“Critical Acceleration of Monte-Carlo Simulations of ℤ(2) Gauge Theory.”
-<em>Nuclear Physics B-Proceedings Supplements</em> 17: 285–88.</p>
 <p>Bobrowski, Omer, and Primoz Skraba. 2020. “Homological Percolation and
 the Euler Characteristic.” <em>Physical Review E</em> 101 (3).
 <a href="https://doi.org/10.1103/PhysRevE.101.032304">https://doi.org/10.1103/PhysRevE.101.032304</a>.</p>
@@ -383,41 +371,19 @@ Formation of Giant k-Cycles.” <em>International Mathematics Research
 Notices</em> 2022 (8). <a href="https://doi.org/10.1093/imrn/rnaa305">https://doi.org/10.1093/imrn/rnaa305</a>.</p>
 <p>Bouillaguet, Charles. 2023. <em>SpaSM: A Sparse Direct Solver Modulo </em>p**.
 v1.3.</p>
-<p>Brower, RC, and Suzhou Huang. 1990. “Random Surface Dynamics for z 2
-Gauge Theory.” <em>Physical Review D</em> 41 (2): 708.</p>
-<p>Brower, Richard C, Suzhou Huang, and Kevin JM Moriarty. 1990. “Plaquette
-Percolation for Lattice Gauge Theory.” <em>Nuclear Physics B-Proceedings
-Supplements</em> 17: 603–6.</p>
 <p>Chayes, L., and J. Machta. 1998. “Graphical Representations and Cluster
 Algorithms II.” <em>Physica A: Statistical Mechanics and Its Applications</em>
 254 (3–4). <a href="https://doi.org/10.1016/S0378-4371(97)00637-7">https://doi.org/10.1016/S0378-4371(97)00637-7</a>.</p>
 <p>Chen, Chao, and Michael Kerber. 2011. “Persistent Homology Computation
 with a Twist.” <em>Proceedings 27th European Workshop on Computational
 Geometry</em> 11: 197–200.</p>
-<p>Creutz, Michael, Laurence Jacobs, and Claudio Rebbi. 1979. “Experiments
-with a Gauge-Invariant Ising System.” <em>Physical Review Letters</em> 42 (21):
-1390.</p>
-<p>Drühl, K, and H Wagner. 1982. “Algebraic Formulation of Duality
-Transformations for Abelian Lattice Models.” <em>Annals of Physics</em> 141
-(2): 225–53. <a href="https://doi.org/10.1016/0003-4916(82)90286-X">https://doi.org/10.1016/0003-4916(82)90286-X</a>.</p>
 <p>Duncan, Paul, Matthew Kahle, and Benjamin Schweinhart. 2023.
 “Homological Percolation on a Torus: Plaquettes and Permutohedra.” <em>To
 Appear in Annales de l’Institut Henri Poincaré, Probabilités Et
 Statistiques</em>, September.
 <a href="https://arxiv.org/abs/10.48550/arXiv.2011.11903">arxiv.org/abs/10.48550/arXiv.2011.11903</a>.</p>
-<p>Duncan, Paul, Anthony E. Pizzimenti, and Benjamin Schweinhart. n.d.
-<em><span class="nocase">ATEAMS: Algebraic Topology-Enabled AlgorithMs for
-Spin systems</span></em>. V. 1.0.2.
-<a href="https://doi.org/10.5281/zenodo.14284172">https://doi.org/10.5281/zenodo.14284172</a>.</p>
-<p>Duncan, Paul, and Benjamin Schweinhart. 2024. “Some Properties of the
-Plaquette Random-Cluster Model.” arXiv, June.
-<a href="https://arxiv.org/abs/10.48550/arXiv.2406.08043">arxiv.org/abs/10.48550/arXiv.2406.08043</a>.</p>
-<p>Duncan, Paul, and Benjamin Schweinhart. 2025a. “A Sharp Deconfinement
-Transition for Potts Lattice Gauge Theory in Codimension Two.”
-<em>Communications in Mathematical Physics</em>.
-<a href="http://arxiv.org/abs/2308.07534">http://arxiv.org/abs/2308.07534</a>.</p>
-<p>Duncan, Paul, and Benjamin Schweinhart. 2025b. “Topological Phases in
-the Plaquette Random-Cluster Model and Potts Lattice Gauge Theory.”
+<p>Duncan, Paul, and Benjamin Schweinhart. 2025. “Topological Phases in the
+Plaquette Random-Cluster Model and Potts Lattice Gauge Theory.”
 <em>Communications in Mathematical Physics</em>.
 <a href="https://arxiv.org/abs/10.48550/arXiv.2207.08339">arxiv.org/abs/10.48550/arXiv.2207.08339</a>.</p>
 <p>Edelsbrunner, Herbert, and John Harer. 2010. <em>Computational Topology: An
@@ -429,30 +395,16 @@ Algorithm.” <em>Physical Review D</em> 38 (6): 2009–12.
 <p>Fortuin, C. M., and P. W. Kasteleyn. 1972. “On the Random-Cluster Model:
 I. Introduction and Relation to Other Models.” <em>Physica</em> 57 (4).
 <a href="https://doi.org/10.1016/0031-8914(72)90045-6">https://doi.org/10.1016/0031-8914(72)90045-6</a>.</p>
-<p>Ginsparg, Paul, Yadin Y Goldschmidt, and Jean-Bernard Zuber. 1980.
-“Large <em>q</em> Expansions for <em>q</em>-State Gauge-Matter Potts Models in
-Lagrangian Form.” <em>Nuclear Physics B</em> 170 (3): 409–32.</p>
 <p>Grimmett, Geoffrey. 2004. <em>The Random-Cluster Model</em>. Edited by Harry
 Kesten. Springer Berlin Heidelberg.
 <a href="https://doi.org/10.1007/978-3-662-09444-0_2">https://doi.org/10.1007/978-3-662-09444-0_2</a>.</p>
-<p><span class="nocase">group, The LinBox</span>. 2021. <em>LinBox</em>. v1.7.0.
-<a href="http://github.com/linbox-team/linbox">http://github.com/linbox-team/linbox</a>.</p>
 <p>Hatcher, Allen. 2002. <em>Algebraic Topology</em>. Cambridge University Press.</p>
 <p>Hiraoka, Yasuaki, and Tomoyuki Shirai. 2016. “Tutte Polynomials and
 Random-Cluster Models in Bernoulli Cell Complexes (Stochastic Analysis
 on Large Scale Interacting Systems).” <em>RIMS Kokyuroku Bessatsu</em> B59
 (July): 289–304.</p>
-<p>Hostetter, Matt. 2020. <em><span class="nocase">Galois: A performant NumPy
-extension for Galois fields</span></em>. Released November.
-<a href="https://github.com/mhostetter/galois">https://github.com/mhostetter/galois</a>.</p>
-<p>Kaczynski, Tomasz, Konstantin Mischaikow, and Marian Mrozek. 2004.
-<em>Computational Homology</em>. Vol. 157. Applied Mathematical Sciences.
-Springer.</p>
 <p>Kesten, Harry. 1982. <em>Percolation Theory for Mathematicians</em>.
 Birkhäuser. <a href="https://doi.org/10.1007/978-1-4899-2730-9">https://doi.org/10.1007/978-1-4899-2730-9</a>.</p>
-<p>Kogut, John B. 1979. “An Introduction to Lattice Gauge Theory and Spin
-Systems.” <em>Reviews of Modern Physics</em> 51 (4): 659–713.
-<a href="https://doi.org/10.1103/RevModPhys.51.659">https://doi.org/10.1103/RevModPhys.51.659</a>.</p>
 <p>Machta, J., Y. S. Choi, A. Lucke, T. Schweizer, and L. M. Chayes. 1996.
 “Invaded Cluster Algorithm for Potts Models.” <em>Physical Review E</em> 54
 (2). <a href="https://doi.org/10.1103/PhysRevE.54.1332">https://doi.org/10.1103/PhysRevE.54.1332</a>.</p>
@@ -460,21 +412,9 @@ Systems.” <em>Reviews of Modern Physics</em> 51 (4): 659–713.
 “Invaded Cluster Algorithm for Equilibrium Critical Points.” <em>Physical
 Review Letters</em> 75 (15): 2792–95.
 <a href="https://doi.org/10.1103/PhysRevLett.75.2792">https://doi.org/10.1103/PhysRevLett.75.2792</a>.</p>
-<p>Maritan, A, and C Omero. 1982. “On the Gauge Potts Model and the
-Plaquette Percolation Problem.” <em>Nuclear Physics B</em> 210 (4): 553–66.</p>
-<p>Ossola, Giovanni, and Alan D. Sokal. 2004. “Dynamic Critical Behavior of
-the Swendsen–Wang Algorithm for the Three-Dimensional Ising Model.”
-<em>Nuclear Physics B</em> 691 (3): 259–91.
-<a href="https://doi.org/10.1016/j.nuclphysb.2004.04.026">https://doi.org/10.1016/j.nuclphysb.2004.04.026</a>.</p>
-<p>Saveliev, Peter. 2016. <em>Topology Illustrated</em>. Independent Publisher.</p>
-<p>Shklarov, Yakov. 2023. “The Edwards-Sokal Coupling for the Potts Higher
-Lattice Gauge Theory on ℤ<sup><em>d</em></sup>.” Master’s thesis, The
-University of Victoria.</p>
 <p>Swendsen, Robert H., and Jian-Sheng Wang. 1987. “Nonuniversal Critical
 Dynamics in Monte Carlo Simulations.” <em>Physical Review Letters</em> 58 (2).
 <a href="https://doi.org/10.1103/PhysRevLett.58.86">https://doi.org/10.1103/PhysRevLett.58.86</a>.</p>
-<p>Wegner, Franz J. 2014. “Duality in Generalized Ising Models.” November.
-<a href="https://doi.org/10.48550/arXiv.1411.5815">https://doi.org/10.48550/arXiv.1411.5815</a>.</p>
 <p>Zomorodian, Afra J. 2005. <em>Topology for Computing</em>. Cambridge University
 Press.</p>
 </section>
