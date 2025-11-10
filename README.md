@@ -3,7 +3,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17247050.svg)](https://doi.org/10.5281/zenodo.17247050)
 [![docs](https://img.shields.io/badge/%E2%93%98-Documentation-%230099cd)](https://apizzimenti.github.io/ATEAMS/) 
 
-**A**lgebraic **T**opology-**E**nabled **A**lgorith**M**s for **S**pin systems (**ATEAMS**) is a software suite designed for high-performance simulation of generalized _Potts_ and _random-cluster_ models in combinatorial complexes of arbitrary dimension and scale. The linear algebra subroutines supporting these programs are tailored to this application — matrix reduction over finite fields — using [LinBox](https://github.com/linbox-team/linbox) and PHAT [[1](https://www.sciencedirect.com/science/article/pii/S0747717116300098),[2](https://bitbucket.org/phat-code/phat/src/master/)].
+**A**lgebraic **T**opology-**E**nabled **A**lgorith**M**s for **S**pin systems (**ATEAMS**) is a software suite designed for high-performance simulation of generalized _Potts_ and _random-cluster_ models in combinatorial complexes of arbitrary dimension and scale. The linear algebra subroutines supporting these programs are tailored to this application — matrix reduction over finite fields — using [SpaSM](https://github.com/cbouilla/spasm), [SparseRREF](https://github.com/munuxi/SparseRREF), and PHAT [[1](https://www.sciencedirect.com/science/article/pii/S0747717116300098),[2](https://bitbucket.org/phat-code/phat/src/master/)].
 
 [**Install dependencies**](#dependencies) $\longrightarrow$ [**Install ATEAMS**](#installing-ateams) $\longrightarrow$ [**Documentation**](https://apizzimenti.github.io/ATEAMS/) $\longrightarrow$ [**Contributing**](#contributing) $\longrightarrow$ [**Citing**](#citing)
 
@@ -36,7 +36,7 @@ field = 5
 C = Cubical().fromCorners([10]*4)
 SW = SwendsenWang(C, dimension=2, field=field, temperature=critical(field))
 
-for (spins, occupied) in Chain(SW, steps=1000):
+for (spins, occupied) in Chain(SW, steps=100):
 	pass
 ```
 [`SwendsenWang`](https://apizzimenti.github.io/ATEAMS/models/index.html#ateams.models.SwendsenWang) is, after [`Glauber`](https://apizzimenti.github.io/ATEAMS/models/index.html#ateams.models.Glauber), the most efficient implementation in ATEAMS. The above chain terminates in ~19 seconds on an Apple M2. Additional performance information for each model is included in [the documentation](https://apizzimenti.github.io/ATEAMS/models/index.html).
@@ -106,43 +106,15 @@ $ make install
 
 **Should you run into errors,** the `make install` recipe performs the following operations in the order they're listed:
 
-1. Attempts to compile the Python $\leftrightarrow$ Cython $\leftrightarrow$ LinBox C++ interface at `ATEAMS/ateams/arithmetic/LinBoxMethods.cpp`, building it as a shared library and storing it at `/usr/local/lib/libLinBoxMethods.so`.
-2. Attempts to compile the Python $\leftrightarrow$ Cython $\leftrightarrow$ LinBox C++ interface at `ATEAMS/ateams/arithmetic/PHATMethods.cpp`, building it as a shared library and storing it at `/usr/local/lib/libPHATMethods.so`.
+1. Attempts to compile the Python $\leftrightarrow$ Cython $\leftrightarrow$ C++ interface at `ATEAMS/ateams/arithmetic/Sampling.cpp`, building it as a shared library and storing it at `/usr/local/lib/libATEAMS_Sampling.so`.
+2. Attempts to compile the Python $\leftrightarrow$ Cython $\leftrightarrow$  C++ interface at `ATEAMS/ateams/arithmetic/Persistence.cpp`, building it as a shared library and storing it at `/usr/local/lib/libATEAMS_Persistence.so`.
 3. Attempts to compile the Cython components of ATEAMS, spitting the log into a file called `build.log`.
 4. Runs `setup.py` and installs the ATEAMS package as a local development package, so it is importable system-wide.
 5. Tests arithmetic and profiles the five main models of the library in varying configurations.
 
-**Done manually, these steps are:**
-
-```
-$ rm -rf ./build
-$ sudo clang++ `pkg-config --libs linbox` -shared -fPIC -std=c++17 -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp -v -O3 -ffast-math
-  ...
-
-$ sudo cp -r ateams/arithmetic/include/PHAT /usr/local/include/phat
-$ sudo clang++ -shared -fPIC -std=c++17 -o /usr/local/lib/libPHATMethods.so ateams/arithmetic/PHATMethods.cpp -v -O3 -ffast-math
-  ...
-
-$ pip install -r requirements.txt
-$ python setup.py build_ext --inplace > build.log 2>&1 
-$ python setup.py develop
-  ...
-
-$ cd test
-$ ./profile.models.Glauber.sh 19 22 4
-$ ./profile.models.Glauber.sh 999 1002 2
-$ ./profile.models.SW.sh 4 7 4
-$ ./profile.models.SW.sh 499 502 2
-$ ./profile.models.NH.sh 49 52
-$ ./profile.models.IC.sh 4 7 4
-$ ./profile.models.IC.sh 19 22 2
-$ ./profile.models.Bernoulli.sh 4 7 4
-$ ./profile.models.Bernoulli.sh 19 22 2
-  ...
-```
+**Check the Makefile to see the steps done manually.**
 
 ### Dependencies
-ATEAMS relies on LinBox. [This link goes to our GitHub fork of LinBox](https://github.com/apizzimenti/linbox), which addresses a small preconditioning bug and modifies its numerical instability warning system so Cython knows when problems arise; otherwise, the library is unchanged from [its original source](https://github.com/linbox-team/linbox). LinBox relies on [fflas-ffpack](https://github.com/linbox-team/fflas-ffpack), [Givaro](https://github.com/linbox-team/givaro), [OpenBLAS](https://github.com/OpenMathLib/OpenBLAS), and [GMP](https://gmplib.org/). **To get the most out of this toolkit, we highly recommended that you install these dependencies.**
 
 #### GMP
 1. [Download GMP 6.3.0 from here](https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz).
@@ -252,17 +224,13 @@ $ pkg-config --libs fflas-ffpack
 ```
 
 #### SpaSM
-SpaSM is a library for (extremely fast) sparse elimination for finite fields
-with odd prime characteristic (i.e. it doesn't work for $\mathbb Z/q\mathbb Z$
-with $q<3$). Again, we recommend downloading the library from
-[our fork](https://github.com/apizzimenti/spasm) and building from source. (The
-changes on our fork are only to automatically copy shared libraries and header
-files to `/usr/local/lib` and `/usr/local/include/spasm`, and to remove the `-Werror`
-C compiler flag.) The installation process for this library is much simpler:
+SpaSM is a library for (extremely fast) sparse elimination for finite fields with odd prime characteristic (i.e. it doesn't work for $\mathbb Z/q\mathbb Z$ with $q<3$). Again, we recommend downloading the library from [our fork](https://github.com/apizzimenti/spasm) and building from source. (The changes on our fork are only to automatically copy shared libraries and header files to `/usr/local/lib` and `/usr/local/include/spasm`, and to remove the `-Werror` C compiler flag.) The installation process for this library is much simpler:
 
 1. Clone the spasm library.
 2. Navigate into the spasm directory and run `make`.
-3. Check whether the files `/usr/local/lib/libspasm.dylib` and `/usr/local/include/spasm/spasm.h` exist. If they don't, something's up.
+    * If you get an error saying `cmake` doesn't exist, install it through your OS's package manager (Homebrew for macOS, `apt` or `apt-get`).
+    * If you get an error saying the compiler can't find OpenMP headers, install it through your OS's package manager.
+3. Check whether the files `/usr/local/lib/libspasm.so` (or `.dylib`) and `/usr/local/include/spasm/spasm.h` exist. If they don't, something's up.
 
 
 ```
@@ -274,36 +242,31 @@ $ make build
   ...
 ```
 
-Then check whether the files `/usr/local/lib/libspasm.dylib` and `/usr/local/include/spasm/spasm.h`
-exist.
+Then check whether the files `/usr/local/lib/libspasm.so` (or `.dylib`) and `/usr/local/include/spasm/spasm.h` exist.
 
 
+### Flint
 
-#### LinBox
-
-The end is in sight! Here, we recommend cloning [the `bug/bad-checks` branch of our forked LinBox repository](https://github.com/apizzimenti/linbox.git) and building from source.
-
-1. Clone LinBox.
-2. Navigate into the LinBox directory and run the `autogen` script specifying the install prefix.
-3. Run `make` and `sudo make install`.
-
-In summary,
+Flint (**F**ast **Li**brary for **N**umber **T**heory) is exactly what it sounds like. It usually comes installed with most Linux distros, and can be installed through your OS's package manager (Homebrew for macOS, `apt` or `apt-get` for Linux). Sometimes, ATEAMS has dificulty finding headers, and will error when a Flint symbol can't be found. In that case, you can install it manually:
 
 ```
-$ git clone https://github.com/apizzimenti/linbox.git
-  Cloning into 'linbox'... done.
-
-$ cd linbox
-$ git checkout bug/bad-checks
-$ ./autogen.sh --prefix=/usr/local
+$ wget -c https://flintlib.org/download/flint-3.3.1.tar.gz -O - | tar -xz
+$ cd flint-3.3.1
+$ ./configure --prefix=/usr/local
   ...
 
-$ make; sudo make install
+$ make -j $(expr $(nproc) + 1)
+$ sudo make install
   ...
 
-$ pkg-config --libs linbox
-  -L/usr/local/lib -llinbox -L/<path-to-openblas> -lopenblas -lgivaro -lgmpxx -lgmp
+$ pkg-config --libs --cflags flint
+  -I/usr/local/include -L/usr/local/lib -lflint -lmpfr -lgmp
 ```
+
+
+#### SparseRREF
+
+We use SparseRREF instead of SpaSM for sampling cochains over $\mathbb Z/2\mathbb Z$. It requires [Flint](https://flintlib.org/), which in turn requires GMP and [MPFR](https://mpfr.org/); you can install MPFR through your OS's package manager. SparseRREF is a header-only library, and all its header files are included in ATEAMS by default.
 
 
 #### PHAT

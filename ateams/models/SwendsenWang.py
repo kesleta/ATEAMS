@@ -26,11 +26,11 @@ class SwendsenWang():
 				scheduled temperature at time `t`.
 			initial (np.array): A vector of spin assignments to components.
 
-		<center> <button type="button" class="collapsible" id="SwendsenWang-LanczosKernelSample-2"> Performance in \(\mathbb T^2_N\)</button> </center>
-		.. include:: ./tables/SwendsenWang.LanczosKernelSample.2.html
+		<center> <button type="button" class="collapsible" id="SwendsenWang-ReducedKernelSample-2"> Performance in \(\mathbb T^2_N\)</button> </center>
+		.. include:: ./tables/SwendsenWang.ReducedKernelSample.2.html
 		
-		<center> <button type="button" class="collapsible" id="SwendsenWang-LanczosKernelSample-4"> Performance in \(\mathbb T^4_N\)</button> </center>
-		.. include:: ./tables/SwendsenWang.LanczosKernelSample.4.html
+		<center> <button type="button" class="collapsible" id="SwendsenWang-ReducedKernelSample-4"> Performance in \(\mathbb T^4_N\)</button> </center>
+		.. include:: ./tables/SwendsenWang.ReducedKernelSample.4.html
 		"""
 		# Object access.
 		self.complex = C

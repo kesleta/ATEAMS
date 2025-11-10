@@ -26,9 +26,6 @@ class Nienhuis():
 			initial (np.array): A vector of spin assignments to components.
 			maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
 				vector in the kernel of the coboundary matrix.
-		
-		<center> <button type="button" class="collapsible" id="Nienhuis-SubLanczosKernelSample-2"> Performance in \(\mathbb T^2_N\)</button> </center>
-		..include:: ./tables/Nienhuis.SubLanczosKernelSample.2.html
 		"""
 		# Object access.
 		self.complex = C
@@ -86,7 +83,7 @@ class Nienhuis():
 		def sample(faceZeros, cellZeros):
 			try:
 				return np.array(SubReducedKernelSample(
-					self.matrices.coboundary, cellZeros, faceZeros, self.field, maxTries=maxTries
+					self.matrices.coboundary, cellZeros, faceZeros, self.field, False
 				), dtype=FINT)
 			except Exception as e:
 				raise NumericalInstabilityWarning(e)
