@@ -240,7 +240,7 @@ Twister = Twist(field, C.matrices.full, C.breaks, cellCount, dimension)
 
 # Construct a filtration and compute the percolation events.
 filtration = np.arange(cellCount)
-essential = Twist.ComputePercolationEvents(filtration)
+essential = Twist.LinearComputePercolationEvents(filtration)
 </code></pre>
 <p>In this case, <code>essential</code> should be <code>{0, 17, 35, 21}</code>, and the times <span><span class="MathJax_Preview">17</span><script type="math/tex">17</script></span>
 and <span><span class="MathJax_Preview">21</span><script type="math/tex">21</script></span> are the essential <span><span class="MathJax_Preview">1</span><script type="math/tex">1</script></span>-dimensional cycles.</p></div>
@@ -250,19 +250,28 @@ and <span><span class="MathJax_Preview">21</span><script type="math/tex">21</scr
 <span>def <span class="ident">LinearComputeBasis</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Computes bases for the <code>dimension</code>th homology group.</p></div>
+<div class="desc"><p>Computes bases for the <code>dimension</code>th homology group.</p>
+<h2 id="returns">Returns</h2>
+<p>A <code>Basis</code> (equivalently, a <code>BoundaryMatrix</code>) of sparse vectors that
+form the basis for the <code>dimension</code>th homology group.</p></div>
 </dd>
 <dt id="ateams.arithmetic.Twist.LinearComputeCobasis"><code class="name flex">
 <span>def <span class="ident">LinearComputeCobasis</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Computes a basis for the <code>dimension</code>th cohomology group, relative to
+the basis chosen by <code><a title="ateams.arithmetic.Twist.LinearComputeBasis" href="#ateams.arithmetic.Twist.LinearComputeBasis">Twist.LinearComputeBasis()</a></code>.</p>
+<h2 id="returns">Returns</h2>
+<p>A <code>Basis</code> (equivalently, a <code>BoundaryMatrix</code>) of sparse vectors that
+form the basis for the <code>dimension</code>th homology group.</p></div>
 </dd>
 <dt id="ateams.arithmetic.Twist.LinearComputePercolationEvents"><code class="name flex">
 <span>def <span class="ident">LinearComputePercolationEvents</span></span>(<span>self, filtration)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Given a filtration &mdash; i.e. a reordering of the columns of the full
+<div class="desc"><p><strong>NOTE</strong>: <code><a title="ateams.arithmetic.Twist.RankComputePercolationEvents" href="#ateams.arithmetic.Twist.RankComputePercolationEvents">Twist.RankComputePercolationEvents()</a></code> is recommended for
+general use.</p>
+<p>Given a filtration &mdash; i.e. a reordering of the columns of the full
 boundary matrix &mdash; gives times at which essential cycles of dimension
 <code>dimension</code> were created. Performs arithmetic using flattened addition
 and multiplication tables stored in <code>vector&lt;char&gt;</code>s.</p>
@@ -278,13 +287,21 @@ and multiplication tables stored in <code>vector&lt;char&gt;</code>s.</p>
 <span>def <span class="ident">RankComputePercolationEvents</span></span>(<span>self, filtration, stop=0)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
-</dd>
-<dt id="ateams.arithmetic.Twist.SolveComputePercolationEvents"><code class="name flex">
-<span>def <span class="ident">SolveComputePercolationEvents</span></span>(<span>self, filtration)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
+<div class="desc"><p>Given a filtration &mdash; i.e. a reordering of the columns of the full
+boundary matrix &mdash; gives times at which giant cycles of dimension
+<code>dimension</code> were created.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filtration</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>An array of column indices.</dd>
+<dt><strong><code>stop</code></strong> :&ensp;<code>int=0</code></dt>
+<dd>The rank at which we stop searching. For example, if
+we're computing persistence on a 4-torus and <code>stop</code> is 3, then
+we find only the time at which the third giant cycle was born.
+If <code>stop</code> is 0 (or falsy), then find all the birth times.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A set containing indices at which essential cycles appear.</p></div>
 </dd>
 </dl>
 </dd>
@@ -337,7 +354,6 @@ proof.appendChild(square);
 <li><code><a title="ateams.arithmetic.Twist.LinearComputeCobasis" href="#ateams.arithmetic.Twist.LinearComputeCobasis">LinearComputeCobasis</a></code></li>
 <li><code><a title="ateams.arithmetic.Twist.LinearComputePercolationEvents" href="#ateams.arithmetic.Twist.LinearComputePercolationEvents">LinearComputePercolationEvents</a></code></li>
 <li><code><a title="ateams.arithmetic.Twist.RankComputePercolationEvents" href="#ateams.arithmetic.Twist.RankComputePercolationEvents">RankComputePercolationEvents</a></code></li>
-<li><code><a title="ateams.arithmetic.Twist.SolveComputePercolationEvents" href="#ateams.arithmetic.Twist.SolveComputePercolationEvents">SolveComputePercolationEvents</a></code></li>
 </ul>
 </li>
 </ul>

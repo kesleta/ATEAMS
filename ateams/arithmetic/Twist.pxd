@@ -34,7 +34,7 @@ cdef class Twist:
 	
 	cpdef Set LinearComputePercolationEvents(self, INDEXFLAT filtration) noexcept
 	cpdef Set RankComputePercolationEvents(self, INDEXFLAT filtration, int stop=*) noexcept
-	cpdef Set SolveComputePercolationEvents(self, INDEXFLAT filtration) noexcept
+	# cpdef Set SolveComputePercolationEvents(self, INDEXFLAT filtration) noexcept
 
 	cpdef Basis LinearComputeBasis(self) noexcept
 	cpdef Basis LinearComputeCobasis(self) noexcept

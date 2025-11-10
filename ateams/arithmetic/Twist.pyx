@@ -65,7 +65,7 @@ cdef class Twist:
 
 		# Construct a filtration and compute the percolation events.
 		filtration = np.arange(cellCount)
-		essential = Twist.ComputePercolationEvents(filtration)
+		essential = Twist.LinearComputePercolationEvents(filtration)
 		```
 
 		In this case, `essential` should be `{0, 17, 35, 21}`, and the times \(17\)
@@ -323,6 +323,9 @@ cdef class Twist:
 
 	cpdef Set LinearComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
 		"""
+		**NOTE**: `Twist.RankComputePercolationEvents()` is recommended for
+		general use.
+
 		Given a filtration --- i.e. a reordering of the columns of the full
 		boundary matrix --- gives times at which essential cycles of dimension
 		`dimension` were created. Performs arithmetic using flattened addition
@@ -343,6 +346,21 @@ cdef class Twist:
 
 
 	cpdef Set RankComputePercolationEvents(self, INDEXFLAT filtration, int stop=0) noexcept:
+		"""
+		Given a filtration --- i.e. a reordering of the columns of the full
+		boundary matrix --- gives times at which giant cycles of dimension
+		`dimension` were created.
+
+		Args:
+			filtration (np.ndarray): An array of column indices.
+			stop (int=0): The rank at which we stop searching. For example, if
+				we're computing persistence on a 4-torus and `stop` is 3, then
+				we find only the time at which the third giant cycle was born.
+				If `stop` is 0 (or falsy), then find all the birth times.
+
+		Returns:
+			A set containing indices at which essential cycles appear.
+		"""
 		cdef Basis cobasis;
 
 		# Check whether we've already computed the cobasis. If we haven't, do so!
@@ -400,32 +418,36 @@ cdef class Twist:
 		return events;
 
 
-	cpdef Set SolveComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
-		cdef Basis cobasis;
+	# cpdef Set SolveComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
+	# 	cdef Basis cobasis;
 
-		# Check whether we've already computed the cobasis. If we haven't, do so!
-		if self.cobasis.size() < 1: cobasis = self.LinearComputeCobasis();
-		else: cobasis = self.cobasis;
+	# 	# Check whether we've already computed the cobasis. If we haven't, do so!
+	# 	if self.cobasis.size() < 1: cobasis = self.LinearComputeCobasis();
+	# 	else: cobasis = self.cobasis;
 
-		# If we haven't encountered a giant cocycle, then each element fi of the
-		# cobasis must be in the image of the (d-1)th coboundary matrix (which
-		# sends (d-1)-cochains to d-cochains), so fi is a cocycle *and*
-		# a coboundary --- which means we haven't encountered a giant cocycle yet.
-		# Once fi isn't in the image of the (d-1)th coboundary matrix (i.e. it's
-		# not a coboundary), then we've encountered a giant cycle, and we've
-		# percolated.
-		cdef BoundaryMatrix boundary = self.PartialBoundaryMatrix(self.dimension);
-		cdef int M = self.breaks[self.dimension]-self.breaks[self.dimension-1];
-		cdef Set events;
+	# 	# If we haven't encountered a giant cocycle, then each element fi of the
+	# 	# cobasis must be in the image of the (d-1)th coboundary matrix (which
+	# 	# sends (d-1)-cochains to d-cochains), so fi is a cocycle *and*
+	# 	# a coboundary --- which means we haven't encountered a giant cocycle yet.
+	# 	# Once fi isn't in the image of the (d-1)th coboundary matrix (i.e. it's
+	# 	# not a coboundary), then we've encountered a giant cycle, and we've
+	# 	# percolated.
+	# 	cdef BoundaryMatrix boundary = self.PartialBoundaryMatrix(self.dimension);
+	# 	cdef int M = self.breaks[self.dimension]-self.breaks[self.dimension-1];
+	# 	cdef Set events;
 
-		events = SolveComputePercolationEvents(boundary, cobasis, M, boundary.size(), cobasis.size(), self.characteristic);
+	# 	events = SolveComputePercolationEvents(boundary, cobasis, M, boundary.size(), cobasis.size(), self.characteristic);
 
-		return Set();
+	# 	return Set();
 
 
 	cpdef Basis LinearComputeBasis(self) noexcept:
 		"""
 		Computes bases for the `dimension`th homology group.
+
+		Returns:
+			A `Basis` (equivalently, a `BoundaryMatrix`) of sparse vectors that
+			form the basis for the `dimension`th homology group.
 		"""
 		if self.bases.size() > 0: return self.bases[self.dimension];
 
@@ -462,6 +484,14 @@ cdef class Twist:
 
 	
 	cpdef Basis LinearComputeCobasis(self) noexcept:
+		"""
+		Computes a basis for the `dimension`th cohomology group, relative to
+		the basis chosen by `Twist.LinearComputeBasis()`.
+
+		Returns:
+			A `Basis` (equivalently, a `BoundaryMatrix`) of sparse vectors that
+			form the basis for the `dimension`th homology group.
+		"""
 		# Compute a basis for the dth homology group.
 		self.LinearComputeBasis();
 
