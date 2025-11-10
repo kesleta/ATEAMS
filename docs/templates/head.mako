@@ -86,10 +86,6 @@
 		border-bottom: 3px solid black;
 	}
 
-	.dataframe.profile-data-table tbody > tr:nth-of-type(9n) {
-		border-bottom: 3px solid black;
-	}
-
 	.dataframe.profile-data-table tbody tr th {
 		vertical-align: middle;
 	}
@@ -98,10 +94,8 @@
 		vertical-align: middle;
 	}
 
-	.dataframe.profile-data-table tbody > tr:nth-child(3n) {
-		:nth-child(n) {
-			border-bottom: 1px solid black;
-		}
+	.dataframe.profile-data-table tbody > tr:nth-child(4n) {
+		border-bottom: 1px solid black;
 	}
 
 	.dataframe.profile-data-table tbody td {

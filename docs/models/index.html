@@ -90,19 +90,14 @@ text-align: center !important;
 .dataframe.profile-data-table thead {
 border-bottom: 3px solid black;
 }
-.dataframe.profile-data-table tbody > tr:nth-of-type(9n) {
-border-bottom: 3px solid black;
-}
 .dataframe.profile-data-table tbody tr th {
 vertical-align: middle;
 }
 .dataframe.profile-data-table tbody tr td {
 vertical-align: middle;
 }
-.dataframe.profile-data-table tbody > tr:nth-child(3n) {
-:nth-child(n) {
+.dataframe.profile-data-table tbody > tr:nth-child(4n) {
 border-bottom: 1px solid black;
-}
 }
 .dataframe.profile-data-table tbody td {
 text-align: center;
@@ -308,18 +303,70 @@ scheduled temperature at time <code>t</code>.</dd>
 <th></th>
 <th></th>
 <th></th>
-<th></th>
 <th>s/iteration</th>
 </tr>
 <tr>
-<th>Field</th>
 <th>$N$</th>
 <th>Cells</th>
-<th><code>maxTries</code></th>
+<th>Field</th>
 <th></th>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td rowspan="4" valign="top">256</td>
+<td rowspan="4" valign="top">131,072</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>0.007</td>
+</tr>
+<tr>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>0.008</td>
+</tr>
+<tr>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>0.007</td>
+</tr>
+<tr>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>0.007</td>
+</tr>
+<tr>
+<td rowspan="4" valign="top">512</td>
+<td rowspan="4" valign="top">524,288</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>0.056</td>
+</tr>
+<tr>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>0.023</td>
+</tr>
+<tr>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>0.026</td>
+</tr>
+<tr>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>0.029</td>
+</tr>
+<tr>
+<td rowspan="4" valign="top">1024</td>
+<td rowspan="4" valign="top">2,097,152</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>0.234</td>
+</tr>
+<tr>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>0.108</td>
+</tr>
+<tr>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>0.104</td>
+</tr>
+<tr>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>0.110</td>
+</tr>
 </tbody>
 </table>
 <p><center> <button type="button" class="collapsible" id="Glauber-_proposal-4"> Performance in <span><span class="MathJax_Preview">\mathbb T^4_N</span><script type="math/tex">\mathbb T^4_N</script></span></button> </center></p>
@@ -329,18 +376,70 @@ scheduled temperature at time <code>t</code>.</dd>
 <th></th>
 <th></th>
 <th></th>
-<th></th>
 <th>s/iteration</th>
 </tr>
 <tr>
-<th>Field</th>
 <th>$N$</th>
 <th>Cells</th>
-<th><code>maxTries</code></th>
+<th>Field</th>
 <th></th>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td rowspan="4" valign="top">20</td>
+<td rowspan="4" valign="top">960,000</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>0.078</td>
+</tr>
+<tr>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>0.065</td>
+</tr>
+<tr>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>0.071</td>
+</tr>
+<tr>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>0.078</td>
+</tr>
+<tr>
+<td rowspan="4" valign="top">30</td>
+<td rowspan="4" valign="top">4,860,000</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>0.376</td>
+</tr>
+<tr>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>0.379</td>
+</tr>
+<tr>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>0.383</td>
+</tr>
+<tr>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>0.367</td>
+</tr>
+<tr>
+<td rowspan="4" valign="top">40</td>
+<td rowspan="4" valign="top">15,360,000</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>1.271</td>
+</tr>
+<tr>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>1.172</td>
+</tr>
+<tr>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>1.147</td>
+</tr>
+<tr>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>1.185</td>
+</tr>
 </tbody>
 </table></div>
 <details class="source">
@@ -469,7 +568,7 @@ scheduled temperature at time <code>t</code>.</dd>
 </dd>
 <dt id="ateams.models.InvadedCluster"><code class="flex name class">
 <span>class <span class="ident">InvadedCluster</span></span>
-<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>initial=None,<br>stop=&lt;function InvadedCluster.&lt;lambda&gt;&gt;,<br>maxTries=16,<br>**kwargs)</span>
+<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>initial=None,<br>full=False,<br>stop=&lt;function InvadedCluster.&lt;lambda&gt;&gt;,<br>tries=64,<br>**kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes the plaquette invaded-cluster algorithm on the provided
@@ -485,13 +584,15 @@ group.</p>
 <dd>Field characteristic.</dd>
 <dt><strong><code>initial</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>A vector of spin assignments to components.</dd>
+<dt><strong><code>full</code></strong> :&ensp;<code>bool=True</code></dt>
+<dd>Do we find <em>all</em> the homological persistence events,
+or just the target one?</dd>
 <dt><strong><code>stop</code></strong> :&ensp;<code>function</code></dt>
 <dd>A function that returns the number of essential cycles
 found before sampling the next configuration.</dd>
-<dt><strong><code>maxTries</code></strong> :&ensp;<code>int=16</code></dt>
-<dd>The number of attempts LinBox makes to sample a nonzero
-vector in the kernel of the coboundary matrix <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>. See more
-discussion in the <code><a title="ateams.models.SwendsenWang" href="#ateams.models.SwendsenWang">SwendsenWang</a></code> model.</dd>
+<dt><strong><code>tries</code></strong> :&ensp;<code>int=64</code></dt>
+<dd>Number of persistence computation attempts made before
+re-sampling.</dd>
 </dl>
 <p><center> <button type="button" class="collapsible" id="InvadedCluster-Persistence-2">Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span></button> </center></p>
 <table class="dataframe profile-data-table" id="InvadedCluster-Persistence-2-table">
@@ -500,189 +601,51 @@ discussion in the <code><a title="ateams.models.SwendsenWang" href="#ateams.mode
 <th></th>
 <th></th>
 <th></th>
-<th></th>
 <th>s/iteration</th>
 </tr>
 <tr>
-<th>Field</th>
 <th>$N$</th>
 <th>Cells</th>
-<th><code>maxTries</code></th>
+<th>Field</th>
 <th></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
-<td rowspan="3" valign="top">128</td>
-<td rowspan="3" valign="top">65,536</td>
-<td>8</td>
-<td>0.042</td>
+<td rowspan="4" valign="top">256</td>
+<td rowspan="4" valign="top">131,072</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>0.237</td>
 </tr>
 <tr>
-<td>16</td>
-<td>0.041</td>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>12.595</td>
 </tr>
 <tr>
-<td>32</td>
-<td>0.042</td>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>8.843</td>
 </tr>
 <tr>
-<td rowspan="3" valign="top">181</td>
-<td rowspan="3" valign="top">131,044</td>
-<td>8</td>
-<td>0.094</td>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>7.768</td>
 </tr>
 <tr>
-<td>16</td>
-<td>0.093</td>
+<td rowspan="4" valign="top">512</td>
+<td rowspan="4" valign="top">524,288</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>1.105</td>
 </tr>
 <tr>
-<td>32</td>
-<td>0.094</td>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>145.532</td>
 </tr>
 <tr>
-<td rowspan="3" valign="top">256</td>
-<td rowspan="3" valign="top">262,144</td>
-<td>8</td>
-<td>0.208</td>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>76.667</td>
 </tr>
 <tr>
-<td>16</td>
-<td>0.211</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.208</td>
-</tr>
-<tr>
-<td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
-<td rowspan="3" valign="top">128</td>
-<td rowspan="3" valign="top">65,536</td>
-<td>8</td>
-<td>3.010</td>
-</tr>
-<tr>
-<td>16</td>
-<td>3.261</td>
-</tr>
-<tr>
-<td>32</td>
-<td>3.462</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">181</td>
-<td rowspan="3" valign="top">131,044</td>
-<td>8</td>
-<td>13.182</td>
-</tr>
-<tr>
-<td>16</td>
-<td>13.402</td>
-</tr>
-<tr>
-<td>32</td>
-<td>13.534</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">256</td>
-<td rowspan="3" valign="top">262,144</td>
-<td>8</td>
-<td>52.350</td>
-</tr>
-<tr>
-<td>16</td>
-<td>47.104</td>
-</tr>
-<tr>
-<td>32</td>
-<td>49.161</td>
-</tr>
-<tr>
-<td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
-<td rowspan="3" valign="top">128</td>
-<td rowspan="3" valign="top">65,536</td>
-<td>8</td>
-<td>2.673</td>
-</tr>
-<tr>
-<td>16</td>
-<td>2.649</td>
-</tr>
-<tr>
-<td>32</td>
-<td>2.662</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">181</td>
-<td rowspan="3" valign="top">131,044</td>
-<td>8</td>
-<td>9.569</td>
-</tr>
-<tr>
-<td>16</td>
-<td>9.797</td>
-</tr>
-<tr>
-<td>32</td>
-<td>9.069</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">256</td>
-<td rowspan="3" valign="top">262,144</td>
-<td>8</td>
-<td>34.302</td>
-</tr>
-<tr>
-<td>16</td>
-<td>35.113</td>
-</tr>
-<tr>
-<td>32</td>
-<td>34.551</td>
-</tr>
-<tr>
-<td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
-<td rowspan="3" valign="top">128</td>
-<td rowspan="3" valign="top">65,536</td>
-<td>8</td>
-<td>2.929</td>
-</tr>
-<tr>
-<td>16</td>
-<td>2.888</td>
-</tr>
-<tr>
-<td>32</td>
-<td>2.919</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">181</td>
-<td rowspan="3" valign="top">131,044</td>
-<td>8</td>
-<td>9.403</td>
-</tr>
-<tr>
-<td>16</td>
-<td>9.312</td>
-</tr>
-<tr>
-<td>32</td>
-<td>9.137</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">256</td>
-<td rowspan="3" valign="top">262,144</td>
-<td>8</td>
-<td>31.836</td>
-</tr>
-<tr>
-<td>16</td>
-<td>31.583</td>
-</tr>
-<tr>
-<td>32</td>
-<td>31.715</td>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>62.254</td>
 </tr>
 </tbody>
 </table>
@@ -693,71 +656,25 @@ discussion in the <code><a title="ateams.models.SwendsenWang" href="#ateams.mode
 <th></th>
 <th></th>
 <th></th>
-<th></th>
 <th>s/iteration</th>
 </tr>
 <tr>
-<th>Field</th>
 <th>$N$</th>
 <th>Cells</th>
-<th><code>maxTries</code></th>
+<th>Field</th>
 <th></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td rowspan="4" valign="top">$\mathbb Z/2\mathbb Z$</td>
 <td rowspan="2" valign="top">10</td>
-<td rowspan="2" valign="top">160,000</td>
-<td>8</td>
-<td>0.362</td>
+<td rowspan="2" valign="top">60,000</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>0.847</td>
 </tr>
 <tr>
-<td>16</td>
-<td>0.301</td>
-</tr>
-<tr>
-<td rowspan="2" valign="top">20</td>
-<td rowspan="2" valign="top">2,560,000</td>
-<td>8</td>
-<td>157.579</td>
-</tr>
-<tr>
-<td>16</td>
-<td>216.076</td>
-</tr>
-<tr>
-<td rowspan="2" valign="top">$\mathbb Z/3\mathbb Z$</td>
-<td rowspan="2" valign="top">10</td>
-<td rowspan="2" valign="top">160,000</td>
-<td>8</td>
-<td>185.233</td>
-</tr>
-<tr>
-<td>16</td>
-<td>109.523</td>
-</tr>
-<tr>
-<td rowspan="2" valign="top">$\mathbb Z/5\mathbb Z$</td>
-<td rowspan="2" valign="top">10</td>
-<td rowspan="2" valign="top">160,000</td>
-<td>8</td>
-<td>129.678</td>
-</tr>
-<tr>
-<td>16</td>
-<td>30.151</td>
-</tr>
-<tr>
-<td rowspan="2" valign="top">$\mathbb Z/7\mathbb Z$</td>
-<td rowspan="2" valign="top">10</td>
-<td rowspan="2" valign="top">160,000</td>
-<td>8</td>
-<td>93.875</td>
-</tr>
-<tr>
-<td>16</td>
-<td>38.129</td>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>42.541</td>
 </tr>
 </tbody>
 </table></div>
@@ -769,8 +686,8 @@ discussion in the <code><a title="ateams.models.SwendsenWang" href="#ateams.mode
         _name = &#34;InvadedCluster&#34;
         
         def __init__(
-                        self, C, dimension=1, field=2, initial=None, stop=lambda: 1, maxTries=16,
-                        **kwargs
+                        self, C, dimension=1, field=2, initial=None, full=False, stop=lambda: 1,
+                        tries=64, **kwargs
                 ):
                 &#34;&#34;&#34;
                 Initializes the plaquette invaded-cluster algorithm on the provided
@@ -782,11 +699,12 @@ discussion in the <code><a title="ateams.models.SwendsenWang" href="#ateams.mode
                         dimension (int=1): The dimension of cells on which we&#39;re percolating.
                         field (int=2): Field characteristic.
                         initial (np.array): A vector of spin assignments to components.
+                        full (bool=True): Do we find *all* the homological persistence events,
+                                or just the target one?
                         stop (function): A function that returns the number of essential cycles
                                 found before sampling the next configuration.
-                        maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
-                                vector in the kernel of the coboundary matrix \(A\). See more
-                                discussion in the `SwendsenWang` model.
+                        tries (int=64): Number of persistence computation attempts made before
+                                re-sampling.
 
                 &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;InvadedCluster-Persistence-2&#34;&gt;Performance in \(\mathbb T^2_N\)&lt;/button&gt; &lt;/center&gt;
                 ..include:: ./tables/InvadedCluster.Persistence.2.html
@@ -800,6 +718,12 @@ discussion in the <code><a title="ateams.models.SwendsenWang" href="#ateams.mode
                 self.stop = stop
                 self._returns = 3
                 self.field = field
+
+                self.tries = tries
+                self.full = full
+
+                # Check if we&#39;re debugging.
+                self._DEBUG = kwargs.get(&#34;_DEBUG&#34;, False)
 
 
                 # Force-recompute the matrices for a different dimension; creates
@@ -829,11 +753,10 @@ discussion in the <code><a title="ateams.models.SwendsenWang" href="#ateams.mode
                 # Premake the &#34;occupied cells&#34; array; change the dimension of the complex
                 # to correspond to the provided dimension.
                 self.rank = comb(len(self.complex.corners), self.dimension)
-                self.nullity = len(self.complex.Boundary[self.dimension])
 
 
                 # Delegates computation for persistence and cocycle sampling.
-                self._delegateComputation(maxTries)
+                self._delegateComputation()
 
 
                 # Seed the random number generator.
@@ -845,16 +768,16 @@ discussion in the <code><a title="ateams.models.SwendsenWang" href="#ateams.mode
                 else: self.spins = (initial%self.field).astype(FINT)
 
         
-        def _delegateComputation(self, maxTries):
+        def _delegateComputation(self):
                 low, high = self.complex.breaks[self.dimension], self.complex.breaks[self.dimension+1]
 
                 # If we&#39;re using LinBox, our sampling method is Lanczos regardless of
                 # dimension.
                 def sample(zeros):
                         try:
-                                return np.array(LanczosKernelSample(
+                                return np.array(ReducedKernelSample(
                                         self.matrices.coboundary, zeros, 2*self.dimension,
-                                        self.faces, self.field, maxTries
+                                        self.faces, self.field, self._DEBUG
                                 ), dtype=FINT)
                         except Exception as e:
                                 raise NumericalInstabilityWarning(e)
@@ -862,16 +785,89 @@ discussion in the <code><a title="ateams.models.SwendsenWang" href="#ateams.mode
                 # If we&#39;re using LinBox and the characteristic of our field is greater
                 # than 2, we use the twist_reduce variant implemented in this library.
                 if self.field &gt; 2:
-                        Twister = Twist(self.field, self.matrices.full, self.complex.breaks, self.cellCount, self.dimension)
+                        Twister = Twist(self.field, self.matrices.full, self.complex.breaks, self.cellCount, self.dimension, self._DEBUG)
+                        Twister.LinearComputeCobasis();
+
+                        def _user_continue_prompt():
+                                _affirm = {&#34;&#34;, &#34;yes&#34;, &#34;y&#34;, &#34;ye&#34;}
+                                _cont = input(&#34;\ncontinue? [y/n, default y] --&gt; &#34;)
+
+                                if _cont not in _affirm: sys.exit(1)
+                                print(&#34;\n\n&#34;)
 
                         def persist(filtration):
-                                essential = Twister.LinearComputePercolationEvents(filtration)
-                                # essential = Twister.ComputePercolationEvents(filtration)
-                                # essential = Twister.ZpComputePercolationEvents(filtration)
-                                essential = np.array(list(essential))
-                                essential.sort()
+                                # Set defaults.
+                                essential = set()
+                                tries = 0
+
+                                # Debugging mode. Compares the SparseRREF/SpaSM output to the
+                                # classical persistence algorithm (LinearComputePercolationEvents).
+                                # NOTE: this waits for user input to continue after each iteration.
+                                if self._DEBUG:
+                                        print(&#34;######################################&#34;)
+                                        print(&#34;#### SPARSERREF/SPASM COMPUTATION ####&#34;)
+                                        print(&#34;######################################&#34;)
+
+                                        rstart = time.time()
+                                        att = 0
+
+                                        while len(essential) &lt; self.rank:
+                                                stop = 0 if self.full else self._STOP
+                                                essential = Twister.RankComputePercolationEvents(filtration, stop=stop)
+                                                att += 1
+
+                                                if not self.full and len(essential) == 1: break;
+                                        
+                                        rend = time.time()
+                                        essential = np.array(list(essential))
+                                        essential = essential[(essential &gt;= low) &amp; (essential &lt; high)]
+                                        essential.sort()
+
+                                        print(&#34;\n\n&#34;)
+                                        print(essential)
+                                        print(f&#34;time: {(rend-rstart):.4f} :: {att} attempts&#34;)
+                                        _user_continue_prompt()
+
+
+                                        print(&#34;######################################&#34;)
+                                        print(&#34;####      LINEAR COMPUTATION      ####&#34;)
+                                        print(&#34;######################################&#34;)
+                                        lstart = time.time()
+                                        _essential = Twister.LinearComputePercolationEvents(filtration)
+                                        lend = time.time()
+                                        _essential = np.array(list(_essential))
+                                        _essential = _essential[(_essential &gt;= low) &amp; (_essential &lt; high)]
+                                        _essential.sort()
+
+                                        print(&#34;\n\n&#34;)
+                                        print(_essential, f&#34;time: {(lend-lstart):.4f}&#34;)
+                                        _user_continue_prompt()
+
+                                else:
+                                        # Attempt the persistence computation up to `self.tries` times;
+                                        # if we exceed the attempts budget, re-sample the filtration and
+                                        # try again.
+                                        while len(essential) &lt; self.rank:
+                                                # Compute essential cycle birth times. If we aren&#39;t computing the
+                                                # 
+                                                stop = 0 if self.full else self._STOP
+                                                essential = Twister.RankComputePercolationEvents(filtration, stop=stop)
+                                                tries += 1
+
+                                                # If we don&#39;t have enough essential cycles and we&#39;ve tried
+                                                # too many times, re-sample the filtration and try again.
+                                                if len(essential) &lt; self.rank and tries &gt;= self.tries:
+                                                        print(f&#34;[Persistence] exceeded the acceptable number of {self.tries} attempts. Re-sampling filtration...&#34;)
+                                                        filtration = self._filtrate(self.spins)
+                                                        tries = 0
+
+                                                if not self.full and len(essential) == 1: break
+
+                                        essential = np.array(list(essential))
+                                        essential = essential[(essential &gt;= low) &amp; (essential &lt; high)]
+                                        essential.sort()
                                 
-                                return essential[(essential &gt;= low) &amp; (essential &lt; high)]
+                                return essential
                 
                 # If we&#39;re using LinBox and the field we&#39;re computing over *is* two,
                 # use PHAT.
@@ -948,24 +944,38 @@ discussion in the <code><a title="ateams.models.SwendsenWang" href="#ateams.mode
                 Returns:
                         A numpy array representing a vector of spin assignments.
                 &#34;&#34;&#34;
+                # Set a stopping time.
+                self._STOP = self.stop();
+
                 # Construct the filtration and find the essential cycles.
                 filtration, shuffledIndices, satisfiedIndices = self._filtrate(self.spins)
                 essential = self.persist(filtration)
 
                 j = 0
                 low = self.complex.breaks[self.dimension]
+                satisfied = np.zeros(self.cells, dtype=int)
 
-                stop = self.stop()
-                occupied = np.zeros((self.rank, self.nullity))
-                satisfied = np.zeros(self.nullity)
+                # If we only computed a desired percolation time, then the matrix of
+                # occupied cell indices has one row...
+                if not self.full:
+                        t = essential[0]
 
-                for t in sorted(essential):
+                        occupied = np.zeros(self.cells, dtype=int)
                         occupiedIndices = shuffledIndices[:t-low+1]
-                        occupied[j,occupiedIndices] = 1
+                        occupied[occupiedIndices] = 1
 
-                        if (j+1) == stop: spins = self.sample(occupiedIndices)
+                        spins = self.sample(occupiedIndices)
+                # Otherwise, it has `rank` rows.
+                else:
+                        occupied = np.zeros((self.rank, self.cells), dtype=int)
 
-                        j += 1
+                        for t in sorted(essential):
+                                occupiedIndices = shuffledIndices[:t-low+1]
+                                occupied[j,occupiedIndices] = 1
+
+                                if (j+1) == self._STOP: spins = self.sample(occupiedIndices)
+
+                                j += 1
                 
                 satisfied[satisfiedIndices] = 1
 
@@ -1009,28 +1019,7 @@ Here, the dimension is assumed to be 2.</dd>
 <dt><strong><code>maxTries</code></strong> :&ensp;<code>int=16</code></dt>
 <dd>The number of attempts LinBox makes to sample a nonzero
 vector in the kernel of the coboundary matrix.</dd>
-</dl>
-<p><center> <button type="button" class="collapsible" id="Nienhuis-SubLanczosKernelSample-2"> Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span></button> </center></p>
-<table class="dataframe profile-data-table" id="Nienhuis-SubLanczosKernelSample-2-table">
-<thead>
-<tr style="text-align: right;">
-<th></th>
-<th></th>
-<th></th>
-<th></th>
-<th>s/iteration</th>
-</tr>
-<tr>
-<th>Field</th>
-<th>$N$</th>
-<th>Cells</th>
-<th><code>maxTries</code></th>
-<th></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table></div>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1055,9 +1044,6 @@ vector in the kernel of the coboundary matrix.</dd>
                         initial (np.array): A vector of spin assignments to components.
                         maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
                                 vector in the kernel of the coboundary matrix.
-                
-                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;Nienhuis-SubLanczosKernelSample-2&#34;&gt; Performance in \(\mathbb T^2_N\)&lt;/button&gt; &lt;/center&gt;
-                ..include:: ./tables/Nienhuis.SubLanczosKernelSample.2.html
                 &#34;&#34;&#34;
                 # Object access.
                 self.complex = C
@@ -1114,8 +1100,8 @@ vector in the kernel of the coboundary matrix.</dd>
         def _delegateComputation(self, maxTries):
                 def sample(faceZeros, cellZeros):
                         try:
-                                return np.array(SubLanczosKernelSample(
-                                        self.matrices.coboundary, cellZeros, faceZeros, self.field, maxTries=maxTries
+                                return np.array(SubReducedKernelSample(
+                                        self.matrices.coboundary, cellZeros, faceZeros, self.field, False
                                 ), dtype=FINT)
                         except Exception as e:
                                 raise NumericalInstabilityWarning(e)
@@ -1195,7 +1181,7 @@ vector in the kernel of the coboundary matrix.</dd>
 </dd>
 <dt id="ateams.models.SwendsenWang"><code class="flex name class">
 <span>class <span class="ident">SwendsenWang</span></span>
-<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>maxTries=16,<br>**kwargs)</span>
+<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>**kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes Swendsen-Wang evolution on the Potts model.</p>
@@ -1213,405 +1199,186 @@ takes a single positive integer argument <code>t</code>, and returns the
 scheduled temperature at time <code>t</code>.</dd>
 <dt><strong><code>initial</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>A vector of spin assignments to components.</dd>
-<dt><strong><code>maxTries</code></strong> :&ensp;<code>int=16</code></dt>
-<dd>The number of attempts LinBox makes to sample a nonzero
-vector in the kernel of the coboundary matrix.</dd>
 </dl>
-<p>If the first vector sampled
-by the Lanczos algorithm is all zeros, we perform the following
-steps until a nonzero vector is found, or we exhaust the number
-of attempts:</p>
-<ol>
-<li>sample once from <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span> with no preconditioner;</li>
-<li>sample up to twice from <span><span class="MathJax_Preview">D_0A</span><script type="math/tex">D_0A</script></span>, where <span><span class="MathJax_Preview">D_0</span><script type="math/tex">D_0</script></span> is a random diagonal matrix;</li>
-<li>sample up to twice from <span><span class="MathJax_Preview">A^\top D_1 A</span><script type="math/tex">A^\top D_1 A</script></span>, where <span><span class="MathJax_Preview">D_1</span><script type="math/tex">D_1</script></span> is a random diagonal matrix;</li>
-<li>sample for the remainder of the attempts from <span><span class="MathJax_Preview">D_2 A^\top D_3 A D_2</span><script type="math/tex">D_2 A^\top D_3 A D_2</script></span>, where <span><span class="MathJax_Preview">D_2, D_3</span><script type="math/tex">D_2, D_3</script></span> are random diagonal matrices.</li>
-</ol>
-<p>If we spend the entire budget of attempts, it is likely that the
-result returned is the all-zeros vector.</p>
-<p><center> <button type="button" class="collapsible" id="SwendsenWang-LanczosKernelSample-2"> Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span></button> </center></p>
-<table class="dataframe profile-data-table" id="SwendsenWang-LanczosKernelSample-2-table">
+<p><center> <button type="button" class="collapsible" id="SwendsenWang-ReducedKernelSample-2"> Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span></button> </center></p>
+<table class="dataframe profile-data-table" id="SwendsenWang-ReducedKernelSample-2-table">
 <thead>
 <tr style="text-align: right;">
-<th></th>
 <th></th>
 <th></th>
 <th></th>
 <th>s/iteration</th>
 </tr>
 <tr>
-<th>Field</th>
 <th>$N$</th>
 <th>Cells</th>
-<th><code>maxTries</code></th>
+<th>Field</th>
 <th></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
-<td rowspan="3" valign="top">724</td>
-<td rowspan="3" valign="top">1,048,352</td>
-<td>8</td>
-<td>0.524</td>
+<td rowspan="4" valign="top">256</td>
+<td rowspan="4" valign="top">131,072</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>0.253</td>
 </tr>
 <tr>
-<td>16</td>
-<td>0.873</td>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>0.177</td>
 </tr>
 <tr>
-<td>32</td>
-<td>1.135</td>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>0.119</td>
 </tr>
 <tr>
-<td rowspan="3" valign="top">1024</td>
-<td rowspan="3" valign="top">2,097,152</td>
-<td>8</td>
-<td>1.219</td>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>0.102</td>
 </tr>
 <tr>
-<td>16</td>
-<td>1.311</td>
+<td rowspan="4" valign="top">512</td>
+<td rowspan="4" valign="top">524,288</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>1.286</td>
 </tr>
 <tr>
-<td>32</td>
-<td>2.578</td>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>0.702</td>
 </tr>
 <tr>
-<td rowspan="3" valign="top">1448</td>
-<td rowspan="3" valign="top">4,193,408</td>
-<td>8</td>
-<td>2.417</td>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>0.431</td>
 </tr>
 <tr>
-<td>16</td>
-<td>2.483</td>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>0.353</td>
 </tr>
 <tr>
-<td>32</td>
-<td>4.721</td>
+<td rowspan="4" valign="top">1024</td>
+<td rowspan="4" valign="top">2,097,152</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>7.135</td>
 </tr>
 <tr>
-<td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
-<td rowspan="3" valign="top">724</td>
-<td rowspan="3" valign="top">1,048,352</td>
-<td>8</td>
-<td>0.364</td>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>3.698</td>
 </tr>
 <tr>
-<td>16</td>
-<td>0.502</td>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>2.038</td>
 </tr>
 <tr>
-<td>32</td>
-<td>0.274</td>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>1.605</td>
 </tr>
 <tr>
-<td rowspan="3" valign="top">1024</td>
-<td rowspan="3" valign="top">2,097,152</td>
-<td>8</td>
-<td>0.684</td>
+<td rowspan="4" valign="top">2048</td>
+<td rowspan="4" valign="top">8,388,608</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>67.837</td>
 </tr>
 <tr>
-<td>16</td>
-<td>1.072</td>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>28.235</td>
 </tr>
 <tr>
-<td>32</td>
-<td>1.014</td>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>11.285</td>
 </tr>
 <tr>
-<td rowspan="3" valign="top">1448</td>
-<td rowspan="3" valign="top">4,193,408</td>
-<td>8</td>
-<td>1.627</td>
-</tr>
-<tr>
-<td>16</td>
-<td>2.764</td>
-</tr>
-<tr>
-<td>32</td>
-<td>3.198</td>
-</tr>
-<tr>
-<td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
-<td rowspan="3" valign="top">724</td>
-<td rowspan="3" valign="top">1,048,352</td>
-<td>8</td>
-<td>0.217</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.262</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.197</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">1024</td>
-<td rowspan="3" valign="top">2,097,152</td>
-<td>8</td>
-<td>0.493</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.522</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.587</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">1448</td>
-<td rowspan="3" valign="top">4,193,408</td>
-<td>8</td>
-<td>0.961</td>
-</tr>
-<tr>
-<td>16</td>
-<td>1.023</td>
-</tr>
-<tr>
-<td>32</td>
-<td>1.045</td>
-</tr>
-<tr>
-<td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
-<td rowspan="3" valign="top">724</td>
-<td rowspan="3" valign="top">1,048,352</td>
-<td>8</td>
-<td>0.165</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.181</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.188</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">1024</td>
-<td rowspan="3" valign="top">2,097,152</td>
-<td>8</td>
-<td>0.540</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.504</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.479</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">1448</td>
-<td rowspan="3" valign="top">4,193,408</td>
-<td>8</td>
-<td>0.988</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.944</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.868</td>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>7.813</td>
 </tr>
 </tbody>
 </table>
-<p><center> <button type="button" class="collapsible" id="SwendsenWang-LanczosKernelSample-4"> Performance in <span><span class="MathJax_Preview">\mathbb T^4_N</span><script type="math/tex">\mathbb T^4_N</script></span></button> </center></p>
-<table class="dataframe profile-data-table" id="SwendsenWang-LanczosKernelSample-4-table">
+<p><center> <button type="button" class="collapsible" id="SwendsenWang-ReducedKernelSample-4"> Performance in <span><span class="MathJax_Preview">\mathbb T^4_N</span><script type="math/tex">\mathbb T^4_N</script></span></button> </center></p>
+<table class="dataframe profile-data-table" id="SwendsenWang-ReducedKernelSample-4-table">
 <thead>
 <tr style="text-align: right;">
-<th></th>
 <th></th>
 <th></th>
 <th></th>
 <th>s/iteration</th>
 </tr>
 <tr>
-<th>Field</th>
 <th>$N$</th>
 <th>Cells</th>
-<th><code>maxTries</code></th>
+<th>Field</th>
 <th></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td rowspan="9" valign="top">$\mathbb Z/2\mathbb Z$</td>
-<td rowspan="3" valign="top">10</td>
-<td rowspan="3" valign="top">60,000</td>
-<td>8</td>
-<td>0.027</td>
+<td rowspan="4" valign="top">10</td>
+<td rowspan="4" valign="top">60,000</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>0.206</td>
 </tr>
 <tr>
-<td>16</td>
-<td>0.042</td>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>0.132</td>
 </tr>
 <tr>
-<td>32</td>
-<td>0.083</td>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>0.093</td>
 </tr>
 <tr>
-<td rowspan="3" valign="top">20</td>
-<td rowspan="3" valign="top">960,000</td>
-<td>8</td>
-<td>0.591</td>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>0.091</td>
 </tr>
 <tr>
-<td>16</td>
-<td>0.930</td>
+<td rowspan="4" valign="top">20</td>
+<td rowspan="4" valign="top">960,000</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>3.161</td>
 </tr>
 <tr>
-<td>32</td>
-<td>1.331</td>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>1.683</td>
 </tr>
 <tr>
-<td rowspan="3" valign="top">30</td>
-<td rowspan="3" valign="top">4,860,000</td>
-<td>8</td>
-<td>4.312</td>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>1.076</td>
 </tr>
 <tr>
-<td>16</td>
-<td>6.657</td>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>0.888</td>
 </tr>
 <tr>
-<td>32</td>
-<td>11.206</td>
+<td rowspan="4" valign="top">30</td>
+<td rowspan="4" valign="top">4,860,000</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>28.550</td>
 </tr>
 <tr>
-<td rowspan="9" valign="top">$\mathbb Z/3\mathbb Z$</td>
-<td rowspan="3" valign="top">10</td>
-<td rowspan="3" valign="top">60,000</td>
-<td>8</td>
-<td>0.022</td>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>12.539</td>
 </tr>
 <tr>
-<td>16</td>
-<td>0.030</td>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>6.381</td>
 </tr>
 <tr>
-<td>32</td>
-<td>0.026</td>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>5.234</td>
 </tr>
 <tr>
-<td rowspan="3" valign="top">20</td>
-<td rowspan="3" valign="top">960,000</td>
-<td>8</td>
-<td>0.427</td>
+<td rowspan="4" valign="top">40</td>
+<td rowspan="4" valign="top">15,360,000</td>
+<td>$\mathbb Z/2\mathbb Z$</td>
+<td>224.594</td>
 </tr>
 <tr>
-<td>16</td>
-<td>0.593</td>
+<td>$\mathbb Z/3\mathbb Z$</td>
+<td>79.565</td>
 </tr>
 <tr>
-<td>32</td>
-<td>0.516</td>
+<td>$\mathbb Z/5\mathbb Z$</td>
+<td>27.017</td>
 </tr>
 <tr>
-<td rowspan="3" valign="top">30</td>
-<td rowspan="3" valign="top">4,860,000</td>
-<td>8</td>
-<td>2.537</td>
-</tr>
-<tr>
-<td>16</td>
-<td>3.170</td>
-</tr>
-<tr>
-<td>32</td>
-<td>2.313</td>
-</tr>
-<tr>
-<td rowspan="9" valign="top">$\mathbb Z/5\mathbb Z$</td>
-<td rowspan="3" valign="top">10</td>
-<td rowspan="3" valign="top">60,000</td>
-<td>8</td>
-<td>0.018</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.016</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.019</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">20</td>
-<td rowspan="3" valign="top">960,000</td>
-<td>8</td>
-<td>0.310</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.309</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.382</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">30</td>
-<td rowspan="3" valign="top">4,860,000</td>
-<td>8</td>
-<td>1.860</td>
-</tr>
-<tr>
-<td>16</td>
-<td>2.076</td>
-</tr>
-<tr>
-<td>32</td>
-<td>1.843</td>
-</tr>
-<tr>
-<td rowspan="9" valign="top">$\mathbb Z/7\mathbb Z$</td>
-<td rowspan="3" valign="top">10</td>
-<td rowspan="3" valign="top">60,000</td>
-<td>8</td>
-<td>0.013</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.012</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.015</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">20</td>
-<td rowspan="3" valign="top">960,000</td>
-<td>8</td>
-<td>0.299</td>
-</tr>
-<tr>
-<td>16</td>
-<td>0.297</td>
-</tr>
-<tr>
-<td>32</td>
-<td>0.266</td>
-</tr>
-<tr>
-<td rowspan="3" valign="top">30</td>
-<td rowspan="3" valign="top">4,860,000</td>
-<td>8</td>
-<td>1.736</td>
-</tr>
-<tr>
-<td>16</td>
-<td>1.854</td>
-</tr>
-<tr>
-<td>32</td>
-<td>1.675</td>
+<td>$\mathbb Z/7\mathbb Z$</td>
+<td>19.159</td>
 </tr>
 </tbody>
 </table></div>
@@ -1623,7 +1390,7 @@ result returned is the all-zeros vector.</p>
         _name = &#34;SwendsenWang&#34;
 
         def __init__(
-                        self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None, maxTries=16,
+                        self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None,
                         **kwargs
                 ):
                 r&#34;&#34;&#34;
@@ -1637,34 +1404,18 @@ result returned is the all-zeros vector.</p>
                                 takes a single positive integer argument `t`, and returns the
                                 scheduled temperature at time `t`.
                         initial (np.array): A vector of spin assignments to components.
-                        maxTries (int=16): The number of attempts LinBox makes to sample a nonzero
-                                vector in the kernel of the coboundary matrix.
 
-
-                If the first vector sampled
-                by the Lanczos algorithm is all zeros, we perform the following
-                steps until a nonzero vector is found, or we exhaust the number
-                of attempts:
-
-                1. sample once from \(A\) with no preconditioner;
-                2. sample up to twice from \(D_0A\), where \(D_0\) is a random diagonal matrix;
-                3. sample up to twice from \(A^\top D_1 A\), where \(D_1\) is a random diagonal matrix;
-                4. sample for the remainder of the attempts from \(D_2 A^\top D_3 A D_2\), where \(D_2, D_3\) are random diagonal matrices.
-                        
-                If we spend the entire budget of attempts, it is likely that the
-                result returned is the all-zeros vector.
-
-                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;SwendsenWang-LanczosKernelSample-2&#34;&gt; Performance in \(\mathbb T^2_N\)&lt;/button&gt; &lt;/center&gt;
-                .. include:: ./tables/SwendsenWang.LanczosKernelSample.2.html
+                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;SwendsenWang-ReducedKernelSample-2&#34;&gt; Performance in \(\mathbb T^2_N\)&lt;/button&gt; &lt;/center&gt;
+                .. include:: ./tables/SwendsenWang.ReducedKernelSample.2.html
                 
-                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;SwendsenWang-LanczosKernelSample-4&#34;&gt; Performance in \(\mathbb T^4_N\)&lt;/button&gt; &lt;/center&gt;
-                .. include:: ./tables/SwendsenWang.LanczosKernelSample.4.html
+                &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;SwendsenWang-ReducedKernelSample-4&#34;&gt; Performance in \(\mathbb T^4_N\)&lt;/button&gt; &lt;/center&gt;
+                .. include:: ./tables/SwendsenWang.ReducedKernelSample.4.html
                 &#34;&#34;&#34;
                 # Object access.
                 self.complex = C
                 self.temperature = temperature
                 self.dimension = dimension
-                self._returns = 2
+                self._returns = 3
                 self.field = field
 
                 # Force-recompute the matrices for a different dimension; creates
@@ -1689,15 +1440,18 @@ result returned is the all-zeros vector.</p>
                 # Seed the random number generator.
                 self.RNG = np.random.default_rng()
 
+                # Check if we&#39;re debugging.
+                self._DEBUG = kwargs.get(&#34;_DEBUG&#34;, False)
+
                 # If no initial spin configuration is passed, initialize.
                 if not initial: self.spins = self._initial()
                 else: self.spins = (initial%self.field).astype(FINT)
 
                 # Delegate computation.
-                self._delegateComputation(maxTries)
+                self._delegateComputation()
 
         
-        def _delegateComputation(self, maxTries):
+        def _delegateComputation(self):
                 # If we use LinBox, keep everything as-is.
                 def sample(zeros):
                         # Not currently sure how to handle this... maybe we&#39;ll just &#34;reject&#34;
@@ -1706,9 +1460,9 @@ result returned is the all-zeros vector.</p>
                         # the Chain catches, and warns the user by exiting with exit code
                         # 1 or 2.
                         try:
-                                return np.array(LanczosKernelSample(
+                                return np.array(ReducedKernelSample(
                                         self.matrices.coboundary, zeros, 2*self.dimension,
-                                        self.faces, self.field, maxTries=maxTries
+                                        self.faces, self.field, self._DEBUG
                                 ), dtype=FINT)
                         except Exception as e:
                                 raise NumericalInstabilityWarning(e)
@@ -1760,11 +1514,26 @@ result returned is the all-zeros vector.</p>
                 # Sample from the kernel of the coboundary matrix, and evaluate again
                 spins = self.sample(includedZeros)
 
+                # If we&#39;re debugging, check whether the sample&#39;s correct.
+                if self._DEBUG:
+                        coefficients = spins[boundary[includedZeros]]
+                        coefficients[:,1::2] = -coefficients[:,1::2]%q
+                        sums = coefficients.sum(axis=1)%q
+                        assert sums.sum() == 0
+
                 # Create output vectors.
                 occupied = np.zeros(self.cells, dtype=FINT)
                 occupied[includedZeros] = 1
 
-                return spins, occupied
+                coefficients = self.spins[boundary]
+                coefficients[:,1::2] = -coefficients[:,1::2]%q
+                sums = coefficients.sum(axis=1)%q
+                zeros = np.nonzero(sums == 0)[0]
+
+                satisfied = np.zeros(self.cells, dtype=FINT)
+                satisfied[zeros] = 1
+
+                return spins, occupied, satisfied
         
 
         def _assign(self, cocycle):

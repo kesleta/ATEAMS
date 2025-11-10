@@ -90,19 +90,14 @@ text-align: center !important;
 .dataframe.profile-data-table thead {
 border-bottom: 3px solid black;
 }
-.dataframe.profile-data-table tbody > tr:nth-of-type(9n) {
-border-bottom: 3px solid black;
-}
 .dataframe.profile-data-table tbody tr th {
 vertical-align: middle;
 }
 .dataframe.profile-data-table tbody tr td {
 vertical-align: middle;
 }
-.dataframe.profile-data-table tbody > tr:nth-child(3n) {
-:nth-child(n) {
+.dataframe.profile-data-table tbody > tr:nth-child(4n) {
 border-bottom: 1px solid black;
-}
 }
 .dataframe.profile-data-table tbody td {
 text-align: center;
@@ -137,6 +132,8 @@ text-align: center;
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Cubical:
+        _name = &#34;Cubical&#34;
+        
         def __init__(self): pass
 
         def fromCorners(self, corners, periodic=True):

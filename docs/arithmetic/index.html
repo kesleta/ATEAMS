@@ -90,19 +90,14 @@ text-align: center !important;
 .dataframe.profile-data-table thead {
 border-bottom: 3px solid black;
 }
-.dataframe.profile-data-table tbody > tr:nth-of-type(9n) {
-border-bottom: 3px solid black;
-}
 .dataframe.profile-data-table tbody tr th {
 vertical-align: middle;
 }
 .dataframe.profile-data-table tbody tr td {
 vertical-align: middle;
 }
-.dataframe.profile-data-table tbody > tr:nth-child(3n) {
-:nth-child(n) {
+.dataframe.profile-data-table tbody > tr:nth-child(4n) {
 border-bottom: 1px solid black;
-}
 }
 .dataframe.profile-data-table tbody td {
 text-align: center;
@@ -150,12 +145,12 @@ dimension of permuted cells.</dd>
 <h2 id="returns">Returns</h2>
 <p>A list of [birth, death] pairs.</p></div>
 </dd>
-<dt id="ateams.arithmetic.LanczosKernelSample"><code class="name flex">
-<span>def <span class="ident">LanczosKernelSample</span></span>(<span>coboundary, zeros, faces, columns, p, maxTries=8)</span>
+<dt id="ateams.arithmetic.ReducedKernelSample"><code class="name flex">
+<span>def <span class="ident">ReducedKernelSample</span></span>(<span>coboundary, zeros, faces, columns, p, verbose)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Uses the LinBox (Block?) Lanczos black-box solver to get a uniform
-random element of the kernel of the coboundary.</p>
+<div class="desc"><p>Uses the SpaSM sparse Gaussian elimination strategy to sample uniformly from
+the kernel of the submatrix of the coboundary matrix.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>coboundary</code></strong></dt>
@@ -171,19 +166,16 @@ in the coboundary submatrix.</dd>
 submatrix; should be the total number of faces in the complex.</dd>
 <dt><strong><code>p</code></strong></dt>
 <dd>Characteristic of the field <span><span class="MathJax_Preview">\mathbb Z/p\mathbb Z</span><script type="math/tex">\mathbb Z/p\mathbb Z</script></span>.</dd>
-<dt><strong><code>maxTries</code></strong></dt>
-<dd>How many times do we try to get a nonzero solution from
-the black-box solver? Default is 8.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>A C++ <code>std::vector</code> with spin assignments.</p></div>
 </dd>
-<dt id="ateams.arithmetic.SubLanczosKernelSample"><code class="name flex">
-<span>def <span class="ident">SubLanczosKernelSample</span></span>(<span>coboundary, zeroRows, zeroColumns, p, maxTries=8)</span>
+<dt id="ateams.arithmetic.SubReducedKernelSample"><code class="name flex">
+<span>def <span class="ident">SubReducedKernelSample</span></span>(<span>coboundary, zeroRows, zeroColumns, p, verbose)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Uses the LinBox (Block?) Lanczos black-box solver to get a uniform
-random element of the kernel of the coboundary.</p>
+<div class="desc"><p>Uses the SpaSM sparse Gaussian elimination strategy to sample uniformly from
+the kernel of the submatrix of the coboundary matrix.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>coboundary</code></strong></dt>
@@ -194,9 +186,6 @@ like that of the <code>Cubical</code> Complex object.</dd>
 in the coboundary submatrix.</dd>
 <dt><strong><code>p</code></strong></dt>
 <dd>Characteristic of the field <span><span class="MathJax_Preview">\mathbb Z/p\mathbb Z</span><script type="math/tex">\mathbb Z/p\mathbb Z</script></span>.</dd>
-<dt><strong><code>maxTries</code></strong></dt>
-<dd>How many times do we try to get a nonzero solution from
-the black-box solver? Default is 8.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>A C++ <code>std::vector</code> with spin assignments.</p></div>
@@ -231,6 +220,9 @@ in <code>boundary</code>. Given a complex <code>C</code> (e.g. <code><a title="a
 <dt><strong><code>dimension</code></strong> :&ensp;<code>int</code></dt>
 <dd>Dimension of percolation. Given a model <code>M</code> (e.g.
 <code><a title="ateams.models.SwendsenWang" href="../models/index.html#ateams.models.SwendsenWang">SwendsenWang</a></code>), <code>M.dimension</code>.</dd>
+<dt><strong><code>__DEBUG</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Do we want to run in debug mode? This shows standard
+error stream output from the matrix reducers.</dd>
 </dl>
 <p>For example,</p>
 <pre><code class="language-python">from ateams.complexes import Cubical
@@ -248,27 +240,23 @@ Twister = Twist(field, C.matrices.full, C.breaks, cellCount, dimension)
 
 # Construct a filtration and compute the percolation events.
 filtration = np.arange(cellCount)
-essential = Twister.ComputePercolationEvents(filtration)
+essential = Twist.ComputePercolationEvents(filtration)
 </code></pre>
 <p>In this case, <code>essential</code> should be <code>{0, 17, 35, 21}</code>, and the times <span><span class="MathJax_Preview">17</span><script type="math/tex">17</script></span>
 and <span><span class="MathJax_Preview">21</span><script type="math/tex">21</script></span> are the essential <span><span class="MathJax_Preview">1</span><script type="math/tex">1</script></span>-dimensional cycles.</p></div>
 <h3>Methods</h3>
 <dl>
-<dt id="ateams.arithmetic.Twist.ComputePercolationEvents"><code class="name flex">
-<span>def <span class="ident">ComputePercolationEvents</span></span>(<span>self, filtration)</span>
+<dt id="ateams.arithmetic.Twist.LinearComputeBasis"><code class="name flex">
+<span>def <span class="ident">LinearComputeBasis</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Given a filtration &mdash; i.e. a reordering of the columns of the full
-boundary matrix &mdash; gives times at which essential cycles of dimension
-<code>dimension</code> were created. Performs arithmetic using addition and
-multiplication tables stored in <code>vector&lt;vector&lt;char&gt;&gt;</code>s.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>filtration</code></strong> :&ensp;<code>np.ndarray</code></dt>
-<dd>An array of column indices.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A set containing indices at which essential cycles appear.</p></div>
+<div class="desc"><p>Computes bases for the <code>dimension</code>th homology group.</p></div>
+</dd>
+<dt id="ateams.arithmetic.Twist.LinearComputeCobasis"><code class="name flex">
+<span>def <span class="ident">LinearComputeCobasis</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 <dt id="ateams.arithmetic.Twist.LinearComputePercolationEvents"><code class="name flex">
 <span>def <span class="ident">LinearComputePercolationEvents</span></span>(<span>self, filtration)</span>
@@ -277,8 +265,7 @@ multiplication tables stored in <code>vector&lt;vector&lt;char&gt;&gt;</code>s.<
 <div class="desc"><p>Given a filtration &mdash; i.e. a reordering of the columns of the full
 boundary matrix &mdash; gives times at which essential cycles of dimension
 <code>dimension</code> were created. Performs arithmetic using flattened addition
-and multiplication tables stored in <code>vector&lt;char&gt;</code>s. <strong>This method is
-recommended for general use.</strong></p>
+and multiplication tables stored in <code>vector&lt;char&gt;</code>s.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>filtration</code></strong> :&ensp;<code>np.ndarray</code></dt>
@@ -287,20 +274,17 @@ recommended for general use.</strong></p>
 <h2 id="returns">Returns</h2>
 <p>A set containing indices at which essential cycles appear.</p></div>
 </dd>
-<dt id="ateams.arithmetic.Twist.ZpComputePercolationEvents"><code class="name flex">
-<span>def <span class="ident">ZpComputePercolationEvents</span></span>(<span>self, filtration)</span>
+<dt id="ateams.arithmetic.Twist.RankComputePercolationEvents"><code class="name flex">
+<span>def <span class="ident">RankComputePercolationEvents</span></span>(<span>self, filtration, stop=0)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Given a filtration &mdash; i.e. a reordering of the columns of the full
-boundary matrix &mdash; gives times at which essential cycles of dimension
-<code>dimension</code> were created. Performs arithmetic using <code>Givaro</code>.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>filtration</code></strong> :&ensp;<code>np.ndarray</code></dt>
-<dd>An array of column indices.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A set containing indices at which essential cycles appear.</p></div>
+<div class="desc"></div>
+</dd>
+<dt id="ateams.arithmetic.Twist.SolveComputePercolationEvents"><code class="name flex">
+<span>def <span class="ident">SolveComputePercolationEvents</span></span>(<span>self, filtration)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 </dl>
 </dd>
@@ -340,8 +324,8 @@ proof.appendChild(square);
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="ateams.arithmetic.ComputePersistencePairs" href="#ateams.arithmetic.ComputePersistencePairs">ComputePersistencePairs</a></code></li>
-<li><code><a title="ateams.arithmetic.LanczosKernelSample" href="#ateams.arithmetic.LanczosKernelSample">LanczosKernelSample</a></code></li>
-<li><code><a title="ateams.arithmetic.SubLanczosKernelSample" href="#ateams.arithmetic.SubLanczosKernelSample">SubLanczosKernelSample</a></code></li>
+<li><code><a title="ateams.arithmetic.ReducedKernelSample" href="#ateams.arithmetic.ReducedKernelSample">ReducedKernelSample</a></code></li>
+<li><code><a title="ateams.arithmetic.SubReducedKernelSample" href="#ateams.arithmetic.SubReducedKernelSample">SubReducedKernelSample</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
@@ -349,9 +333,11 @@ proof.appendChild(square);
 <li>
 <h4><code><a title="ateams.arithmetic.Twist" href="#ateams.arithmetic.Twist">Twist</a></code></h4>
 <ul class="">
-<li><code><a title="ateams.arithmetic.Twist.ComputePercolationEvents" href="#ateams.arithmetic.Twist.ComputePercolationEvents">ComputePercolationEvents</a></code></li>
+<li><code><a title="ateams.arithmetic.Twist.LinearComputeBasis" href="#ateams.arithmetic.Twist.LinearComputeBasis">LinearComputeBasis</a></code></li>
+<li><code><a title="ateams.arithmetic.Twist.LinearComputeCobasis" href="#ateams.arithmetic.Twist.LinearComputeCobasis">LinearComputeCobasis</a></code></li>
 <li><code><a title="ateams.arithmetic.Twist.LinearComputePercolationEvents" href="#ateams.arithmetic.Twist.LinearComputePercolationEvents">LinearComputePercolationEvents</a></code></li>
-<li><code><a title="ateams.arithmetic.Twist.ZpComputePercolationEvents" href="#ateams.arithmetic.Twist.ZpComputePercolationEvents">ZpComputePercolationEvents</a></code></li>
+<li><code><a title="ateams.arithmetic.Twist.RankComputePercolationEvents" href="#ateams.arithmetic.Twist.RankComputePercolationEvents">RankComputePercolationEvents</a></code></li>
+<li><code><a title="ateams.arithmetic.Twist.SolveComputePercolationEvents" href="#ateams.arithmetic.Twist.SolveComputePercolationEvents">SolveComputePercolationEvents</a></code></li>
 </ul>
 </li>
 </ul>

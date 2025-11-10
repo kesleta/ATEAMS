@@ -90,19 +90,14 @@ text-align: center !important;
 .dataframe.profile-data-table thead {
 border-bottom: 3px solid black;
 }
-.dataframe.profile-data-table tbody > tr:nth-of-type(9n) {
-border-bottom: 3px solid black;
-}
 .dataframe.profile-data-table tbody tr th {
 vertical-align: middle;
 }
 .dataframe.profile-data-table tbody tr td {
 vertical-align: middle;
 }
-.dataframe.profile-data-table tbody > tr:nth-child(3n) {
-:nth-child(n) {
+.dataframe.profile-data-table tbody > tr:nth-child(4n) {
 border-bottom: 1px solid black;
-}
 }
 .dataframe.profile-data-table tbody td {
 text-align: center;
@@ -364,7 +359,11 @@ each iteration and stores whatever output is given.</dd>
                         `tqdm` iterable.
                 &#34;&#34;&#34;
                 from tqdm.auto import tqdm
-                return tqdm(self, total=self.steps, dynamic_ncols=dynamic_ncols, desc=desc)</code></pre>
+                import sys
+
+                # stream = sys.stdout if self.model._DEBUG else sys.stderr
+                stream = sys.stderr
+                return tqdm(self, file=stream, total=self.steps, dynamic_ncols=dynamic_ncols, desc=desc)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -543,7 +542,8 @@ displaying the progress bar.</dd>
 <dd>
 <div class="desc"><p>Safely "records" states from a Chain by tracking changes between successive
 states, and writing these changes &mdash; alongside the initial state &mdash; to
-file.</p></div>
+file. WARNING: all input is flattened when recording and is NOT reshaped when
+playing back.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -552,7 +552,8 @@ file.</p></div>
         &#34;&#34;&#34;
         Safely &#34;records&#34; states from a Chain by tracking changes between successive
         states, and writing these changes --- alongside the initial state --- to
-        file.
+        file. WARNING: all input is flattened when recording and is NOT reshaped when
+        playing back.
         &#34;&#34;&#34;
         def __init__(self): pass
 
@@ -607,7 +608,7 @@ file.</p></div>
 
                 # Check whether we have any previously-stored data.
                 if not self._previous:
-                        self.previous = tuple(-np.ones(shape=s.shape, dtype=s.dtype) for s in state)
+                        self.previous = tuple(-np.ones(shape=s.flatten().shape, dtype=s.dtype) for s in state)
                         self._previous = True
 
                 subblock = []
@@ -615,11 +616,12 @@ file.</p></div>
                 # Get diffs; store.
                 for i in range(len(state)):
                         # Compute the diff and store.
-                        diff = np.flatnonzero(~np.equal(state[i], self.previous[i]))
-                        self.previous[i][diff] = state[i][diff][::]
+                        curr = state[i].flatten()
+                        diff = np.flatnonzero(~np.equal(curr, self.previous[i]))
+                        self.previous[i][diff] = curr[diff][::]
 
                         # Add the encoded dictionary of diffs to the subblock.
-                        subblock.append(f&#34;{&#39; &#39;.join(diff.astype(str))}{self._interlistbreak}{&#39; &#39;.join(state[i][diff].astype(str))}&#34;)
+                        subblock.append(f&#34;{&#39; &#39;.join(diff.astype(str))}{self._interlistbreak}{&#39; &#39;.join(curr[diff].astype(str))}&#34;)
 
                 # Increment the number of iterations we&#39;ve stored; if we&#39;ve reached the
                 # limit, compress, write to file, and begin again.

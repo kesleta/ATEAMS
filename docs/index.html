@@ -90,19 +90,14 @@ text-align: center !important;
 .dataframe.profile-data-table thead {
 border-bottom: 3px solid black;
 }
-.dataframe.profile-data-table tbody > tr:nth-of-type(9n) {
-border-bottom: 3px solid black;
-}
 .dataframe.profile-data-table tbody tr th {
 vertical-align: middle;
 }
 .dataframe.profile-data-table tbody tr td {
 vertical-align: middle;
 }
-.dataframe.profile-data-table tbody > tr:nth-child(3n) {
-:nth-child(n) {
+.dataframe.profile-data-table tbody > tr:nth-child(4n) {
 border-bottom: 1px solid black;
-}
 }
 .dataframe.profile-data-table tbody td {
 text-align: center;
@@ -118,9 +113,9 @@ text-align: center;
 </header>
 <section id="section-intro">
 <h2 id="ateams">ATEAMS</h2>
-<p><a href="https://doi.org/10.5281/zenodo.14284172"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.14284172.svg"></a>
+<p><a href="https://doi.org/10.5281/zenodo.17247050"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.17247050.svg"></a>
 <a href="https://apizzimenti.github.io/ATEAMS/"><img alt="docs" src="https://img.shields.io/badge/%E2%93%98-Documentation-%230099cd"></a> </p>
-<p><strong>A</strong>lgebraic <strong>T</strong>opology-<strong>E</strong>nabled <strong>A</strong>lgorith<strong>M</strong>s for <strong>S</strong>pin systems (<strong>ATEAMS</strong>) is a software suite designed for high-performance simulation of generalized <em>Potts</em> and <em>random-cluster</em> models in combinatorial complexes of arbitrary dimension and scale. The linear algebra subroutines supporting these programs are tailored to this application — matrix reduction over finite fields — using <a href="https://github.com/linbox-team/linbox">LinBox</a> and PHAT [<a href="https://www.sciencedirect.com/science/article/pii/S0747717116300098">1</a>,<a href="https://bitbucket.org/phat-code/phat/src/master/">2</a>].</p>
+<p><strong>A</strong>lgebraic <strong>T</strong>opology-<strong>E</strong>nabled <strong>A</strong>lgorith<strong>M</strong>s for <strong>S</strong>pin systems (<strong>ATEAMS</strong>) is a software suite designed for high-performance simulation of generalized <em>Potts</em> and <em>random-cluster</em> models in combinatorial complexes of arbitrary dimension and scale. The linear algebra subroutines supporting these programs are tailored to this application — matrix reduction over finite fields — using <a href="https://github.com/cbouilla/spasm">SpaSM</a>, <a href="https://github.com/munuxi/SparseRREF">SparseRREF</a>, and PHAT [<a href="https://www.sciencedirect.com/science/article/pii/S0747717116300098">1</a>,<a href="https://bitbucket.org/phat-code/phat/src/master/">2</a>].</p>
 <p><a href="#dependencies"><strong>Install dependencies</strong></a> $\longrightarrow$ <a href="#installing-ateams"><strong>Install ATEAMS</strong></a> $\longrightarrow$ <a href="https://apizzimenti.github.io/ATEAMS/"><strong>Documentation</strong></a> $\longrightarrow$ <a href="#contributing"><strong>Contributing</strong></a> $\longrightarrow$ <a href="#citing"><strong>Citing</strong></a></p>
 <h2 id="demo">Demo</h2>
 <p>Simulating the $1$-dimensional plaquette random cluster model on a $10 \times 10 \times 10$ cubical $3$-torus with coefficients in the finite field $\mathbb F_3$ looks like:</p>
@@ -145,7 +140,7 @@ field = 5
 C = Cubical().fromCorners([10]*4)
 SW = SwendsenWang(C, dimension=2, field=field, temperature=critical(field))
 
-for (spins, occupied) in Chain(SW, steps=1000):
+for (spins, occupied) in Chain(SW, steps=100):
     pass
 </code></pre>
 <p><a href="https://apizzimenti.github.io/ATEAMS/models/index.html#ateams.models.SwendsenWang"><code>SwendsenWang</code></a> is, after <a href="https://apizzimenti.github.io/ATEAMS/models/index.html#ateams.models.Glauber"><code>Glauber</code></a>, the most efficient implementation in ATEAMS. The above chain terminates in ~19 seconds on an Apple M2. Additional performance information for each model is included in <a href="https://apizzimenti.github.io/ATEAMS/models/index.html">the documentation</a>.</p>
@@ -180,7 +175,7 @@ with Player().playback(&quot;out.lz&quot;, steps=1000) as play:
 <ol>
 <li>Patience. </li>
 <li>Python $\geq$ 3.9. To manage different versions of Python on your machine, we recommend <a href="https://github.com/pyenv/pyenv">pyenv</a>.</li>
-<li>A C/C++ compiler. <strong>Clang is recommended; please ensure your machine's default compiler is Clang.</strong></li>
+<li>A C/C++ compiler. <strong>Clang is recommended; please ensure your machine's default compiler is Clang (at least version 19).</strong></li>
 <li><a href="https://www.gnu.org/software/make/">GNU Make</a> (or a Windows variant&hellip;) to build and install the library, and to build any changes you might make. <em>(This is optional for Windows users. The recipes in the Makefile can be performed manually, but it will take much longer. If that's undesirable, the Linux Subsystem for Windows is a useful workaround.)</em></li>
 <li>Standard tools (pkg-config, autoconf, libtool, etc.) for building and maintaining C++ libraries. For Windows, the Visual Studio BuildTools (which include Clang/LLVM) may be required.</li>
 <li>If you want to keep your sanity, a computer running macOS or a flavor of Linux.</li>
@@ -201,40 +196,15 @@ $ make install
 </code></pre>
 <p><strong>Should you run into errors,</strong> the <code>make install</code> recipe performs the following operations in the order they're listed:</p>
 <ol>
-<li>Attempts to compile the Python $\leftrightarrow$ Cython $\leftrightarrow$ LinBox C++ interface at <code>ATEAMS/ateams/arithmetic/LinBoxMethods.cpp</code>, building it as a shared library and storing it at <code>/usr/local/lib/libLinBoxMethods.so</code>.</li>
-<li>Attempts to compile the Python $\leftrightarrow$ Cython $\leftrightarrow$ LinBox C++ interface at <code>ATEAMS/ateams/arithmetic/PHATMethods.cpp</code>, building it as a shared library and storing it at <code>/usr/local/lib/libPHATMethods.so</code>.</li>
+<li>Attempts to compile the Python $\leftrightarrow$ Cython $\leftrightarrow$ C++ interface at <code>ATEAMS/ateams/arithmetic/Sampling.cpp</code>, building it as a shared library and storing it at <code>/usr/local/lib/libATEAMS_Sampling.so</code>.</li>
+<li>Attempts to compile the Python $\leftrightarrow$ Cython $\leftrightarrow$
+C++ interface at <code>ATEAMS/ateams/arithmetic/Persistence.cpp</code>, building it as a shared library and storing it at <code>/usr/local/lib/libATEAMS_Persistence.so</code>.</li>
 <li>Attempts to compile the Cython components of ATEAMS, spitting the log into a file called <code>build.log</code>.</li>
 <li>Runs <code>setup.py</code> and installs the ATEAMS package as a local development package, so it is importable system-wide.</li>
 <li>Tests arithmetic and profiles the five main models of the library in varying configurations.</li>
 </ol>
-<p><strong>Done manually, these steps are:</strong></p>
-<pre><code>$ rm -rf ./build
-$ sudo clang++ `pkg-config --libs linbox` -shared -fPIC -std=c++17 -o /usr/local/lib/libLinBoxMethods.so ateams/arithmetic/LinBoxMethods.cpp -v -O3 -ffast-math
-  ...
-
-$ sudo cp -r ateams/arithmetic/include/PHAT /usr/local/include/phat
-$ sudo clang++ -shared -fPIC -std=c++17 -o /usr/local/lib/libPHATMethods.so ateams/arithmetic/PHATMethods.cpp -v -O3 -ffast-math
-  ...
-
-$ pip install -r requirements.txt
-$ python setup.py build_ext --inplace &gt; build.log 2&gt;&amp;1 
-$ python setup.py develop
-  ...
-
-$ cd test
-$ ./profile.models.Glauber.sh 19 22 4
-$ ./profile.models.Glauber.sh 999 1002 2
-$ ./profile.models.SW.sh 4 7 4
-$ ./profile.models.SW.sh 499 502 2
-$ ./profile.models.NH.sh 49 52
-$ ./profile.models.IC.sh 4 7 4
-$ ./profile.models.IC.sh 19 22 2
-$ ./profile.models.Bernoulli.sh 4 7 4
-$ ./profile.models.Bernoulli.sh 19 22 2
-  ...
-</code></pre>
+<p><strong>Check the Makefile to see the steps done manually.</strong></p>
 <h3 id="dependencies">Dependencies</h3>
-<p>ATEAMS relies on LinBox. <a href="https://github.com/apizzimenti/linbox">This link goes to our GitHub fork of LinBox</a>, which addresses a small preconditioning bug and modifies its numerical instability warning system so Cython knows when problems arise; otherwise, the library is unchanged from <a href="https://github.com/linbox-team/linbox">its original source</a>. LinBox relies on <a href="https://github.com/linbox-team/fflas-ffpack">fflas-ffpack</a>, <a href="https://github.com/linbox-team/givaro">Givaro</a>, <a href="https://github.com/OpenMathLib/OpenBLAS">OpenBLAS</a>, and <a href="https://gmplib.org/">GMP</a>. <strong>To get the most out of this toolkit, we highly recommended that you install these dependencies.</strong></p>
 <h4 id="gmp">GMP</h4>
 <ol>
 <li><a href="https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz">Download GMP 6.3.0 from here</a>.</li>
@@ -289,7 +259,10 @@ $ pkg-config --libs givaro
   -L/usr/local/lib -lgivaro -lgmpxx -lgmp
 </code></pre>
 <h4 id="fflas-ffpack">fflas-ffpack</h4>
-<p>This package can be slightly trickier, and may need some convincing that the previous dependencies actually exist on your system. As with Givaro, we recommend cloning <a href="https://github.com/linbox-team/fflas-ffpack">the current main branch of fflas-ffpack</a> and building from source.</p>
+<p>This package can be slightly trickier, and may need some convincing that the
+previous dependencies actually exist on your system. As with Givaro, we
+recommend cloning <a href="https://github.com/linbox-team/fflas-ffpack">the current main branch of fflas-ffpack</a>
+and building from source.</p>
 <ol>
 <li>Clone the fflas-ffpack repository.</li>
 <li>Navigate into the fflas-ffpack directory and run the <code>autogen</code> script with the following options:<ul>
@@ -329,28 +302,41 @@ $ sudo make install; make check
 $ pkg-config --libs fflas-ffpack
   -L/&lt;path-to-openblas&gt; -lopenblas -L/usr/local/lib -lgivaro -lgmpxx -lgmp
 </code></pre>
-<h4 id="linbox">LinBox</h4>
-<p>The end is in sight! Here, we recommend cloning <a href="https://github.com/apizzimenti/linbox.git">the <code>bug/bad-checks</code> branch of our forked LinBox repository</a> and building from source.</p>
+<h4 id="spasm">SpaSM</h4>
+<p>SpaSM is a library for (extremely fast) sparse elimination for finite fields with odd prime characteristic (i.e. it doesn't work for $\mathbb Z/q\mathbb Z$ with $q&lt;3$). Again, we recommend downloading the library from <a href="https://github.com/apizzimenti/spasm">our fork</a> and building from source. (The changes on our fork are only to automatically copy shared libraries and header files to <code>/usr/local/lib</code> and <code>/usr/local/include/spasm</code>, and to remove the <code>-Werror</code> C compiler flag.) The installation process for this library is much simpler:</p>
 <ol>
-<li>Clone LinBox.</li>
-<li>Navigate into the LinBox directory and run the <code>autogen</code> script specifying the install prefix.</li>
-<li>Run <code>make</code> and <code>sudo make install</code>.</li>
+<li>Clone the spasm library.</li>
+<li>Navigate into the spasm directory and run <code>make</code>.<ul>
+<li>If you get an error saying <code>cmake</code> doesn't exist, install it through your OS's package manager (Homebrew for macOS, <code>apt</code> or <code>apt-get</code>).</li>
+<li>If you get an error saying the compiler can't find OpenMP headers, install it through your OS's package manager.</li>
+</ul>
+</li>
+<li>Check whether the files <code>/usr/local/lib/libspasm.so</code> (or <code>.dylib</code>) and <code>/usr/local/include/spasm/spasm.h</code> exist. If they don't, something's up.</li>
 </ol>
-<p>In summary,</p>
-<pre><code>$ git clone https://github.com/apizzimenti/linbox.git
-  Cloning into 'linbox'... done.
+<pre><code>$ git clone https://github.com/apizzimenti/spasm.git
+  Cloning into 'spasm'... done.
 
-$ cd linbox
-$ git checkout bug/bad-checks
-$ ./autogen.sh --prefix=/usr/local
+$ cd spasm
+$ make build
   ...
-
-$ make; sudo make install
-  ...
-
-$ pkg-config --libs linbox
-  -L/usr/local/lib -llinbox -L/&lt;path-to-openblas&gt; -lopenblas -lgivaro -lgmpxx -lgmp
 </code></pre>
+<p>Then check whether the files <code>/usr/local/lib/libspasm.so</code> (or <code>.dylib</code>) and <code>/usr/local/include/spasm/spasm.h</code> exist.</p>
+<h3 id="flint">Flint</h3>
+<p>Flint (<strong>F</strong>ast <strong>Li</strong>brary for <strong>N</strong>umber <strong>T</strong>heory) is exactly what it sounds like. It usually comes installed with most Linux distros, and can be installed through your OS's package manager (Homebrew for macOS, <code>apt</code> or <code>apt-get</code> for Linux). Sometimes, ATEAMS has dificulty finding headers, and will error when a Flint symbol can't be found. In that case, you can install it manually:</p>
+<pre><code>$ wget -c https://flintlib.org/download/flint-3.3.1.tar.gz -O - | tar -xz
+$ cd flint-3.3.1
+$ ./configure --prefix=/usr/local
+  ...
+
+$ make -j $(expr $(nproc) + 1)
+$ sudo make install
+  ...
+
+$ pkg-config --libs --cflags flint
+  -I/usr/local/include -L/usr/local/lib -lflint -lmpfr -lgmp
+</code></pre>
+<h4 id="sparserref">SparseRREF</h4>
+<p>We use SparseRREF instead of SpaSM for sampling cochains over $\mathbb Z/2\mathbb Z$. It requires <a href="https://flintlib.org/">Flint</a>, which in turn requires GMP and <a href="https://mpfr.org/">MPFR</a>; you can install MPFR through your OS's package manager. SparseRREF is a header-only library, and all its header files are included in ATEAMS by default.</p>
 <h4 id="phat">PHAT</h4>
 <p>We use the <a href="https://bitbucket.org/phat-code/phat">Persistent Homology Algorithms Toolbox (PHAT)</a> to compute persistence over $\mathbb Z/2\mathbb Z$. Included in the <code>ATEAMS/ateams/arithmetic/include/PHAT</code> folder are all the header files for the PHAT library (as of writing) which will be copied to <code>/usr/local/include/phat</code> whenever <code>make install</code> (or <code>make PHATMethods</code>) is executed. We build an additional C++ interface in <code>PHATMethods.cpp</code>, which is linked against by the Cython compiler and made available to the Python modules in the library &mdash; specifically, native PHAT lets us remarkably speed up persistence computation in the <code>Bernoulli</code> and <code>InvadedCluster</code> models.</p>
 <p>Now, you can move on to <a href="#installing-ateams">installing ATEAMS itself</a>!</p>
@@ -370,40 +356,127 @@ $ pkg-config --libs linbox
     title={{ATEAMS: Algebraic Topology-Enabled AlgorithMs for Spin systems}},
     author={Duncan, Paul and Pizzimenti, Anthony E. and Schweinhart, Benjamin},
     url={https://github.com/apizzimenti/ATEAMS},
-    version={2.0.1},
-    doi={10.5281/zenodo.14284172}
+    version={2.0.3},
+    doi={10.5281/zenodo.17247050}
 }
 </code></pre>
 <h2 id="references">References</h2>
-<ol>
-<li>
-<p>Bauer, Ulrich, Michael Kerber, Jan Reininghaus, and Hubert Wagner. 2017. “PHAT — Persistent Homology Algorithms Toolbox.” <em>Journal of Symbolic Computation</em> 78 (January): 76–90. <a href="https://doi.org/10.1016/j.jsc.2016.03.008">https://doi.org/10.1016/j.jsc.2016.03.008</a>, <a href="https://bitbucket.org/phat-code/">https://bitbucket.org/phat-code/</a>.</p>
-</li>
-<li>
-<p>Chen, Chao, and Michael Kerber. 2011. “Persistent Homology Computation with a Twist.” In <em>Proceedings 27th European Workshop on Computational Geometry</em>, 11:197–200.</p>
-</li>
-<li>
-<p>Duncan, Paul, and Benjamin Schweinhart. 2025. “Topological Phases in the Plaquette Random-Cluster Model and Potts Lattice Gauge Theory.” <em>Communications in Mathematical Physics</em>. <a href="https://arxiv.org/abs/10.48550/arXiv.2207.08339">arxiv.org/abs/10.48550/arXiv.2207.08339</a>.</p>
-</li>
-<li>
-<p>Edelsbrunner, Herbert, and John Harer. 2010. <em>Computational Topology: An Introduction</em>. American Mathematical Soc.</p>
-</li>
-<li>
-<p>The LinBox group. 2021. <em>LinBox</em>. v1.7.0 ed. <a href="http://github.com/linbox-team/linbox">http://github.com/linbox-team/linbox</a>.</p>
-</li>
-<li>
+<p>Agrawal, Ramgopal, Leticia F Cugliandolo, Lara Faoro, Lev B Ioffe, and
+Marco Picco. 2024. “The Geometric Phase Transition of the
+Three-Dimensional ℤ<sub>2</sub> Lattice Gauge Model.” <em>arXiv Preprint
+arXiv:2409.15123</em>.</p>
+<p>Aizenman, Michael, and Jürg Fröhlich. 1984. “Topological Anomalies in
+the <em>n</em>-Dependence of the <em>n</em>-States Potts Lattice Gauge Theory.”
+<em>Nuclear Physics B</em> 235 (1): 1–18.</p>
+<p>Bauer, Ulrich, Michael Kerber, Jan Reininghaus, and Hubert Wagner. 2017.
+“PHAT — Persistent Homology Algorithms Toolbox.” <em>Journal of Symbolic
+Computation</em> 78 (January): 76–90.
+<a href="https://doi.org/10.1016/j.jsc.2016.03.008">https://doi.org/10.1016/j.jsc.2016.03.008</a>.</p>
+<p>Ben-Av, R, E Katznelson, S Solomon, D Kandel, and PG Lauwers. 1990.
+“Critical Acceleration of Monte-Carlo Simulations of ℤ(2) Gauge Theory.”
+<em>Nuclear Physics B-Proceedings Supplements</em> 17: 285–88.</p>
+<p>Bobrowski, Omer, and Primoz Skraba. 2020. “Homological Percolation and
+the Euler Characteristic.” <em>Physical Review E</em> 101 (3).
+<a href="https://doi.org/10.1103/PhysRevE.101.032304">https://doi.org/10.1103/PhysRevE.101.032304</a>.</p>
+<p>Bobrowski, Omer, and Primoz Skraba. 2022. “Homological Percolation: The
+Formation of Giant k-Cycles.” <em>International Mathematics Research
+Notices</em> 2022 (8). <a href="https://doi.org/10.1093/imrn/rnaa305">https://doi.org/10.1093/imrn/rnaa305</a>.</p>
+<p>Bouillaguet, Charles. 2023. <em>SpaSM: A Sparse Direct Solver Modulo </em>p**.
+v1.3.</p>
+<p>Brower, RC, and Suzhou Huang. 1990. “Random Surface Dynamics for z 2
+Gauge Theory.” <em>Physical Review D</em> 41 (2): 708.</p>
+<p>Brower, Richard C, Suzhou Huang, and Kevin JM Moriarty. 1990. “Plaquette
+Percolation for Lattice Gauge Theory.” <em>Nuclear Physics B-Proceedings
+Supplements</em> 17: 603–6.</p>
+<p>Chayes, L., and J. Machta. 1998. “Graphical Representations and Cluster
+Algorithms II.” <em>Physica A: Statistical Mechanics and Its Applications</em>
+254 (3–4). <a href="https://doi.org/10.1016/S0378-4371(97)00637-7">https://doi.org/10.1016/S0378-4371(97)00637-7</a>.</p>
+<p>Chen, Chao, and Michael Kerber. 2011. “Persistent Homology Computation
+with a Twist.” <em>Proceedings 27th European Workshop on Computational
+Geometry</em> 11: 197–200.</p>
+<p>Creutz, Michael, Laurence Jacobs, and Claudio Rebbi. 1979. “Experiments
+with a Gauge-Invariant Ising System.” <em>Physical Review Letters</em> 42 (21):
+1390.</p>
+<p>Drühl, K, and H Wagner. 1982. “Algebraic Formulation of Duality
+Transformations for Abelian Lattice Models.” <em>Annals of Physics</em> 141
+(2): 225–53. <a href="https://doi.org/10.1016/0003-4916(82)90286-X">https://doi.org/10.1016/0003-4916(82)90286-X</a>.</p>
+<p>Duncan, Paul, Matthew Kahle, and Benjamin Schweinhart. 2023.
+“Homological Percolation on a Torus: Plaquettes and Permutohedra.” <em>To
+Appear in Annales de l’Institut Henri Poincaré, Probabilités Et
+Statistiques</em>, September.
+<a href="https://arxiv.org/abs/10.48550/arXiv.2011.11903">arxiv.org/abs/10.48550/arXiv.2011.11903</a>.</p>
+<p>Duncan, Paul, Anthony E. Pizzimenti, and Benjamin Schweinhart. n.d.
+<em><span class="nocase">ATEAMS: Algebraic Topology-Enabled AlgorithMs for
+Spin systems</span></em>. V. 1.0.2.
+<a href="https://doi.org/10.5281/zenodo.14284172">https://doi.org/10.5281/zenodo.14284172</a>.</p>
+<p>Duncan, Paul, and Benjamin Schweinhart. 2024. “Some Properties of the
+Plaquette Random-Cluster Model.” arXiv, June.
+<a href="https://arxiv.org/abs/10.48550/arXiv.2406.08043">arxiv.org/abs/10.48550/arXiv.2406.08043</a>.</p>
+<p>Duncan, Paul, and Benjamin Schweinhart. 2025a. “A Sharp Deconfinement
+Transition for Potts Lattice Gauge Theory in Codimension Two.”
+<em>Communications in Mathematical Physics</em>.
+<a href="http://arxiv.org/abs/2308.07534">http://arxiv.org/abs/2308.07534</a>.</p>
+<p>Duncan, Paul, and Benjamin Schweinhart. 2025b. “Topological Phases in
+the Plaquette Random-Cluster Model and Potts Lattice Gauge Theory.”
+<em>Communications in Mathematical Physics</em>.
+<a href="https://arxiv.org/abs/10.48550/arXiv.2207.08339">arxiv.org/abs/10.48550/arXiv.2207.08339</a>.</p>
+<p>Edelsbrunner, Herbert, and John Harer. 2010. <em>Computational Topology: An
+Introduction</em>. American Mathematical Soc.</p>
+<p>Edwards, Robert G., and Alan D. Sokal. 1988. “Generalization of the
+Fortuin-Kasteleyn-Swendsen-Wang Representation and Monte Carlo
+Algorithm.” <em>Physical Review D</em> 38 (6): 2009–12.
+<a href="https://doi.org/10.1103/PhysRevD.38.2009">https://doi.org/10.1103/PhysRevD.38.2009</a>.</p>
+<p>Fortuin, C. M., and P. W. Kasteleyn. 1972. “On the Random-Cluster Model:
+I. Introduction and Relation to Other Models.” <em>Physica</em> 57 (4).
+<a href="https://doi.org/10.1016/0031-8914(72)90045-6">https://doi.org/10.1016/0031-8914(72)90045-6</a>.</p>
+<p>Ginsparg, Paul, Yadin Y Goldschmidt, and Jean-Bernard Zuber. 1980.
+“Large <em>q</em> Expansions for <em>q</em>-State Gauge-Matter Potts Models in
+Lagrangian Form.” <em>Nuclear Physics B</em> 170 (3): 409–32.</p>
+<p>Grimmett, Geoffrey. 2004. <em>The Random-Cluster Model</em>. Edited by Harry
+Kesten. Springer Berlin Heidelberg.
+<a href="https://doi.org/10.1007/978-3-662-09444-0_2">https://doi.org/10.1007/978-3-662-09444-0_2</a>.</p>
+<p><span class="nocase">group, The LinBox</span>. 2021. <em>LinBox</em>. v1.7.0.
+<a href="http://github.com/linbox-team/linbox">http://github.com/linbox-team/linbox</a>.</p>
 <p>Hatcher, Allen. 2002. <em>Algebraic Topology</em>. Cambridge University Press.</p>
-</li>
-<li>
-<p>Machta, J., Y. S. Choi, A. Lucke, T. Schweizer, and L. M. Chayes. 1996. “Invaded Cluster Algorithm for Potts Models.” <em>Physical Review E</em> 54 (2). <a href="https://doi.org/10.1103/PhysRevE.54.1332">https://doi.org/10.1103/PhysRevE.54.1332</a>.</p>
-</li>
-<li>
-<p>Swendsen, Robert H., and Jian-Sheng Wang. 1987. “Nonuniversal Critical Dynamics in Monte Carlo Simulations.” <em>Physical Review Letters</em> 58 (2). <a href="https://doi.org/10.1103/PhysRevLett.58.86">https://doi.org/10.1103/PhysRevLett.58.86</a>.</p>
-</li>
-<li>
-<p>Zomorodian, Afra J. 2005. <em>Topology for Computing</em>. Cambridge University Press.</p>
-</li>
-</ol>
+<p>Hiraoka, Yasuaki, and Tomoyuki Shirai. 2016. “Tutte Polynomials and
+Random-Cluster Models in Bernoulli Cell Complexes (Stochastic Analysis
+on Large Scale Interacting Systems).” <em>RIMS Kokyuroku Bessatsu</em> B59
+(July): 289–304.</p>
+<p>Hostetter, Matt. 2020. <em><span class="nocase">Galois: A performant NumPy
+extension for Galois fields</span></em>. Released November.
+<a href="https://github.com/mhostetter/galois">https://github.com/mhostetter/galois</a>.</p>
+<p>Kaczynski, Tomasz, Konstantin Mischaikow, and Marian Mrozek. 2004.
+<em>Computational Homology</em>. Vol. 157. Applied Mathematical Sciences.
+Springer.</p>
+<p>Kesten, Harry. 1982. <em>Percolation Theory for Mathematicians</em>.
+Birkhäuser. <a href="https://doi.org/10.1007/978-1-4899-2730-9">https://doi.org/10.1007/978-1-4899-2730-9</a>.</p>
+<p>Kogut, John B. 1979. “An Introduction to Lattice Gauge Theory and Spin
+Systems.” <em>Reviews of Modern Physics</em> 51 (4): 659–713.
+<a href="https://doi.org/10.1103/RevModPhys.51.659">https://doi.org/10.1103/RevModPhys.51.659</a>.</p>
+<p>Machta, J., Y. S. Choi, A. Lucke, T. Schweizer, and L. M. Chayes. 1996.
+“Invaded Cluster Algorithm for Potts Models.” <em>Physical Review E</em> 54
+(2). <a href="https://doi.org/10.1103/PhysRevE.54.1332">https://doi.org/10.1103/PhysRevE.54.1332</a>.</p>
+<p>Machta, J., Y. S. Choi, A. Lucke, T. Schweizer, and L. V. Chayes. 1995.
+“Invaded Cluster Algorithm for Equilibrium Critical Points.” <em>Physical
+Review Letters</em> 75 (15): 2792–95.
+<a href="https://doi.org/10.1103/PhysRevLett.75.2792">https://doi.org/10.1103/PhysRevLett.75.2792</a>.</p>
+<p>Maritan, A, and C Omero. 1982. “On the Gauge Potts Model and the
+Plaquette Percolation Problem.” <em>Nuclear Physics B</em> 210 (4): 553–66.</p>
+<p>Ossola, Giovanni, and Alan D. Sokal. 2004. “Dynamic Critical Behavior of
+the Swendsen–Wang Algorithm for the Three-Dimensional Ising Model.”
+<em>Nuclear Physics B</em> 691 (3): 259–91.
+<a href="https://doi.org/10.1016/j.nuclphysb.2004.04.026">https://doi.org/10.1016/j.nuclphysb.2004.04.026</a>.</p>
+<p>Saveliev, Peter. 2016. <em>Topology Illustrated</em>. Independent Publisher.</p>
+<p>Shklarov, Yakov. 2023. “The Edwards-Sokal Coupling for the Potts Higher
+Lattice Gauge Theory on ℤ<sup><em>d</em></sup>.” Master’s thesis, The
+University of Victoria.</p>
+<p>Swendsen, Robert H., and Jian-Sheng Wang. 1987. “Nonuniversal Critical
+Dynamics in Monte Carlo Simulations.” <em>Physical Review Letters</em> 58 (2).
+<a href="https://doi.org/10.1103/PhysRevLett.58.86">https://doi.org/10.1103/PhysRevLett.58.86</a>.</p>
+<p>Wegner, Franz J. 2014. “Duality in Generalized Ising Models.” November.
+<a href="https://doi.org/10.48550/arXiv.1411.5815">https://doi.org/10.48550/arXiv.1411.5815</a>.</p>
+<p>Zomorodian, Afra J. 2005. <em>Topology for Computing</em>. Cambridge University
+Press.</p>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
@@ -466,7 +539,11 @@ proof.appendChild(square);
 <li><a href="#openblas">OpenBLAS</a></li>
 <li><a href="#givaro">Givaro</a></li>
 <li><a href="#fflas-ffpack">fflas-ffpack</a></li>
-<li><a href="#linbox">LinBox</a></li>
+<li><a href="#spasm">SpaSM</a></li>
+</ul>
+</li>
+<li><a href="#flint">Flint</a><ul>
+<li><a href="#sparserref">SparseRREF</a></li>
 <li><a href="#phat">PHAT</a></li>
 </ul>
 </li>
