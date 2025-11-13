@@ -970,9 +970,11 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 			cerr << "finished with pivots, resetting pool, reducing without pivots... ";
 			Flint::clear_cache();
 			Flint::set_memory_functions();
-			opt->pool.reset();
+			// opt->pool.reset();
+			opt->pool.purge();
 			noPivots = sparse_mat_rref<data_t, index_t>(noBasis, GFp, opt);
 			cerr << "[Persistence] done RREFing." << endl;
+			Flint::clear_cache();
 
 			withRank = 0;
 			noRank = 0;
