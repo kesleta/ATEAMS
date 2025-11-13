@@ -157,19 +157,19 @@ class InvadedCluster():
 					_user_continue_prompt()
 
 
-					print("######################################")
-					print("####      LINEAR COMPUTATION      ####")
-					print("######################################")
-					lstart = time.time()
-					_essential = Twister.LinearComputePercolationEvents(filtration)
-					lend = time.time()
-					_essential = np.array(list(_essential))
-					_essential = _essential[(_essential >= low) & (_essential < high)]
-					_essential.sort()
+					# print("######################################")
+					# print("####      LINEAR COMPUTATION      ####")
+					# print("######################################")
+					# lstart = time.time()
+					# _essential = Twister.LinearComputePercolationEvents(filtration)
+					# lend = time.time()
+					# _essential = np.array(list(_essential))
+					# _essential = _essential[(_essential >= low) & (_essential < high)]
+					# _essential.sort()
 
-					print("\n\n")
-					print(_essential, f"time: {(lend-lstart):.4f}")
-					_user_continue_prompt()
+					# print("\n\n")
+					# print(_essential, f"time: {(lend-lstart):.4f}")
+					# _user_continue_prompt()
 
 				else:
 					# Attempt the persistence computation up to `self.tries` times;

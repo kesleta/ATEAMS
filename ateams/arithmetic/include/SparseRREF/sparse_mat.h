@@ -2067,7 +2067,7 @@ namespace SparseRREF {
 		auto push_func = [&res](const std::string_view str, size_t size) {
 			TOKEN(WXF_HEAD::func, (int64_t)size).to_ustr(res);
 			TOKEN(WXF_HEAD::symbol, str).to_ustr(res);
-			};
+		};
 
 		push_func("SparseArray", 4);
 		TOKEN(WXF_HEAD::symbol, "Automatic").to_ustr(res);

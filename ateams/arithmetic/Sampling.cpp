@@ -16,9 +16,8 @@ Index randomVector(int N, int p) {
 	return r;
 }
 
-template <typename Matrix, typename Vector, typename Field>
-Index RandomLinearCombination(Matrix K, Field GFp, int p) {
-	Matrix KT = K.transpose();
+Index RandomLinearCombination(ZpMatrix K, Zp GFp, int p) {
+	ZpMatrix KT = K.transpose();
 	Index coeff = randomVector(KT.nrow, p);
 	Index rlc = Index(KT.ncol, 0);
 
@@ -34,9 +33,9 @@ Index RandomLinearCombination(Matrix K, Field GFp, int p) {
 }
 
 
-template <typename Matrix>
-Matrix SparseMatrixFill(Index coboundary, int M, int N, int p) {
-	Matrix A(M, N);
+
+ZpMatrix SparseMatrixFill(Index coboundary, int M, int N, int p) {
+	ZpMatrix A(M, N);
 	int row, col, _val, val;
 
 	cerr << "[Sampling] building sparse coboundary matrix...";
@@ -63,7 +62,7 @@ Index ZpReducedKernelSample(Index coboundary, int M, int N, int p) {
 
 	// Construct field, matrix, and find a basis for the kernel.
 	const Zp GFp(SparseRREF::FIELD_Fp, p);
-	ZpMatrix A = SparseMatrixFill<ZpMatrix>(coboundary, M, N, p);
+	ZpMatrix A = SparseMatrixFill(coboundary, M, N, p);
 
 	SparseRREF::rref_option_t opt;
 	opt->pool.reset();
@@ -83,7 +82,7 @@ Index ZpReducedKernelSample(Index coboundary, int M, int N, int p) {
 	opt->abort = true;
 	Flint::clear_cache();
 	thread_listener.join();
-	return RandomLinearCombination<ZpMatrix, ZpVector>(K, GFp, p);
+	return RandomLinearCombination(K, GFp, p);
 }
 
 Index ReducedKernelSample(Index coboundary, int M, int N, int p, bool verbose) {

@@ -22,7 +22,8 @@ INSTALL_DIR = /usr/local
 INSTALL_LFLAGS = -L$(INSTALL_DIR)/lib -Wl,-rpath,$(INSTALL_DIR)/lib
 
 headers:
-	@sudo mkdir -p $(INSTALL_DIR)/include/ATEAMS
+	@sudo rm -rf $(INSTALL_DIR)/include/ATEAMS
+	@sudo mkdir $(INSTALL_DIR)/include/ATEAMS
 	@sudo cp -r ateams/common.h $(INSTALL_DIR)/include/ATEAMS/
 	@sudo cp -r ateams/arithmetic/include/PHAT $(INSTALL_DIR)/include/phat
 	@sudo cp -r ateams/arithmetic/include/SparseRREF/ $(INSTALL_DIR)/include/SparseRREF/
@@ -31,7 +32,7 @@ headers:
 	@sudo cp -r ateams/arithmetic/util.h $(INSTALL_DIR)/include/ATEAMS/
 
 
-Persistence_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib -lspasm `pkg-config --libs --cflags flint` -shared -fPIC
+Persistence_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib -lspasm `pkg-config --libs --cflags flint mimalloc` -shared -fPIC -fexperimental-library
 Persistence_CFLAGS = -O3 -std=c++20
 
 Persistence: headers
@@ -39,7 +40,7 @@ Persistence: headers
 
 
 
-Sampling_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib `pkg-config --libs --cflags flint` -shared -fPIC
+Sampling_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib `pkg-config --libs --cflags flint mimalloc` -shared -fPIC
 Sampling_CFLAGS = -O3 -std=c++20
 
 Sampling: headers

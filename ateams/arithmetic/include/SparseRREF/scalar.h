@@ -11,9 +11,9 @@
 
 #include <string>
 #include <cstring>
-#include <flint/nmod.h>
-#include <flint/fmpz.h>
-#include <flint/fmpq.h>
+#include "flint/nmod.h"
+#include "flint/fmpz.h"
+#include "flint/fmpq.h"
 
 #ifdef USE_MIMALLOC
 #include "mimalloc.h"

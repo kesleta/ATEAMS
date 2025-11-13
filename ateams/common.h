@@ -45,7 +45,7 @@ typedef vector<Index> FlatBoundaryMatrix;
 typedef vector<Column> Basis;
 typedef vector<Basis> Bases;
 
-// Utility functions for suppressing output to stderr (specifically because SpaSM)
+// Utility functions for suppressing output to stderr (specifically because SpaSM
 // outputs diagnostic information at every step!).
 int _suppress() {
 	fflush(stderr);
@@ -71,6 +71,7 @@ void printmap(MapStorage m) {
 	std::cout << " }" << std::endl;
 }
 
+// Helper method for printing SparseRREF matrices.
 template <typename Matrix>
 void printSparseRREFmat(Matrix A) {
 	int rows, columns;
@@ -93,6 +94,7 @@ void printSparseRREFmat(Matrix A) {
 	}
 }
 
+// Helper method for printing SpaSM matrices.
 template <typename Matrix, typename Zp, typename i64>
 void printSpaSMmat(Matrix *A) {
 	const int *columnIndex = A->j;

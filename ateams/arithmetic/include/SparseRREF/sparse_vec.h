@@ -9,7 +9,7 @@
 #ifndef SPARSE_VEC_H
 #define SPARSE_VEC_H
 
-#include <flint/nmod_vec.h>
+#include "flint/nmod_vec.h"
 
 #include "scalar.h"
 #include "sparse_type.h"

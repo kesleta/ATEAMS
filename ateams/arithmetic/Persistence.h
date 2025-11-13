@@ -23,5 +23,6 @@ Set SolveComputePercolationEvents(BoundaryMatrix coboundary, Basis cobasis, int 
 
 // SparseRREF solutions.
 Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int basisrank, int p, bool verbose=true);
+Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int basisrank, int p, int stop, bool verbose=true);
 
 #endif
