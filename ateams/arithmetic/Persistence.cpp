@@ -951,13 +951,14 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 			// Take submatrices.
 			cerr << format("[Persistence] [{}/{}] filling submatrices... ", s, N);
 			ZpZMatrix withBasis = subMatrixT(augmented, 0, M, 0, s);
-			ZpZMatrix noBasis = subMatrixT(augmented, rank, M, 0, s);
+			ZpZMatrix noBasis(withBasis);
+			// ZpZMatrix noBasis = subMatrixT(augmented, rank, M, 0, s);
 
-			// // Clear the first `rank` rows of `withBasis` to remove the basis
-			// // instead of filling the whole matrix again.
-			// for (int _b=0; _b<rank; _b++) noBasis[_b].zero();
-			// noBasis.clear_zero_row();
-			// noBasis.compress();
+			// Clear the first `rank` rows of `withBasis` to remove the basis
+			// instead of filling the whole matrix again.
+			for (int _b=0; _b<rank; _b++) noBasis[_b].zero();
+			noBasis.clear_zero_row();
+			noBasis.compress();
 
 			cerr << "done." << endl;
 
