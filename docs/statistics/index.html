@@ -114,6 +114,25 @@ text-align: center;
 <section id="section-intro">
 </section>
 <section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="ateams.statistics.accepts" href="accepts.html">ateams.statistics.accepts</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="ateams.statistics.autocorrelation" href="autocorrelation.html">ateams.statistics.autocorrelation</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="ateams.statistics.observables" href="observables.html">ateams.statistics.observables</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="ateams.statistics.schedules" href="schedules.html">ateams.statistics.schedules</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </section>
 <section>
 </section>
@@ -137,20 +156,6 @@ with the arguments to this function.</p>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>A function which always returns True.</p></div>
-</dd>
-<dt id="ateams.statistics.autocorrelation"><code class="name flex">
-<span>def <span class="ident">autocorrelation</span></span>(<span>data)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Computes the autocorrelation of a given observable.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>data</code></strong> :&ensp;<code>Iterable</code></dt>
-<dd>An iterable, indexed by sample times, containing data
-from a given observable.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>An <code>np.ndarray</code> of autocorrelation data.</p></div>
 </dd>
 <dt id="ateams.statistics.constant"><code class="name flex">
 <span>def <span class="ident">constant</span></span>(<span>temperature)</span>
@@ -179,6 +184,80 @@ of the model.</p>
 <h2 id="returns">Returns</h2>
 <p>A function passed to a Model constructor that returns the critical
 temperature of the Potts model.</p></div>
+</dd>
+<dt id="ateams.statistics.integrated"><code class="name flex">
+<span>def <span class="ident">integrated</span></span>(<span>X, M=-1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes (an estimate of) the <em>integrated autocorrelation time</em> <span><span class="MathJax_Preview">\tau_X</span><script type="math/tex">\tau_X</script></span> of the observable <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span>
+by <span><span class="MathJax_Preview"> \tau_X = \frac 12 \sum_{t=-M}^M \overline \rho_X(t), </span><script type="math/tex; mode=display"> \tau_X = \frac 12 \sum_{t=-M}^M \overline \rho_X(t), </script></span> where <span><span class="MathJax_Preview">\overline \rho_X(t)</span><script type="math/tex">\overline \rho_X(t)</script></span>
+is the normalized autocorrelation for <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>A NumPy array of numerical values.</dd>
+<dt><strong><code>M</code></strong> :&ensp;<code>double=-1</code></dt>
+<dd>The autocorrelation window width. Defaults to <span><span class="MathJax_Preview">M = |X|</span><script type="math/tex">M = |X|</script></span>,
+which uses all observed data.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>(An estimate of) the integrated autocorrelation time.</p></div>
+</dd>
+<dt id="ateams.statistics.normalized"><code class="name flex">
+<span>def <span class="ident">normalized</span></span>(<span>X)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the vector <span><span class="MathJax_Preview">\overline \rho_X</span><script type="math/tex">\overline \rho_X</script></span> of normalized autocorrelations
+<span><span class="MathJax_Preview">\overline \rho_X(t) = \rho_X(t)/\rho_X(0) </span><script type="math/tex">\overline \rho_X(t) = \rho_X(t)/\rho_X(0) </script></span> for the observable <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>A NumPy array of numerical values.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A NumPy array of unnormalized autocorrelation values.</p></div>
+</dd>
+<dt id="ateams.statistics.totalEnergy"><code class="name flex">
+<span>def <span class="ident">totalEnergy</span></span>(<span>state, model)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the <em>total energy</em> (or, more precisely, the <em>net energy</em>) <span><span class="MathJax_Preview"> \mathcal E </span><script type="math/tex"> \mathcal E </script></span>
+of a given state produced by the given model. The total energy is given by <span><span class="MathJax_Preview"> \mathcal E (\sigma)
+= \sum_{x \in X} (-1)^{1-\mathbf 1\left[ \sigma(\partial x) = 0 \right]} =
+\sum_{x \in X} \mathbf 1\left[ \sigma(\partial x) = 0 \right] -
+\sum_{x \in X} \mathbf 1\left[ \sigma(\partial x) \neq 0 \right], </span><script type="math/tex; mode=display"> \mathcal E (\sigma)
+= \sum_{x \in X} (-1)^{1-\mathbf 1\left[ \sigma(\partial x) = 0 \right]} =
+\sum_{x \in X} \mathbf 1\left[ \sigma(\partial x) = 0 \right] -
+\sum_{x \in X} \mathbf 1\left[ \sigma(\partial x) \neq 0 \right], </script></span> where
+the <span><span class="MathJax_Preview">x \in X</span><script type="math/tex">x \in X</script></span> are <span><span class="MathJax_Preview">d</span><script type="math/tex">d</script></span>-cells and <span><span class="MathJax_Preview">\sigma</span><script type="math/tex">\sigma</script></span> is a spin configuration on
+<span><span class="MathJax_Preview">(d-1)</span><script type="math/tex">(d-1)</script></span>-cells.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>state</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>The state from the Markov chain on the given <code>model</code>.</dd>
+<dt><strong><code>model</code></strong> :&ensp;<code>Model</code></dt>
+<dd>The Model (e.g. <code><a title="ateams.models.SwendsenWang" href="../models/index.html#ateams.models.SwendsenWang">SwendsenWang</a></code>) from which
+data is collected.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>The total (net) energy.</p></div>
+</dd>
+<dt id="ateams.statistics.unnormalized"><code class="name flex">
+<span>def <span class="ident">unnormalized</span></span>(<span>X)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the vector <span><span class="MathJax_Preview">\rho_X</span><script type="math/tex">\rho_X</script></span> of unnormalized autocorrelations <span><span class="MathJax_Preview">\rho_X(t) </span><script type="math/tex">\rho_X(t) </script></span>
+for the set of (numerical) observations <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span> by
+<span><span class="MathJax_Preview"> \rho_X(t) = \frac{1}{N-|t|} \sum_{i=1}^{N-|t|}(X_i - \overline X)(X_{i+t} - \overline X), </span><script type="math/tex; mode=display"> \rho_X(t) = \frac{1}{N-|t|} \sum_{i=1}^{N-|t|}(X_i - \overline X)(X_{i+t} - \overline X), </script></span>
+where <span><span class="MathJax_Preview">\overline X</span><script type="math/tex">\overline X</script></span> is the sample mean and <span><span class="MathJax_Preview">N = |X|</span><script type="math/tex">N = |X|</script></span> is the number of
+samples in the observed data.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>A NumPy array of numerical values.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A NumPy array of unnormalized autocorrelation values.</p></div>
 </dd>
 </dl>
 </section>
@@ -729,12 +808,23 @@ proof.appendChild(square);
 <li><code><a title="ateams" href="../index.html">ateams</a></code></li>
 </ul>
 </li>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="ateams.statistics.accepts" href="accepts.html">ateams.statistics.accepts</a></code></li>
+<li><code><a title="ateams.statistics.autocorrelation" href="autocorrelation.html">ateams.statistics.autocorrelation</a></code></li>
+<li><code><a title="ateams.statistics.observables" href="observables.html">ateams.statistics.observables</a></code></li>
+<li><code><a title="ateams.statistics.schedules" href="schedules.html">ateams.statistics.schedules</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="ateams.statistics.always" href="#ateams.statistics.always">always</a></code></li>
-<li><code><a title="ateams.statistics.autocorrelation" href="#ateams.statistics.autocorrelation">autocorrelation</a></code></li>
 <li><code><a title="ateams.statistics.constant" href="#ateams.statistics.constant">constant</a></code></li>
 <li><code><a title="ateams.statistics.critical" href="#ateams.statistics.critical">critical</a></code></li>
+<li><code><a title="ateams.statistics.integrated" href="#ateams.statistics.integrated">integrated</a></code></li>
+<li><code><a title="ateams.statistics.normalized" href="#ateams.statistics.normalized">normalized</a></code></li>
+<li><code><a title="ateams.statistics.totalEnergy" href="#ateams.statistics.totalEnergy">totalEnergy</a></code></li>
+<li><code><a title="ateams.statistics.unnormalized" href="#ateams.statistics.unnormalized">unnormalized</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

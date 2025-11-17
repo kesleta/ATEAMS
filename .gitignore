@@ -48,5 +48,6 @@ ateams/arithmetic/*.so
 ateams/**/*.html
 ateams/**/*.so
 ateams/complex/*.cpp
+ateams/statistics/*.cpp
 
 !ateams/models/tables/*.html

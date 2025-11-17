@@ -33,10 +33,10 @@ $(tableId).toggle();
 </script>
 <!-- Sidebar edits -->
 <style>
-#content a:hover {
+a:hover {
 text-decoration: underline;
 }
-#content a, a:visited {
+a, a:visited {
 color: #058;
 transition: none;
 }
@@ -90,24 +90,20 @@ text-align: center !important;
 .dataframe.profile-data-table thead {
 border-bottom: 3px solid black;
 }
-.dataframe.profile-data-table tbody > tr:nth-of-type(9n) {
-border-bottom: 3px solid black;
-}
 .dataframe.profile-data-table tbody tr th {
 vertical-align: middle;
 }
 .dataframe.profile-data-table tbody tr td {
 vertical-align: middle;
 }
-.dataframe.profile-data-table tbody > tr:nth-child(3n) {
-:nth-child(n) {
+.dataframe.profile-data-table tbody > tr:nth-child(4n) {
 border-bottom: 1px solid black;
-}
 }
 .dataframe.profile-data-table tbody td {
 text-align: center;
 }
 </style>
+<link rel="preload" as="image" href="https://mason.gmu.edu/~apizzime/assets/img/ic.4.cycle.jpg">
 </head>
 <body>
 <main>
@@ -124,19 +120,54 @@ text-align: center;
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="ateams.statistics.autocorrelation.autocorrelation"><code class="name flex">
-<span>def <span class="ident">autocorrelation</span></span>(<span>data)</span>
+<dt id="ateams.statistics.autocorrelation.integrated"><code class="name flex">
+<span>def <span class="ident">integrated</span></span>(<span>X, M=-1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Computes the autocorrelation of a given observable.</p>
+<div class="desc"><p>Computes (an estimate of) the <em>integrated autocorrelation time</em> <span><span class="MathJax_Preview">\tau_X</span><script type="math/tex">\tau_X</script></span> of the observable <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span>
+by <span><span class="MathJax_Preview"> \tau_X = \frac 12 \sum_{t=-M}^M \overline \rho_X(t), </span><script type="math/tex; mode=display"> \tau_X = \frac 12 \sum_{t=-M}^M \overline \rho_X(t), </script></span> where <span><span class="MathJax_Preview">\overline \rho_X(t)</span><script type="math/tex">\overline \rho_X(t)</script></span>
+is the normalized autocorrelation for <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span>.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>data</code></strong> :&ensp;<code>Iterable</code></dt>
-<dd>An iterable, indexed by sample times, containing data
-from a given observable.</dd>
+<dt><strong><code>X</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>A NumPy array of numerical values.</dd>
+<dt><strong><code>M</code></strong> :&ensp;<code>double=-1</code></dt>
+<dd>The autocorrelation window width. Defaults to <span><span class="MathJax_Preview">M = |X|</span><script type="math/tex">M = |X|</script></span>,
+which uses all observed data.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>An <code>np.ndarray</code> of autocorrelation data.</p></div>
+<p>(An estimate of) the integrated autocorrelation time.</p></div>
+</dd>
+<dt id="ateams.statistics.autocorrelation.normalized"><code class="name flex">
+<span>def <span class="ident">normalized</span></span>(<span>X)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the vector <span><span class="MathJax_Preview">\overline \rho_X</span><script type="math/tex">\overline \rho_X</script></span> of normalized autocorrelations
+<span><span class="MathJax_Preview">\overline \rho_X(t) = \rho_X(t)/\rho_X(0) </span><script type="math/tex">\overline \rho_X(t) = \rho_X(t)/\rho_X(0) </script></span> for the observable <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>A NumPy array of numerical values.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A NumPy array of unnormalized autocorrelation values.</p></div>
+</dd>
+<dt id="ateams.statistics.autocorrelation.unnormalized"><code class="name flex">
+<span>def <span class="ident">unnormalized</span></span>(<span>X)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the vector <span><span class="MathJax_Preview">\rho_X</span><script type="math/tex">\rho_X</script></span> of unnormalized autocorrelations <span><span class="MathJax_Preview">\rho_X(t) </span><script type="math/tex">\rho_X(t) </script></span>
+for the set of (numerical) observations <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span> by
+<span><span class="MathJax_Preview"> \rho_X(t) = \frac{1}{N-|t|} \sum_{i=1}^{N-|t|}(X_i - \overline X)(X_{i+t} - \overline X), </span><script type="math/tex; mode=display"> \rho_X(t) = \frac{1}{N-|t|} \sum_{i=1}^{N-|t|}(X_i - \overline X)(X_{i+t} - \overline X), </script></span>
+where <span><span class="MathJax_Preview">\overline X</span><script type="math/tex">\overline X</script></span> is the sample mean and <span><span class="MathJax_Preview">N = |X|</span><script type="math/tex">N = |X|</script></span> is the number of
+samples in the observed data.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>A NumPy array of numerical values.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A NumPy array of unnormalized autocorrelation values.</p></div>
 </dd>
 </dl>
 </section>
@@ -161,7 +192,7 @@ proof.appendChild(square);
 </script>
 <header>
 <a class="homelink" rel="home" title="ATEAMS" href="https://github.com/apizzimenti/ATEAMS">
-<img class="resize" src="https://github.com/apizzimenti/ATEAMS/blob/feature/performant-sparse/docs/essential-cycle.jpeg?raw=true" alt="Homological percolation on the torus.">
+<img class="resize" src="https://mason.gmu.edu/~apizzime/assets/img/ic.4.cycle.jpg" alt="Homological percolation on the torus.">
 </a>
 </header>
 <div class="toc">
@@ -175,7 +206,9 @@ proof.appendChild(square);
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="ateams.statistics.autocorrelation.autocorrelation" href="#ateams.statistics.autocorrelation.autocorrelation">autocorrelation</a></code></li>
+<li><code><a title="ateams.statistics.autocorrelation.integrated" href="#ateams.statistics.autocorrelation.integrated">integrated</a></code></li>
+<li><code><a title="ateams.statistics.autocorrelation.normalized" href="#ateams.statistics.autocorrelation.normalized">normalized</a></code></li>
+<li><code><a title="ateams.statistics.autocorrelation.unnormalized" href="#ateams.statistics.autocorrelation.unnormalized">unnormalized</a></code></li>
 </ul>
 </li>
 </ul>

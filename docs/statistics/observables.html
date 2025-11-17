@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.3">
-<title>ateams.statistics.schedules API documentation</title>
+<title>ateams.statistics.observables API documentation</title>
 <meta name="description" content="">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
@@ -109,7 +109,7 @@ text-align: center;
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>ateams.statistics.schedules</code></h1>
+<h1 class="title">Module <code>ateams.statistics.observables</code></h1>
 </header>
 <section id="section-intro">
 </section>
@@ -120,85 +120,53 @@ text-align: center;
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="ateams.statistics.schedules.constant"><code class="name flex">
-<span>def <span class="ident">constant</span></span>(<span>temperature)</span>
+<dt id="ateams.statistics.observables.occupancy"><code class="name flex">
+<span>def <span class="ident">occupancy</span></span>(<span>state, model=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A constant annealing schedule.</p>
+<div class="desc"><p>Computes the <em>bond occupancy</em> <span><span class="MathJax_Preview"> \mathcal N(\sigma, \omega) = \sum_{x \in X}
+\mathbf 1[ \omega(x) = 1 ]</span><script type="math/tex; mode=display"> \mathcal N(\sigma, \omega) = \sum_{x \in X}
+\mathbf 1[ \omega(x) = 1 ]</script></span> of the state produced by the given model, where
+<span><span class="MathJax_Preview">\omega</span><script type="math/tex">\omega</script></span> is a bond(/plaquette) configuration. (Just counts the number of
+<span><span class="MathJax_Preview">d</span><script type="math/tex">d</script></span>-cells included by independent percolation conditioned on a spin configuration
+<span><span class="MathJax_Preview">\sigma</span><script type="math/tex">\sigma</script></span>.) Note: at every step of a simulation, each Model returns a
+binary vector over the <span><span class="MathJax_Preview">d</span><script type="math/tex">d</script></span>-cells indicating which are in/excluded; the
+occupancy can be computed (as is done here) by <code>.sum()</code>ming on this vector.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>temperature</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature to be returned.</dd>
+<dt><strong><code>state</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>The state from the Markov chain on the given <code>model</code>.</dd>
+<dt><strong><code>model</code></strong> :&ensp;<code>Model</code></dt>
+<dd>The Model (e.g. <code><a title="ateams.models.SwendsenWang" href="../models/index.html#ateams.models.SwendsenWang">SwendsenWang</a></code>) from which
+data is collected.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>A function passed to a model constructor.</p></div>
+<p>The bond occupancy.</p></div>
 </dd>
-<dt id="ateams.statistics.schedules.critical"><code class="name flex">
-<span>def <span class="ident">critical</span></span>(<span>field)</span>
+<dt id="ateams.statistics.observables.totalEnergy"><code class="name flex">
+<span>def <span class="ident">totalEnergy</span></span>(<span>state, model)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A constant annealing schedule which calculates the critical temperature
-of the model.</p>
+<div class="desc"><p>Computes the <em>total energy</em> (or, more precisely, the <em>net energy</em>) <span><span class="MathJax_Preview"> \mathcal E </span><script type="math/tex"> \mathcal E </script></span>
+of a given state produced by the given model. The total energy is given by <span><span class="MathJax_Preview"> \mathcal E (\sigma)
+= \sum_{x \in X} (-1)^{1-\mathbf 1\left[ \sigma(\partial x) = 0 \right]} =
+\sum_{x \in X} \mathbf 1\left[ \sigma(\partial x) = 0 \right] -
+\sum_{x \in X} \mathbf 1\left[ \sigma(\partial x) \neq 0 \right], </span><script type="math/tex; mode=display"> \mathcal E (\sigma)
+= \sum_{x \in X} (-1)^{1-\mathbf 1\left[ \sigma(\partial x) = 0 \right]} =
+\sum_{x \in X} \mathbf 1\left[ \sigma(\partial x) = 0 \right] -
+\sum_{x \in X} \mathbf 1\left[ \sigma(\partial x) \neq 0 \right], </script></span> where
+the <span><span class="MathJax_Preview">x \in X</span><script type="math/tex">x \in X</script></span> are <span><span class="MathJax_Preview">d</span><script type="math/tex">d</script></span>-cells and <span><span class="MathJax_Preview">\sigma</span><script type="math/tex">\sigma</script></span> is a spin configuration on
+<span><span class="MathJax_Preview">(d-1)</span><script type="math/tex">(d-1)</script></span>-cells.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>field</code></strong> :&ensp;<code>int</code></dt>
-<dd>The order of the field we're over.</dd>
+<dt><strong><code>state</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>The state from the Markov chain on the given <code>model</code>.</dd>
+<dt><strong><code>model</code></strong> :&ensp;<code>Model</code></dt>
+<dd>The Model (e.g. <code><a title="ateams.models.SwendsenWang" href="../models/index.html#ateams.models.SwendsenWang">SwendsenWang</a></code>) from which
+data is collected.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>A function passed to a Model constructor that returns the critical
-temperature of the Potts model.</p></div>
-</dd>
-<dt id="ateams.statistics.schedules.linear"><code class="name flex">
-<span>def <span class="ident">linear</span></span>(<span>steps, low=-10, high=10)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A linear temperature schedule.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>steps</code></strong> :&ensp;<code>int</code></dt>
-<dd>Total number of steps in the experiment.</dd>
-<dt><strong><code>low</code></strong> :&ensp;<code>float</code></dt>
-<dd>Lowest temperature we assign.</dd>
-<dt><strong><code>high</code></strong> :&ensp;<code>float</code></dt>
-<dd>Highest temperature we assign.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A function that consumes a step number and returns a temperature.</p></div>
-</dd>
-<dt id="ateams.statistics.schedules.randomizedToConstant"><code class="name flex">
-<span>def <span class="ident">randomizedToConstant</span></span>(<span>constant, steps, hold=0.5, distribution=&lt;function scaledUniform&gt;)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A temperature schedule which samples spin values (according to <code>distribution</code>)
-<em>less than</em> the critical temperature of the model, then fixes the temperature
-at the critical temperature for some desired proportion of the runtime.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>steps</code></strong> :&ensp;<code>int</code></dt>
-<dd>Total number of steps the experiment takes.</dd>
-<dt><strong><code>field</code></strong> :&ensp;<code>int</code></dt>
-<dd>Order of the field we're over; used to compute critical
-temperature.</dd>
-<dt><strong><code>hold</code></strong> :&ensp;<code>float</code></dt>
-<dd>Value in [0,1] which represents the proportion of the time
-the temperature is fixed at the critical temperature. Defaults to
-half random, half fixed.</dd>
-<dt><strong><code>distribution</code></strong> :&ensp;<code>Callable</code></dt>
-<dd>Distribution from which we sample; default is
-a ln-normal distribution centered at 2 with variance 2.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A function that consumes a step number and returns a temperature.</p></div>
-</dd>
-<dt id="ateams.statistics.schedules.scaledUniform"><code class="name flex">
-<span>def <span class="ident">scaledUniform</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Negative log-normal distribution to get something like uniformity on [0,1]
-when exponentiated.</p>
-<h2 id="returns">Returns</h2>
-<p>The negative of a draw from the log-normal distribution with mean 2 and
-variance 2.</p></div>
+<p>The total (net) energy.</p></div>
 </dd>
 </dl>
 </section>
@@ -237,11 +205,8 @@ proof.appendChild(square);
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="ateams.statistics.schedules.constant" href="#ateams.statistics.schedules.constant">constant</a></code></li>
-<li><code><a title="ateams.statistics.schedules.critical" href="#ateams.statistics.schedules.critical">critical</a></code></li>
-<li><code><a title="ateams.statistics.schedules.linear" href="#ateams.statistics.schedules.linear">linear</a></code></li>
-<li><code><a title="ateams.statistics.schedules.randomizedToConstant" href="#ateams.statistics.schedules.randomizedToConstant">randomizedToConstant</a></code></li>
-<li><code><a title="ateams.statistics.schedules.scaledUniform" href="#ateams.statistics.schedules.scaledUniform">scaledUniform</a></code></li>
+<li><code><a title="ateams.statistics.observables.occupancy" href="#ateams.statistics.observables.occupancy">occupancy</a></code></li>
+<li><code><a title="ateams.statistics.observables.totalEnergy" href="#ateams.statistics.observables.totalEnergy">totalEnergy</a></code></li>
 </ul>
 </li>
 </ul>
