@@ -397,13 +397,13 @@ cdef class Twist:
 		# First condition computes all the percolation times; second stops after
 		# the desired one is found.
 		if not stop:
-			_events = RankComputePercolationEvents(
-				rcombinedT, cobasis.size()+coboundary.size(), combinedT.size(),
+			_events = SRankComputePercolationEvents(
+				rcombinedT, cobasis.size()+coboundary.size(), rcombinedT.size(),
 				cobasis.size(), self.characteristic, self.__DEBUG
 			);
 		else:
-			_events = RankComputePercolationEvents(
-				rcombinedT, cobasis.size()+coboundary.size(), combinedT.size(),
+			_events = SRankComputePercolationEvents(
+				rcombinedT, cobasis.size()+coboundary.size(), rcombinedT.size(),
 				cobasis.size(), self.characteristic, stop, self.__DEBUG
 			);
 
@@ -416,29 +416,6 @@ cdef class Twist:
 			postincrement(sit);
 
 		return events;
-
-
-	# cpdef Set SolveComputePercolationEvents(self, INDEXFLAT filtration) noexcept:
-	# 	cdef Basis cobasis;
-
-	# 	# Check whether we've already computed the cobasis. If we haven't, do so!
-	# 	if self.cobasis.size() < 1: cobasis = self.LinearComputeCobasis();
-	# 	else: cobasis = self.cobasis;
-
-	# 	# If we haven't encountered a giant cocycle, then each element fi of the
-	# 	# cobasis must be in the image of the (d-1)th coboundary matrix (which
-	# 	# sends (d-1)-cochains to d-cochains), so fi is a cocycle *and*
-	# 	# a coboundary --- which means we haven't encountered a giant cocycle yet.
-	# 	# Once fi isn't in the image of the (d-1)th coboundary matrix (i.e. it's
-	# 	# not a coboundary), then we've encountered a giant cycle, and we've
-	# 	# percolated.
-	# 	cdef BoundaryMatrix boundary = self.PartialBoundaryMatrix(self.dimension);
-	# 	cdef int M = self.breaks[self.dimension]-self.breaks[self.dimension-1];
-	# 	cdef Set events;
-
-	# 	events = SolveComputePercolationEvents(boundary, cobasis, M, boundary.size(), cobasis.size(), self.characteristic);
-
-	# 	return Set();
 
 
 	cpdef Basis LinearComputeBasis(self) noexcept:

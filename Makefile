@@ -31,7 +31,7 @@ headers:
 	@cp -r ateams/arithmetic/util.h $(INSTALL_DIR)/include/ATEAMS/
 
 
-Persistence_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib -lspasm `pkg-config --libs --cflags flint` -shared -fPIC
+Persistence_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib -lspasm `pkg-config --libs --cflags flint` -shared -fPIC -fexperimental-library
 Persistence_CFLAGS = -O3 -std=c++20
 
 Persistence: headers
@@ -39,7 +39,7 @@ Persistence: headers
 
 
 
-Sampling_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib `pkg-config --libs --cflags flint` -shared -fPIC
+Sampling_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib `pkg-config --libs --cflags flint` -shared -fPIC -fexperimental-library
 Sampling_CFLAGS = -O3 -std=c++20
 
 Sampling: headers

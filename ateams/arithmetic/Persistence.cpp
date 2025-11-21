@@ -392,6 +392,23 @@ Matrix *SparseMatrixFill(Basis B, int M, int N, int characteristic, int augment=
 }
 
 
+Matrix *SparseSubmatrixFill(BoundaryMatrix B, int r0, int r1, int c0, int c1, int characteristic) {
+	Triplet *T = spasm_triplet_alloc(r1-r0, c1-c0, 1, characteristic, true);
+	
+	cerr << "[Persistence] building sparse submatrix...";
+	for (int col=c0; col<B.size(); col++) {
+		for (auto const& [row,q] : B[col]) {
+			if (r0 <= row && row < r1) spasm_add_entry(T, row-r0, col-c0, q);
+		}
+	}
+
+	Matrix *A = spasm_compress(T);
+	spasm_triplet_free(T);
+	cerr << " done." << endl;
+	return A;
+}
+
+
 Matrix *IdentityOfSize(int M, int N, int characteristic) {
 	Triplet *T = spasm_triplet_alloc(M, N, 1, characteristic, true);
 
@@ -672,9 +689,6 @@ Set RankComputePercolationEvents(
 	int _supp;
 	if (!verbose) _supp = _suppress();
 
-	// Fill the full matrix (which includes the cobasis).
-	Matrix *full = SparseMatrixFill(augmented, M, N, characteristic);
-
 	// Matrix options?
 	struct echelonize_opts opts;
 	spasm_echelonize_init_opts(&opts);
@@ -684,33 +698,16 @@ Set RankComputePercolationEvents(
 	// We don't do binary search with this method, we just find the middle event.
 	// Start searching around the expected percolation probability.
 	Set events;
-	Index top = topologicalOrder(rank), ranks(2);
+	Index ranks(2);
 	int withRank, noRank, LEFT = 0, RIGHT = N, t = (int)(N*sqrt(characteristic)/(1+sqrt(characteristic)));
 
 	// Binary search between the wickets.
 	while (LEFT <= RIGHT) {
 
 		for (int s=t; s<t+2; s++) {
-			// Take submatrices. If we're short and wide, take the transpose
-			// before echelonizing.
-			Matrix *withBasis, *noBasis;
-
-			if (M < s) {
-				const Matrix *wB = spasm_submatrix(full, 0, M, 0, s, 1);
-				withBasis = spasm_transpose(wB, 1);
-
-				const Matrix *nB = spasm_submatrix(full, rank, M, 0, s, 1);
-				noBasis = spasm_transpose(nB, 1);
-
-				spasm_csr_free((Matrix *)wB);
-				spasm_csr_free((Matrix *)nB);
-			} else {
-				withBasis = spasm_submatrix(full, 0, M, 0, s, 1);
-				noBasis = spasm_submatrix(withBasis, rank, M, 0, s, 1);
-			}
-
-			// withBasis = spasm_submatrix(full, 0, M, 0, s, 1);
-			// noBasis = spasm_submatrix(withBasis, rank, M, 0, s, 1);
+			// Take submatrices.
+			Matrix *withBasis = SparseSubmatrixFill(augmented, 0, M, 0, s, characteristic);
+			Matrix *noBasis = SparseSubmatrixFill(augmented, rank, M, 0, s, characteristic);
 
 			// Echelonize, get the ranks, mark the ranks.
 			cerr << "[Persistence] found submatrices, echelonizing with basis... " << endl;
@@ -769,12 +766,6 @@ Set RankComputePercolationEvents(
 		events.insert(t);
 
 	cleanup:
-		spasm_csr_free(full);
-		// spasm_csr_free(withBasis);
-		// spasm_csr_free(noBasis);
-		// spasm_lu_free(withBasisE);
-		// spasm_lu_free(noBasisE);
-
 		if (!verbose) _resume(_supp);
 
 	return events;
@@ -790,17 +781,24 @@ Set RankComputePercolationEvents(
 #include <SparseRREF/sparse_mat.h>
 #include "util.h"
 
-typedef SparseRREF::sparse_mat<data_t, index_t> ZpZMatrix;
-typedef SparseRREF::sparse_vec<data_t, index_t> ZpZVector;
-typedef SparseRREF::field_t ZpZ;
+// #define USE_MIMALLOC 1
 
-ZpZMatrix SSparseMatrixFill(BoundaryMatrix B, int M, int N, int p, int augment=0) {
-	ZpZMatrix A(M, N);
+using namespace SparseRREF;
 
-	for (int col=augment; col<B.size(); col++) {
+typedef sparse_mat<data_t, index_t> ZpZMatrix;
+typedef sparse_vec<data_t, index_t> ZpZVector;
+typedef field_t ZpZ;
+
+
+ZpZMatrix subMatrixT(BoundaryMatrix B, int r0, int r1, int c0, int c1) {
+	ZpZMatrix A(r1-r0, c1-c0);
+
+	for (int col=c0; col<c1; col++) {
 		for (auto const& [row, q] : B[col]) {
-			ZpZVector &matrow = A.rows[row];
-			matrow.push_back((index_t)col, (data_t)q);
+			if (r0 <= row && row < r1) {
+				ZpZVector &matrow = A.rows[row-r0];
+				matrow.push_back((index_t)(col-c0), (data_t)q);
+			}
 		}
 	}
 
@@ -809,30 +807,18 @@ ZpZMatrix SSparseMatrixFill(BoundaryMatrix B, int M, int N, int p, int augment=0
 }
 
 
-ZpZMatrix subMatrixT(ZpZMatrix fullT, int r0, int r1, int c0, int c1) {
-	ZpZMatrix sT = fullT.take({r0, r1}).transpose().take({c0, c1}).transpose();
-	sT.compress();
-	return sT;
-}
-
-
 Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int rank, int characteristic, bool verbose) {
 	int _supp;
 	if (!verbose) _supp = _suppress();
 
-	Flint::set_memory_functions();
-
-	const ZpZ GFp(SparseRREF::FIELD_Fp, characteristic);
-	ZpZMatrix fullT = SSparseMatrixFill(augmented, M, N, characteristic).transpose();
-
-	Map eventMarkers;
-	Set events;
-	int withRank, noRank, diff;//, _supp = _suppress();
+	const ZpZ GFp(FIELD_Fp, characteristic);
 
 	// Specify the order in we'll encounter each index.
-	int LEFT, RIGHT, stop, t;
+	int withRank, noRank, LEFT, RIGHT, stop, t;
 	Index top = topologicalOrder(rank), ranks(2);
-	ZpZMatrix withBasis, noBasis;
+	Map eventMarkers;
+	Set events;
+
 	eventMarkers[0] = 0;
 
 	for (int i=0; i<rank+1; i++) {
@@ -840,7 +826,10 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 		// the current one; these specify the search window. We don't care about
 		// when it becomes 0-dimensional though, so skip that one (it's already
 		// marked).
-		LEFT = 0, RIGHT = N, stop = top[i];
+		LEFT = 0;
+		RIGHT = N;
+		stop = top[i];
+		
 		if (stop == 0) continue;
 
 		for (auto const& [rnk, ind] : eventMarkers) {
@@ -853,26 +842,33 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 			t = LEFT + std::floor((RIGHT-LEFT)/2);
 
 			for (int s=t; s<t+2; s++) {
-				SparseRREF::rref_option_t opt;
-				opt->method = 0;
-				thread thread_listener(key_listener, ref(opt->abort));
+				Flint::set_memory_functions();
+				rref_option_t opt;
+				opt->pool.reset();
+				opt->verbose = verbose;
 
 				// Take submatrices.
 				cerr << format("[Persistence] [{}/{}] filling submatrices... ", s, N);
-				withBasis = subMatrixT(fullT, 0, s, 0, M);
-				noBasis = subMatrixT(fullT, 0, s, rank, M);
+				ZpZMatrix withBasis = subMatrixT(augmented, 0, M, 0, s);
+				ZpZMatrix noBasis(withBasis);
+
+				// Clear the first `rank` rows of `withBasis` to remove the basis
+				// instead of filling the whole matrix again.
+				for (int _b=0; _b<rank; _b++) noBasis[_b].zero();
+				noBasis.clear_zero_row();
+				noBasis.compress();
+				
 				cerr << "done." << endl;
 
 				// Echelonize, then find the ranks.
-				vector<vector<SparseRREF::pivot_t<index_t>>> withPivots;
-				vector<vector<SparseRREF::pivot_t<index_t>>> noPivots;
+				vector<vector<pivot_t<index_t>>> withPivots;
+				vector<vector<pivot_t<index_t>>> noPivots;
 
 				cerr << format("[Persistence] [{}/{}] RREFing submatrices... ", s, N);
-				withPivots = SparseRREF::sparse_mat_rref<data_t, index_t>(withBasis, GFp, opt);
-				cerr << "finished with pivots, resetting pool" << endl;
-				opt->pool.reset();
-				noPivots = SparseRREF::sparse_mat_rref<data_t, index_t>(noBasis, GFp, opt);
-				cerr << "done." << endl;
+				withPivots = sparse_mat_rref<data_t, index_t>(withBasis, GFp, opt);
+				cerr << "finished with pivots, resetting pool, reducing without pivots... ";
+				noPivots = sparse_mat_rref<data_t, index_t>(noBasis, GFp, opt);
+				cerr << " done." << endl;
 
 				withRank = 0;
 				noRank = 0;
@@ -881,10 +877,6 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 				for (auto &np : noPivots) noRank += np.size();
 
 				ranks[s-t] = withRank-noRank;
-
-				opt->abort = true;
-				Flint::clear_cache();
-				thread_listener.join();
 			}
 
 			// If the difference between the computed ranks is 1, then we're done;
@@ -892,8 +884,11 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 			int r1 = ranks[0], r2 = ranks[1];
 			bool samerank = (r1 == r2);
 
+			// If r1 > r2, then we have a problem.
+			if (r1 > r2) goto cleanup;
+
 			if (samerank) {
-				cerr << format("same rank {} == {}, ", r1, r2);
+				cerr << format("[Persistence] same rank {} == {}, ", r1, r2);
 				if (r1 < stop) {
 					LEFT = t+1;
 					cerr << "moving forward" << endl;
@@ -902,7 +897,7 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 					cerr << "moving backward" << endl;
 				}
 			} else {
-				cerr << format("different ranks {} != {}, ", r1, r2);
+				cerr << format("[Persistence] different ranks {} != {}, ", r1, r2);
 				if (r2 == stop) {
 					cerr << "right rank, exiting" << endl;
 					goto found;
@@ -918,16 +913,117 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 				}
 			}
 		}
+
 		found:
 			eventMarkers[stop] = t;
 			events.insert(t);
 			cerr << format("[Persistence] [{}/{}] found {}/{} percolation events.", t, N, events.size(), rank) << endl;
 	}
 
-	fullT.clear();
-
-	if (!verbose) _resume(_supp);
+	cleanup:
+		if (!verbose) _resume(_supp);
+		Flint::clear_cache();
 
 	return events;
 }
 
+
+Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int rank, int characteristic, int stop, bool verbose) {
+	int _supp;
+	if (!verbose) _supp = _suppress();
+
+	const ZpZ GFp(FIELD_Fp, characteristic);
+
+	Flint::set_memory_functions();
+	rref_option_t opt;
+	opt->pool.reset();
+	opt->verbose = verbose;
+
+	// Specify the order in we'll encounter each index.
+	int withRank, noRank, t, LEFT = 0, RIGHT = N;
+	Set events;
+	Index ranks(2);
+
+	while (LEFT <= RIGHT) {
+		t = LEFT + std::floor((RIGHT-LEFT)/2);
+
+		for (int s=t; s<t+2; s++) {
+
+			// Take submatrices.
+			cerr << format("[Persistence] [{}/{}] filling submatrices... ", s, N);
+			ZpZMatrix withBasis = subMatrixT(augmented, 0, M, 0, s);
+			ZpZMatrix noBasis(withBasis);
+			// ZpZMatrix noBasis = subMatrixT(augmented, rank, M, 0, s);
+
+			// Clear the first `rank` rows of `withBasis` to remove the basis
+			// instead of filling the whole matrix again.
+			for (int _b=0; _b<rank; _b++) noBasis[_b].zero();
+			noBasis.clear_zero_row();
+			noBasis.compress();
+
+			cerr << "done." << endl;
+
+			// Echelonize, then find the ranks.
+			vector<vector<pivot_t<index_t>>> withPivots;
+			vector<vector<pivot_t<index_t>>> noPivots;
+
+			cerr << format("[Persistence] [{}/{}] RREFing submatrices... ", s, N) << endl;
+			withPivots = sparse_mat_rref<data_t, index_t>(withBasis, GFp, opt);
+			cerr << "finished with pivots, resetting pool, reducing without pivots... ";
+			noPivots = sparse_mat_rref<data_t, index_t>(noBasis, GFp, opt);
+			cerr << "[Persistence] done RREFing." << endl;
+
+			withRank = 0;
+			noRank = 0;
+
+			for (auto &wp : withPivots) withRank += wp.size();
+			for (auto &np : noPivots) noRank += np.size();
+
+			ranks[s-t] = withRank-noRank;
+		}
+
+		// If the difference between the computed ranks is 1, then we're done;
+		// we've found our spot to break. Otherwise, continue.
+		int r1 = ranks[0], r2 = ranks[1];
+		bool samerank = (r1 == r2);
+
+		// If r1 > r2, then we have a problem.
+		if (r1 > r2) goto cleanup;
+
+		if (samerank) {
+			cerr << format("[Persistence] same rank {} == {}, ", r1, r2);
+			if (r1 < stop) {
+				LEFT = t+1;
+				cerr << "moving forward" << endl;
+			} else {
+				RIGHT = t-1;
+				cerr << "moving backward" << endl;
+			}
+		} else {
+			cerr << format("[Persistence] different ranks {} != {}, ", r1, r2);
+			if (r2 == stop) {
+				cerr << "right rank, exiting" << endl;
+				goto found;
+			} else {
+				cerr << "wrong rank, ";
+				if (r2 < stop) {
+					LEFT = t+1;
+					cerr << "moving forward" << endl;
+				} else {
+					RIGHT = t-1;
+					cerr << "moving backward" << endl;
+				}
+			}
+		}
+	}
+
+	found:
+		events.insert(t);
+		cerr << format("[Persistence] [{}/{}] found {}/{} percolation events.", t, N, events.size(), rank) << endl;
+
+	cleanup:
+		if (!verbose) _resume(_supp);
+		Flint::clear_cache();
+
+	return events;
+}

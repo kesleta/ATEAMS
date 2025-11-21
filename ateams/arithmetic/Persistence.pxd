@@ -21,4 +21,5 @@ cdef extern from "Persistence.h":
 
 	# SparseRREF solutions.
 	Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int basisrank, int p, bool verbose);
+	Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int basisrank, int p, int stop, bool verbose);
 
