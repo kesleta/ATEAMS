@@ -3,7 +3,7 @@ import numpy as np
 cimport numpy as np
 
 
-def integrated(X):
+def integrated(X, isNormalized=False):
 	r"""
 	Computes (an estimate of) the _integrated autocorrelation time_ \(\tau_X\) of the observable \(X\)
 	by \[ \tau_X = \frac 12 \sum_{t=-M}^M \overline \rho_X(t), \] where \(\overline \rho_X(t)\)
@@ -12,18 +12,14 @@ def integrated(X):
 
 	Args:
 		X (np.array): A NumPy array of numerical values.
+		isNormalized (boolean=False): Are the data passed to `X` already normalized
+			autocorrelation times? If so, we don't compute `normalized(X)`.
 
 	Returns:
 		(Estimates of) the integrated autocorrelation times.
 	"""
-	cdef int M, N = X.shape[0];
-	normed = normalized(X);
-	inta = np.empty(N);
-
-	for M in range(N): inta[M] = (1/2) + normed[1:M+1].sum();
-
-	return inta;
-
+	Z = X if isNormalized else normalized(X);
+	return (1/2) + Z[1:].cumsum();
 
 
 def unnormalized(X):
