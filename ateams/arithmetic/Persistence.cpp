@@ -1023,6 +1023,7 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 
 	cleanup:
 		if (!verbose) _resume(_supp);
+		opt->abort=true;
 		Flint::clear_cache();
 
 	return events;

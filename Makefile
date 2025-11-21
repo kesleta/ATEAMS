@@ -17,33 +17,35 @@ quick: FORCE headers
 build: clean Persistence Sampling
 	@python setup.py build_ext --inplace > build.log 2>&1
 
+
 CXX=clang++
-INSTALL_DIR = /usr/local
-INSTALL_LFLAGS = -L$(INSTALL_DIR)/lib -Wl,-rpath,$(INSTALL_DIR)/lib
+INSTALL_DIR=/usr/local
+INSTALL_LFLAGS=-L$(INSTALL_DIR)/lib -Wl,-rpath,$(INSTALL_DIR)/lib
 
 headers:
-	@mkdir -p $(INSTALL_DIR)/include/ATEAMS
-	@cp -r ateams/common.h $(INSTALL_DIR)/include/ATEAMS/
-	@cp -r ateams/arithmetic/include/PHAT $(INSTALL_DIR)/include/phat
-	@cp -r ateams/arithmetic/include/SparseRREF/ $(INSTALL_DIR)/include/SparseRREF/
-	@cp -r ateams/arithmetic/Persistence.h $(INSTALL_DIR)/include/ATEAMS/
-	@cp -r ateams/arithmetic/Sampling.h $(INSTALL_DIR)/include/ATEAMS/
-	@cp -r ateams/arithmetic/util.h $(INSTALL_DIR)/include/ATEAMS/
+	@sudo rm -rf $(INSTALL_DIR)/include/ATEAMS
+	@sudo mkdir $(INSTALL_DIR)/include/ATEAMS
+	@sudo cp -r ateams/common.h $(INSTALL_DIR)/include/ATEAMS/
+	@sudo cp -r ateams/arithmetic/include/PHAT $(INSTALL_DIR)/include/phat
+	@sudo cp -r ateams/arithmetic/include/SparseRREF/ $(INSTALL_DIR)/include/SparseRREF/
+	@sudo cp -r ateams/arithmetic/Persistence.h $(INSTALL_DIR)/include/ATEAMS/
+	@sudo cp -r ateams/arithmetic/Sampling.h $(INSTALL_DIR)/include/ATEAMS/
+	@sudo cp -r ateams/arithmetic/util.h $(INSTALL_DIR)/include/ATEAMS/
 
 
-Persistence_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib -lspasm `pkg-config --libs --cflags flint` -shared -fPIC -fexperimental-library
+Persistence_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib -lspasm `pkg-config --libs --cflags flint mimalloc` -shared -fPIC -fexperimental-library
 Persistence_CFLAGS = -O3 -std=c++20
 
 Persistence: headers
-	@$(CXX) $(Persistence_LFLAGS) $(Persistence_CFLAGS) -o $(INSTALL_DIR)/lib/libATEAMS_Persistence.so ateams/arithmetic/Persistence.cpp $(INSTALL_LFLAGS)
+	@sudo $(CXX) $(Persistence_LFLAGS) $(Persistence_CFLAGS) -o $(INSTALL_DIR)/lib/libATEAMS_Persistence.so ateams/arithmetic/Persistence.cpp $(INSTALL_LFLAGS)
 
 
 
-Sampling_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib `pkg-config --libs --cflags flint` -shared -fPIC -fexperimental-library
+Sampling_LFLAGS = -I$(INSTALL_DIR)/include/ -L$(INSTALL_DIR)/lib `pkg-config --libs --cflags flint mimalloc` -shared -fPIC -fexperimental-library
 Sampling_CFLAGS = -O3 -std=c++20
 
 Sampling: headers
-	@$(CXX) $(Sampling_LFLAGS) $(Sampling_CFLAGS) -o $(INSTALL_DIR)/lib/libATEAMS_Sampling.so ateams/arithmetic/Sampling.cpp $(INSTALL_LFLAGS)
+	@sudo $(CXX) $(Sampling_LFLAGS) $(Sampling_CFLAGS) -o $(INSTALL_DIR)/lib/libATEAMS_Sampling.so ateams/arithmetic/Sampling.cpp $(INSTALL_LFLAGS)
 
 
 
