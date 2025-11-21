@@ -934,6 +934,11 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 
 	const ZpZ GFp(FIELD_Fp, characteristic);
 
+	Flint::set_memory_functions();
+	rref_option_t opt;
+	opt->pool.reset();
+	opt->verbose = verbose;
+
 	// Specify the order in we'll encounter each index.
 	int withRank, noRank, t, LEFT = 0, RIGHT = N;
 	Set events;
@@ -943,10 +948,6 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 		t = LEFT + std::floor((RIGHT-LEFT)/2);
 
 		for (int s=t; s<t+2; s++) {
-			Flint::set_memory_functions();
-			rref_option_t opt;
-			opt->pool.reset();
-			opt->verbose = verbose;
 
 			// Take submatrices.
 			cerr << format("[Persistence] [{}/{}] filling submatrices... ", s, N);
@@ -969,13 +970,8 @@ Set SRankComputePercolationEvents(BoundaryMatrix augmented, int M, int N, int ra
 			cerr << format("[Persistence] [{}/{}] RREFing submatrices... ", s, N) << endl;
 			withPivots = sparse_mat_rref<data_t, index_t>(withBasis, GFp, opt);
 			cerr << "finished with pivots, resetting pool, reducing without pivots... ";
-			Flint::clear_cache();
-			Flint::set_memory_functions();
-			// opt->pool.reset();
-			opt->pool.purge();
 			noPivots = sparse_mat_rref<data_t, index_t>(noBasis, GFp, opt);
 			cerr << "[Persistence] done RREFing." << endl;
-			Flint::clear_cache();
 
 			withRank = 0;
 			noRank = 0;
