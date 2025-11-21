@@ -1,8 +1,8 @@
 
 from .accepts import always, MetropolisHastings
 from .schedules import constant, critical, randomizedToConstant, linear
-from .autocorrelation import normalized, unnormalized, integrated
-from .observables import totalEnergy
+from .autocorrelation import normalized, integrated
+from .observables import totalEnergy, occupancy
 from .Chain import Chain, Recorder, Player
 
 __pdoc__ = {}
@@ -13,5 +13,5 @@ __pdoc__ = {}
 
 __all__ = [
 	"Chain", "Recorder", "Player", "always", "constant", "critical", "normalized",
-	"unnormalized", "integrated", "totalEnergy"
+	"integrated", "totalEnergy", "occupancy"
 ]

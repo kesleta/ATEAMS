@@ -28,7 +28,7 @@ def construct(L, dim, field):
 	return M
 
 def chain(M, DESC=""):
-	for (spins, occupied) in M.progress(dynamic_ncols=True, desc=DESC): pass
+	for (spins, occupied, satisfied) in M.progress(dynamic_ncols=True, desc=DESC): pass
 	return M._exitcode
 
 

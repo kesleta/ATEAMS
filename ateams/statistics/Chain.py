@@ -252,7 +252,7 @@ class Player():
 	"""
 	def __init__(self): pass
 
-	def playback(self, fp:str, steps=1000):
+	def playback(self, fp:str, steps=1000, dtypes=(int, int, int)):
 		"""
 		Initialize playback; context management.
 
@@ -260,6 +260,7 @@ class Player():
 			fp (str): File in which records are stored.
 			steps (int=1000): How many steps in the chain? Only relevant for
 				displaying the progress bar.
+			dtypes (tuple=(int, int, int)): NumPy dtypes for reporting data.
 
 		Returns:
 			This Player object.
@@ -267,6 +268,7 @@ class Player():
 		# Configure filepath, reader.
 		self._fp = fp
 		self._reader = lz4.frame.LZ4FrameFile(f"{self._fp}", mode="rb")
+		self._dtypes = dtypes
 
 		# Similar setup to the Recorder.
 		self._current = None
@@ -344,6 +346,7 @@ class Player():
 
 		for i in range(self._configurationsize):
 			indices, values = nextup[i]
+			values = values.astype(self._dtypes[i])
 			self._current[i][indices] = values
 		
 		# Decrement the number of configurations remaining in the block, and

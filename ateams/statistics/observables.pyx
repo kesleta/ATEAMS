@@ -21,7 +21,6 @@ def totalEnergy(state, model):
 	Returns:
 		The total (net) energy.
 	"""
-	cdef int[:] spins, occupied, satisfied;
 	cdef int q;
 
 	spins, occupied, satisfied = state
@@ -32,10 +31,10 @@ def totalEnergy(state, model):
 	coefficients[:,1::2] = -coefficients[:,1::2]%q
 	sums = coefficients.sum(axis=1)%q
 
-	agree = np.nonzero(sums == 0)[0]
+	agree = np.count_nonzero(sums == 0)
 	disagree = len(boundary)-agree
 
-	return agree-disagree
+	return disagree-agree
 	
 
 def occupancy(state, model=None):
@@ -61,4 +60,12 @@ def occupancy(state, model=None):
 
 
 def connectivity(state, model):
+	r"""
+	"""
+	pass
+
+
+def magnetization(state, model):
+	r"""
+	"""
 	pass
