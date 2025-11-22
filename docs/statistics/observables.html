@@ -120,6 +120,18 @@ text-align: center;
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="ateams.statistics.observables.connectivity"><code class="name flex">
+<span>def <span class="ident">connectivity</span></span>(<span>state, model)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ateams.statistics.observables.magnetization"><code class="name flex">
+<span>def <span class="ident">magnetization</span></span>(<span>state, model)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="ateams.statistics.observables.occupancy"><code class="name flex">
 <span>def <span class="ident">occupancy</span></span>(<span>state, model=None)</span>
 </code></dt>
@@ -136,9 +148,9 @@ occupancy can be computed (as is done here) by <code>.sum()</code>ming on this v
 <dl>
 <dt><strong><code>state</code></strong> :&ensp;<code>tuple</code></dt>
 <dd>The state from the Markov chain on the given <code>model</code>.</dd>
-<dt><strong><code>model</code></strong> :&ensp;<code>Model</code></dt>
-<dd>The Model (e.g. <code><a title="ateams.models.SwendsenWang" href="../models/index.html#ateams.models.SwendsenWang">SwendsenWang</a></code>) from which
-data is collected.</dd>
+<dt><strong><code>model</code></strong> :&ensp;<code>Model=None</code></dt>
+<dd>The Model (e.g. <code><a title="ateams.models.SwendsenWang" href="../models/index.html#ateams.models.SwendsenWang">SwendsenWang</a></code>) from
+which data is collected. Doesn't do anything here.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>The bond occupancy.</p></div>
@@ -205,6 +217,8 @@ proof.appendChild(square);
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="ateams.statistics.observables.connectivity" href="#ateams.statistics.observables.connectivity">connectivity</a></code></li>
+<li><code><a title="ateams.statistics.observables.magnetization" href="#ateams.statistics.observables.magnetization">magnetization</a></code></li>
 <li><code><a title="ateams.statistics.observables.occupancy" href="#ateams.statistics.observables.occupancy">occupancy</a></code></li>
 <li><code><a title="ateams.statistics.observables.totalEnergy" href="#ateams.statistics.observables.totalEnergy">totalEnergy</a></code></li>
 </ul>

@@ -121,22 +121,26 @@ text-align: center;
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="ateams.statistics.autocorrelation.integrated"><code class="name flex">
-<span>def <span class="ident">integrated</span></span>(<span>X, M=-1)</span>
+<span>def <span class="ident">integrated</span></span>(<span>X, isNormalized=False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Computes (an estimate of) the <em>integrated autocorrelation time</em> <span><span class="MathJax_Preview">\tau_X</span><script type="math/tex">\tau_X</script></span> of the observable <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span>
-by <span><span class="MathJax_Preview"> \tau_X = \frac 12 \sum_{t=-M}^M \overline \rho_X(t), </span><script type="math/tex; mode=display"> \tau_X = \frac 12 \sum_{t=-M}^M \overline \rho_X(t), </script></span> where <span><span class="MathJax_Preview">\overline \rho_X(t)</span><script type="math/tex">\overline \rho_X(t)</script></span>
-is the normalized autocorrelation for <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span>.</p>
+<div class="desc"><p>Computes (an estimate of) the <em>integrated autocorrelation time</em> <span><span class="MathJax_Preview">\tau_X</span><script type="math/tex">\tau_X</script></span>
+of the observable <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span> by <span><span class="MathJax_Preview"> \tau_X = \frac 12 \sum_{t=-M}^M \overline
+\rho_X(t) = \frac 12 + \sum_{t=1}^M \overline \rho_X(t), </span><script type="math/tex; mode=display"> \tau_X = \frac 12 \sum_{t=-M}^M \overline
+\rho_X(t) = \frac 12 + \sum_{t=1}^M \overline \rho_X(t), </script></span> where
+<span><span class="MathJax_Preview">\overline \rho_X(t)</span><script type="math/tex">\overline \rho_X(t)</script></span> is the normalized autocorrelation for <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span>.
+Computes <span><span class="MathJax_Preview">\tau_X</span><script type="math/tex">\tau_X</script></span> for all <span><span class="MathJax_Preview">1 \leq M \leq N-1</span><script type="math/tex">1 \leq M \leq N-1</script></span> for <span><span class="MathJax_Preview">N = |X|</span><script type="math/tex">N = |X|</script></span> the number
+of observations.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>X</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>A NumPy array of numerical values.</dd>
-<dt><strong><code>M</code></strong> :&ensp;<code>double=-1</code></dt>
-<dd>The autocorrelation window width. Defaults to <span><span class="MathJax_Preview">M = |X|</span><script type="math/tex">M = |X|</script></span>,
-which uses all observed data.</dd>
+<dt><strong><code>isNormalized</code></strong> :&ensp;<code>boolean=False</code></dt>
+<dd>Are the data passed to <code>X</code> already normalized
+autocorrelation times? If not, we first compute <span><span class="MathJax_Preview">\overline \rho_X</span><script type="math/tex">\overline \rho_X</script></span>.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>(An estimate of) the integrated autocorrelation time.</p></div>
+<p>(Estimates of) the integrated autocorrelation times.</p></div>
 </dd>
 <dt id="ateams.statistics.autocorrelation.normalized"><code class="name flex">
 <span>def <span class="ident">normalized</span></span>(<span>X)</span>

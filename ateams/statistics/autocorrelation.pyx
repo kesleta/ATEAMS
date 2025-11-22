@@ -5,15 +5,17 @@ cimport numpy as np
 
 def integrated(X, isNormalized=False):
 	r"""
-	Computes (an estimate of) the _integrated autocorrelation time_ \(\tau_X\) of the observable \(X\)
-	by \[ \tau_X = \frac 12 \sum_{t=-M}^M \overline \rho_X(t), \] where \(\overline \rho_X(t)\)
-	is the normalized autocorrelation for \(X\). Computes \(\tau_X\) for all \(1 \leq M \leq N-1\)
-	for \(N = |X|\) the number of observations.
+	Computes (an estimate of) the _integrated autocorrelation time_ \(\tau_X\)
+	of the observable \(X\) by \[ \tau_X = \frac 12 \sum_{t=-M}^M \overline
+	\rho_X(t) = \frac 12 + \sum_{t=1}^M \overline \rho_X(t), \] where
+	\(\overline \rho_X(t)\) is the normalized autocorrelation for \(X\).
+	Computes \(\tau_X\) for all \(1 \leq M \leq N-1\) for \(N = |X|\) the number
+	of observations.
 
 	Args:
 		X (np.array): A NumPy array of numerical values.
 		isNormalized (boolean=False): Are the data passed to `X` already normalized
-			autocorrelation times? If so, we don't compute `normalized(X)`.
+			autocorrelation times? If not, we first compute \(\overline \rho_X\).
 
 	Returns:
 		(Estimates of) the integrated autocorrelation times.

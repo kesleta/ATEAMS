@@ -829,19 +829,19 @@ re-sampling.</dd>
                                         _user_continue_prompt()
 
 
-                                        print(&#34;######################################&#34;)
-                                        print(&#34;####      LINEAR COMPUTATION      ####&#34;)
-                                        print(&#34;######################################&#34;)
-                                        lstart = time.time()
-                                        _essential = Twister.LinearComputePercolationEvents(filtration)
-                                        lend = time.time()
-                                        _essential = np.array(list(_essential))
-                                        _essential = _essential[(_essential &gt;= low) &amp; (_essential &lt; high)]
-                                        _essential.sort()
+                                        # print(&#34;######################################&#34;)
+                                        # print(&#34;####      LINEAR COMPUTATION      ####&#34;)
+                                        # print(&#34;######################################&#34;)
+                                        # lstart = time.time()
+                                        # _essential = Twister.LinearComputePercolationEvents(filtration)
+                                        # lend = time.time()
+                                        # _essential = np.array(list(_essential))
+                                        # _essential = _essential[(_essential &gt;= low) &amp; (_essential &lt; high)]
+                                        # _essential.sort()
 
-                                        print(&#34;\n\n&#34;)
-                                        print(_essential, f&#34;time: {(lend-lstart):.4f}&#34;)
-                                        _user_continue_prompt()
+                                        # print(&#34;\n\n&#34;)
+                                        # print(_essential, f&#34;time: {(lend-lstart):.4f}&#34;)
+                                        # _user_continue_prompt()
 
                                 else:
                                         # Attempt the persistence computation up to `self.tries` times;

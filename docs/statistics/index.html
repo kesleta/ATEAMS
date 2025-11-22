@@ -186,22 +186,26 @@ of the model.</p>
 temperature of the Potts model.</p></div>
 </dd>
 <dt id="ateams.statistics.integrated"><code class="name flex">
-<span>def <span class="ident">integrated</span></span>(<span>X, M=-1)</span>
+<span>def <span class="ident">integrated</span></span>(<span>X, isNormalized=False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Computes (an estimate of) the <em>integrated autocorrelation time</em> <span><span class="MathJax_Preview">\tau_X</span><script type="math/tex">\tau_X</script></span> of the observable <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span>
-by <span><span class="MathJax_Preview"> \tau_X = \frac 12 \sum_{t=-M}^M \overline \rho_X(t), </span><script type="math/tex; mode=display"> \tau_X = \frac 12 \sum_{t=-M}^M \overline \rho_X(t), </script></span> where <span><span class="MathJax_Preview">\overline \rho_X(t)</span><script type="math/tex">\overline \rho_X(t)</script></span>
-is the normalized autocorrelation for <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span>.</p>
+<div class="desc"><p>Computes (an estimate of) the <em>integrated autocorrelation time</em> <span><span class="MathJax_Preview">\tau_X</span><script type="math/tex">\tau_X</script></span>
+of the observable <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span> by <span><span class="MathJax_Preview"> \tau_X = \frac 12 \sum_{t=-M}^M \overline
+\rho_X(t) = \frac 12 + \sum_{t=1}^M \overline \rho_X(t), </span><script type="math/tex; mode=display"> \tau_X = \frac 12 \sum_{t=-M}^M \overline
+\rho_X(t) = \frac 12 + \sum_{t=1}^M \overline \rho_X(t), </script></span> where
+<span><span class="MathJax_Preview">\overline \rho_X(t)</span><script type="math/tex">\overline \rho_X(t)</script></span> is the normalized autocorrelation for <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span>.
+Computes <span><span class="MathJax_Preview">\tau_X</span><script type="math/tex">\tau_X</script></span> for all <span><span class="MathJax_Preview">1 \leq M \leq N-1</span><script type="math/tex">1 \leq M \leq N-1</script></span> for <span><span class="MathJax_Preview">N = |X|</span><script type="math/tex">N = |X|</script></span> the number
+of observations.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>X</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>A NumPy array of numerical values.</dd>
-<dt><strong><code>M</code></strong> :&ensp;<code>double=-1</code></dt>
-<dd>The autocorrelation window width. Defaults to <span><span class="MathJax_Preview">M = |X|</span><script type="math/tex">M = |X|</script></span>,
-which uses all observed data.</dd>
+<dt><strong><code>isNormalized</code></strong> :&ensp;<code>boolean=False</code></dt>
+<dd>Are the data passed to <code>X</code> already normalized
+autocorrelation times? If not, we first compute <span><span class="MathJax_Preview">\overline \rho_X</span><script type="math/tex">\overline \rho_X</script></span>.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>(An estimate of) the integrated autocorrelation time.</p></div>
+<p>(Estimates of) the integrated autocorrelation times.</p></div>
 </dd>
 <dt id="ateams.statistics.normalized"><code class="name flex">
 <span>def <span class="ident">normalized</span></span>(<span>X)</span>
@@ -216,6 +220,29 @@ which uses all observed data.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>A NumPy array of unnormalized autocorrelation values.</p></div>
+</dd>
+<dt id="ateams.statistics.occupancy"><code class="name flex">
+<span>def <span class="ident">occupancy</span></span>(<span>state, model=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the <em>bond occupancy</em> <span><span class="MathJax_Preview"> \mathcal N(\sigma, \omega) = \sum_{x \in X}
+\mathbf 1[ \omega(x) = 1 ]</span><script type="math/tex; mode=display"> \mathcal N(\sigma, \omega) = \sum_{x \in X}
+\mathbf 1[ \omega(x) = 1 ]</script></span> of the state produced by the given model, where
+<span><span class="MathJax_Preview">\omega</span><script type="math/tex">\omega</script></span> is a bond(/plaquette) configuration. (Just counts the number of
+<span><span class="MathJax_Preview">d</span><script type="math/tex">d</script></span>-cells included by independent percolation conditioned on a spin configuration
+<span><span class="MathJax_Preview">\sigma</span><script type="math/tex">\sigma</script></span>.) Note: at every step of a simulation, each Model returns a
+binary vector over the <span><span class="MathJax_Preview">d</span><script type="math/tex">d</script></span>-cells indicating which are in/excluded; the
+occupancy can be computed (as is done here) by <code>.sum()</code>ming on this vector.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>state</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>The state from the Markov chain on the given <code>model</code>.</dd>
+<dt><strong><code>model</code></strong> :&ensp;<code>Model=None</code></dt>
+<dd>The Model (e.g. <code><a title="ateams.models.SwendsenWang" href="../models/index.html#ateams.models.SwendsenWang">SwendsenWang</a></code>) from
+which data is collected. Doesn't do anything here.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>The bond occupancy.</p></div>
 </dd>
 <dt id="ateams.statistics.totalEnergy"><code class="name flex">
 <span>def <span class="ident">totalEnergy</span></span>(<span>state, model)</span>
@@ -241,23 +268,6 @@ data is collected.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>The total (net) energy.</p></div>
-</dd>
-<dt id="ateams.statistics.unnormalized"><code class="name flex">
-<span>def <span class="ident">unnormalized</span></span>(<span>X)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Computes the vector <span><span class="MathJax_Preview">\rho_X</span><script type="math/tex">\rho_X</script></span> of unnormalized autocorrelations <span><span class="MathJax_Preview">\rho_X(t) </span><script type="math/tex">\rho_X(t) </script></span>
-for the set of (numerical) observations <span><span class="MathJax_Preview">X</span><script type="math/tex">X</script></span> by
-<span><span class="MathJax_Preview"> \rho_X(t) = \frac{1}{N-|t|} \sum_{i=1}^{N-|t|}(X_i - \overline X)(X_{i+t} - \overline X), </span><script type="math/tex; mode=display"> \rho_X(t) = \frac{1}{N-|t|} \sum_{i=1}^{N-|t|}(X_i - \overline X)(X_{i+t} - \overline X), </script></span>
-where <span><span class="MathJax_Preview">\overline X</span><script type="math/tex">\overline X</script></span> is the sample mean and <span><span class="MathJax_Preview">N = |X|</span><script type="math/tex">N = |X|</script></span> is the number of
-samples in the observed data.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>X</code></strong> :&ensp;<code>np.array</code></dt>
-<dd>A NumPy array of numerical values.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A NumPy array of unnormalized autocorrelation values.</p></div>
 </dd>
 </dl>
 </section>
@@ -471,7 +481,7 @@ each iteration and stores whatever output is given.</dd>
         &#34;&#34;&#34;
         def __init__(self): pass
 
-        def playback(self, fp:str, steps=1000):
+        def playback(self, fp:str, steps=1000, dtypes=(int, int, int)):
                 &#34;&#34;&#34;
                 Initialize playback; context management.
 
@@ -479,6 +489,7 @@ each iteration and stores whatever output is given.</dd>
                         fp (str): File in which records are stored.
                         steps (int=1000): How many steps in the chain? Only relevant for
                                 displaying the progress bar.
+                        dtypes (tuple=(int, int, int)): NumPy dtypes for reporting data.
 
                 Returns:
                         This Player object.
@@ -486,6 +497,7 @@ each iteration and stores whatever output is given.</dd>
                 # Configure filepath, reader.
                 self._fp = fp
                 self._reader = lz4.frame.LZ4FrameFile(f&#34;{self._fp}&#34;, mode=&#34;rb&#34;)
+                self._dtypes = dtypes
 
                 # Similar setup to the Recorder.
                 self._current = None
@@ -563,6 +575,7 @@ each iteration and stores whatever output is given.</dd>
 
                 for i in range(self._configurationsize):
                         indices, values = nextup[i]
+                        values = values.astype(self._dtypes[i])
                         self._current[i][indices] = values
                 
                 # Decrement the number of configurations remaining in the block, and
@@ -592,7 +605,7 @@ each iteration and stores whatever output is given.</dd>
 <h3>Methods</h3>
 <dl>
 <dt id="ateams.statistics.Player.playback"><code class="name flex">
-<span>def <span class="ident">playback</span></span>(<span>self, fp: str, steps=1000)</span>
+<span>def <span class="ident">playback</span></span>(<span>self,<br>fp: str,<br>steps=1000,<br>dtypes=(&lt;class &#x27;int&#x27;&gt;, &lt;class &#x27;int&#x27;&gt;, &lt;class &#x27;int&#x27;&gt;))</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initialize playback; context management.</p>
@@ -604,6 +617,7 @@ each iteration and stores whatever output is given.</dd>
 <dd>How many steps in the chain? Only relevant for
 displaying the progress bar.</dd>
 </dl>
+<p>dtypes (tuple=(int, int, int)): NumPy dtypes for reporting data.</p>
 <h2 id="returns">Returns</h2>
 <p>This Player object.</p></div>
 </dd>
@@ -823,8 +837,8 @@ proof.appendChild(square);
 <li><code><a title="ateams.statistics.critical" href="#ateams.statistics.critical">critical</a></code></li>
 <li><code><a title="ateams.statistics.integrated" href="#ateams.statistics.integrated">integrated</a></code></li>
 <li><code><a title="ateams.statistics.normalized" href="#ateams.statistics.normalized">normalized</a></code></li>
+<li><code><a title="ateams.statistics.occupancy" href="#ateams.statistics.occupancy">occupancy</a></code></li>
 <li><code><a title="ateams.statistics.totalEnergy" href="#ateams.statistics.totalEnergy">totalEnergy</a></code></li>
-<li><code><a title="ateams.statistics.unnormalized" href="#ateams.statistics.unnormalized">unnormalized</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

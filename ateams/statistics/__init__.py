@@ -1,7 +1,7 @@
 
 from .accepts import always, MetropolisHastings
 from .schedules import constant, critical, randomizedToConstant, linear
-from .autocorrelation import normalized, integrated
+from .autocorrelation import unnormalized, normalized, integrated
 from .observables import totalEnergy, occupancy
 from .Chain import Chain, Recorder, Player
 
