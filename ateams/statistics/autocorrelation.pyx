@@ -63,3 +63,4 @@ def normalized(X):
 	"""
 	unn = unnormalized(X);
 	return unn/unn[0];
+

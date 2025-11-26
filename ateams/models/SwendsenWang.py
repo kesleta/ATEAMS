@@ -12,7 +12,7 @@ class SwendsenWang():
 
 	def __init__(
 			self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None,
-			**kwargs
+			dtypes=(np.int8,np.byte,np.byte), **kwargs
 		):
 		r"""
 		Initializes Swendsen-Wang evolution on the Potts model.
@@ -25,6 +25,8 @@ class SwendsenWang():
 				takes a single positive integer argument `t`, and returns the
 				scheduled temperature at time `t`.
 			initial (np.array): A vector of spin assignments to components.
+			dtypes (tuple=(np.int,np.byte,np.byte)): A tuple of NumPy data types
+				to which output data are cast.
 
 		<center> <button type="button" class="collapsible" id="SwendsenWang-ReducedKernelSample-2"> Performance in \(\mathbb T^2_N\)</button> </center>
 		.. include:: ./tables/SwendsenWang.ReducedKernelSample.2.html
@@ -38,6 +40,7 @@ class SwendsenWang():
 		self.dimension = dimension
 		self._returns = 3
 		self.field = field
+		self.dtypes = dtypes
 
 		# Force-recompute the matrices for a different dimension; creates
 		# a set of orientations for fast elementwise products.
@@ -84,7 +87,7 @@ class SwendsenWang():
 				return np.array(ReducedKernelSample(
 					self.matrices.coboundary, zeros, 2*self.dimension,
 					self.faces, self.field, self._DEBUG
-				), dtype=FINT)
+				), dtype=self.dtypes[0])
 			except Exception as e:
 				raise NumericalInstabilityWarning(e)
 			
@@ -100,7 +103,7 @@ class SwendsenWang():
 			A numpy `np.array` representing a vector of spin assignments.
 		"""
 		return self.RNG.integers(
-			0, high=self.field, dtype=FINT, size=self.faces
+			0, high=self.field, size=self.faces, dtype=self.dtypes[0]
 		)
 	
 
@@ -143,7 +146,7 @@ class SwendsenWang():
 			assert sums.sum() == 0
 
 		# Create output vectors.
-		occupied = np.zeros(self.cells, dtype=FINT)
+		occupied = np.zeros(self.cells, dtype=self.dtypes[1])
 		occupied[includedZeros] = 1
 
 		coefficients = self.spins[boundary]
@@ -151,7 +154,7 @@ class SwendsenWang():
 		sums = coefficients.sum(axis=1)%q
 		zeros = np.nonzero(sums == 0)[0]
 
-		satisfied = np.zeros(self.cells, dtype=FINT)
+		satisfied = np.zeros(self.cells, dtype=self.dtypes[2])
 		satisfied[zeros] = 1
 
 		return spins, occupied, satisfied

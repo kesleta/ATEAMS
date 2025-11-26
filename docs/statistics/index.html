@@ -124,6 +124,10 @@ text-align: center;
 <dd>
 <div class="desc"></div>
 </dd>
+<dt><code class="name"><a title="ateams.statistics.cutoffs" href="cutoffs.html">ateams.statistics.cutoffs</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt><code class="name"><a title="ateams.statistics.observables" href="observables.html">ateams.statistics.observables</a></code></dt>
 <dd>
 <div class="desc"></div>
@@ -243,6 +247,22 @@ which data is collected. Doesn't do anything here.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>The bond occupancy.</p></div>
+</dd>
+<dt id="ateams.statistics.rectangular"><code class="name flex">
+<span>def <span class="ident">rectangular</span></span>(<span>Z, c=7)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the rectangular cutoff for the integrated autocorrelation time estimator
+<span><span class="MathJax_Preview">Z</span><script type="math/tex">Z</script></span> &mdash; this cutoff is (approximately) the number of "good" estimates of the
+integrated autocorrelation time before random walk-y behavior occurs, as in
+Ossola and Sokal (2004).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>Z</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>NumPy array of integrated autocorrelation values.</dd>
+<dt><strong><code>c</code></strong> :&ensp;<code>int=7</code></dt>
+<dd>Appropriate scaling constant.</dd>
+</dl></div>
 </dd>
 <dt id="ateams.statistics.totalEnergy"><code class="name flex">
 <span>def <span class="ident">totalEnergy</span></span>(<span>state, model)</span>
@@ -826,6 +846,7 @@ proof.appendChild(square);
 <ul>
 <li><code><a title="ateams.statistics.accepts" href="accepts.html">ateams.statistics.accepts</a></code></li>
 <li><code><a title="ateams.statistics.autocorrelation" href="autocorrelation.html">ateams.statistics.autocorrelation</a></code></li>
+<li><code><a title="ateams.statistics.cutoffs" href="cutoffs.html">ateams.statistics.cutoffs</a></code></li>
 <li><code><a title="ateams.statistics.observables" href="observables.html">ateams.statistics.observables</a></code></li>
 <li><code><a title="ateams.statistics.schedules" href="schedules.html">ateams.statistics.schedules</a></code></li>
 </ul>
@@ -838,6 +859,7 @@ proof.appendChild(square);
 <li><code><a title="ateams.statistics.integrated" href="#ateams.statistics.integrated">integrated</a></code></li>
 <li><code><a title="ateams.statistics.normalized" href="#ateams.statistics.normalized">normalized</a></code></li>
 <li><code><a title="ateams.statistics.occupancy" href="#ateams.statistics.occupancy">occupancy</a></code></li>
+<li><code><a title="ateams.statistics.rectangular" href="#ateams.statistics.rectangular">rectangular</a></code></li>
 <li><code><a title="ateams.statistics.totalEnergy" href="#ateams.statistics.totalEnergy">totalEnergy</a></code></li>
 </ul>
 </li>

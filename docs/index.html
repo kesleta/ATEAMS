@@ -159,17 +159,17 @@ C = Cubical().fromCorners([10]*4)
 SW = SwendsenWang(C, dimension=2, field=field, temperature=critical(field))
 
 with Recorder().record(&quot;out.lz&quot;) as rec:
-  for (spins, occupied, satisfied) in Chain(SW, steps=1000).progress():
+  for (spins, occupied, satisfied) in Chain(SW, steps=100).progress():
     rec.store((spins, occupied, satisfied))
 </code></pre>
 <p>Once the program terminates, you can re-play the chain:</p>
 <pre><code class="language-python">from ateams import Player
 
-with Player().playback(&quot;out.lz&quot;, steps=1000) as play:
+with Player().playback(&quot;out.lz&quot;, steps=100) as play:
   for (spins, occupied, satisfied) in play.progress():
     pass
 </code></pre>
-<p>Running the sampler and recording the data takes ~26 seconds (~38 it/s) on an M2 MacBook Air; replaying the data takes ~0 seconds (~24,211 it/s). The size of <code>out.lz</code> is ~1.8MB, so storing each cell's data requires <span><span class="MathJax_Preview">1/11</span><script type="math/tex">1/11</script></span>th of a byte per iteration (amortized). To see how various configurations of each model perform on your machine, run <code>make profile</code>.</p>
+<p>Running the sampler and recording the data takes ~20 seconds (~4 it/s) on an M2 MacBook Air; replaying the data takes ~0 seconds (~124 it/s). The size of <code>out.lz</code> is ~24.8MB, so storing each cell's data requires ~4 bytes per iteration (amortized). To see how various configurations of each model perform on your machine, run <code>make profile</code>. <strong>If you plan to run large experiments (possibly on remote machines), the <a href="https://github.com/apizzimenti/magnetization"><code>magnetization</code></a> repository has facilities for quick setup and analysis.</strong></p>
 <h2 id="installation">Installation</h2>
 <h3 id="prerequisites">Prerequisites</h3>
 <ol>

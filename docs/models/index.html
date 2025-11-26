@@ -1181,7 +1181,7 @@ vector in the kernel of the coboundary matrix.</dd>
 </dd>
 <dt id="ateams.models.SwendsenWang"><code class="flex name class">
 <span>class <span class="ident">SwendsenWang</span></span>
-<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>**kwargs)</span>
+<span>(</span><span>C,<br>dimension=1,<br>field=2,<br>temperature=&lt;function constant.&lt;locals&gt;._&gt;,<br>initial=None,<br>dtypes=(&lt;class &#x27;numpy.int8&#x27;&gt;, &lt;class &#x27;numpy.int8&#x27;&gt;, &lt;class &#x27;numpy.int8&#x27;&gt;),<br>**kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes Swendsen-Wang evolution on the Potts model.</p>
@@ -1200,7 +1200,9 @@ scheduled temperature at time <code>t</code>.</dd>
 <dt><strong><code>initial</code></strong> :&ensp;<code>np.array</code></dt>
 <dd>A vector of spin assignments to components.</dd>
 </dl>
-<p><center> <button type="button" class="collapsible" id="SwendsenWang-ReducedKernelSample-2"> Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span></button> </center></p>
+<p>dtypes (tuple=(np.int,np.byte,np.byte)): A tuple of NumPy data types
+to which output data are cast.
+<center> <button type="button" class="collapsible" id="SwendsenWang-ReducedKernelSample-2"> Performance in <span><span class="MathJax_Preview">\mathbb T^2_N</span><script type="math/tex">\mathbb T^2_N</script></span></button> </center></p>
 <table class="dataframe profile-data-table" id="SwendsenWang-ReducedKernelSample-2-table">
 <thead>
 <tr style="text-align: right;">
@@ -1391,7 +1393,7 @@ scheduled temperature at time <code>t</code>.</dd>
 
         def __init__(
                         self, C, dimension=1, field=2, temperature=constant(-0.6), initial=None,
-                        **kwargs
+                        dtypes=(np.int8,np.byte,np.byte), **kwargs
                 ):
                 r&#34;&#34;&#34;
                 Initializes Swendsen-Wang evolution on the Potts model.
@@ -1404,6 +1406,8 @@ scheduled temperature at time <code>t</code>.</dd>
                                 takes a single positive integer argument `t`, and returns the
                                 scheduled temperature at time `t`.
                         initial (np.array): A vector of spin assignments to components.
+                        dtypes (tuple=(np.int,np.byte,np.byte)): A tuple of NumPy data types
+                                to which output data are cast.
 
                 &lt;center&gt; &lt;button type=&#34;button&#34; class=&#34;collapsible&#34; id=&#34;SwendsenWang-ReducedKernelSample-2&#34;&gt; Performance in \(\mathbb T^2_N\)&lt;/button&gt; &lt;/center&gt;
                 .. include:: ./tables/SwendsenWang.ReducedKernelSample.2.html
@@ -1417,6 +1421,7 @@ scheduled temperature at time <code>t</code>.</dd>
                 self.dimension = dimension
                 self._returns = 3
                 self.field = field
+                self.dtypes = dtypes
 
                 # Force-recompute the matrices for a different dimension; creates
                 # a set of orientations for fast elementwise products.
@@ -1463,7 +1468,7 @@ scheduled temperature at time <code>t</code>.</dd>
                                 return np.array(ReducedKernelSample(
                                         self.matrices.coboundary, zeros, 2*self.dimension,
                                         self.faces, self.field, self._DEBUG
-                                ), dtype=FINT)
+                                ), dtype=self.dtypes[0])
                         except Exception as e:
                                 raise NumericalInstabilityWarning(e)
                         
@@ -1479,7 +1484,7 @@ scheduled temperature at time <code>t</code>.</dd>
                         A numpy `np.array` representing a vector of spin assignments.
                 &#34;&#34;&#34;
                 return self.RNG.integers(
-                        0, high=self.field, dtype=FINT, size=self.faces
+                        0, high=self.field, size=self.faces, dtype=self.dtypes[0]
                 )
         
 
@@ -1522,7 +1527,7 @@ scheduled temperature at time <code>t</code>.</dd>
                         assert sums.sum() == 0
 
                 # Create output vectors.
-                occupied = np.zeros(self.cells, dtype=FINT)
+                occupied = np.zeros(self.cells, dtype=self.dtypes[1])
                 occupied[includedZeros] = 1
 
                 coefficients = self.spins[boundary]
@@ -1530,7 +1535,7 @@ scheduled temperature at time <code>t</code>.</dd>
                 sums = coefficients.sum(axis=1)%q
                 zeros = np.nonzero(sums == 0)[0]
 
-                satisfied = np.zeros(self.cells, dtype=FINT)
+                satisfied = np.zeros(self.cells, dtype=self.dtypes[2])
                 satisfied[zeros] = 1
 
                 return spins, occupied, satisfied
