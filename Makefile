@@ -119,6 +119,6 @@ dependencies: FORCE headers
 	@pip install -r requirements
 
 _install: FORCE build
-	python setup.py develop
+	pip install --editable . --no-build-isolation
 
 FORCE:
